@@ -1014,14 +1014,15 @@ async function loadAW(){
       const wid=String(w.worker_id||'');
       const statusCls=w.status==='active'?'sb-a':w.status==='pending'?'sb-p':'sb-b';
       let pricesHtml='<div style="display:flex;flex-direction:column;gap:5px;">';
-      cats.forEach(cat=>{
-        const pr=w.prices&&w.prices.find(p=>p.category===cat);
+      cats.forEach(function(cat){
+        const pr=w.prices&&w.prices.find(function(p){return p.category===cat;});
         const catKey=cat.replace(/[^a-zA-Z]/g,'');
         const inputId='pr-'+wid+'-'+catKey;
+        const val=pr?pr.price:'';
         pricesHtml+='<div style="display:flex;align-items:center;gap:4px;font-size:11px;">';
         pricesHtml+='<span style="min-width:90px;color:var(--mu);">'+cat.split(' ').slice(0,2).join(' ')+':</span>';
-        pricesHtml+='<input type="number" id="'+inputId+'" value="'+(pr?pr.price:'')+'" placeholder="—" min="1" style="width:60px;padding:3px 6px;font-size:11px;border:0.5px solid var(--br);border-radius:6px;background:var(--bg);color:var(--navy);"/>';
-        pricesHtml+=' lei <button class="btn bt-bl" style="padding:2px 7px;font-size:11px;" onclick="savePr2(''+wid+'',''+cat+'',''+inputId+'')">✓</button>';
+        pricesHtml+='<input type="number" id="'+inputId+'" value="'+val+'" placeholder="—" min="1" style="width:60px;padding:3px 6px;font-size:11px;border:0.5px solid var(--br);border-radius:6px;background:var(--bg);color:var(--navy);" />';
+        pricesHtml+=' lei <button class="btn bt-bl" style="padding:2px 7px;font-size:11px;" data-wid="'+wid+'" data-cat="'+catKey+'" data-inp="'+inputId+'" onclick="handleSavePr2(this)">✓</button>';
         pricesHtml+='</div>';
       });
       pricesHtml+='</div>';
