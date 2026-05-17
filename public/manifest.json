@@ -1,14 +1,16 @@
 {
-  "name": "HandyRO",
+  "name": "HandyRO — Meseriași în București",
   "short_name": "HandyRO",
-  "description": "Meseriași verificați în București",
+  "description": "Găsești rapid un meșter verificat în București",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F7F5F0",
   "theme_color": "#0F1F3D",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "ro",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
