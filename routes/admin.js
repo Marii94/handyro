@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const { db, CATEGORIES } = require('../db');
 const { auth, requireRole } = require('../middleware/auth');
 
 router.use(auth, requireRole('admin'));
@@ -23,7 +23,8 @@ router.get('/users', async (req, res) => {
     const users = await db.users.find({});
     const result = await Promise.all(users.map(async u => {
       const w = await db.workers.findOne({ user_id: u._id });
-      return { ...u, password: undefined, price_per_job: w?.price_per_job, rating: w?.rating, reviews_count: w?.reviews_count, worker_id: w?._id, specialization: w?.specialization };
+      const prices = w ? await db.prices.find({ worker_id: w._id }) : [];
+      return { ...u, password: undefined, rating: w?.rating, reviews_count: w?.reviews_count, worker_id: w?._id, specialization: w?.specialization, prices };
     }));
     res.json(result);
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -38,24 +39,29 @@ router.patch('/users/:id/status', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// FIX: editare pret meserias
+// Admin seteaza pretul unui meserias per categorie
 router.patch('/workers/:workerId/price', async (req, res) => {
   try {
-    const price = Number(req.body.price_per_job || req.body.price_per_hour);
-    if (!price || price < 1) return res.status(400).json({ error: 'Pret invalid' });
-    const numUpdated = await db.workers.update({ _id: req.params.workerId }, { $set: { price_per_job: price } });
-    if (numUpdated === 0) return res.status(404).json({ error: 'Mesterul nu exista' });
-    res.json({ message: 'Pret actualizat', price_per_job: price });
+    const { category, price } = req.body;
+    const p = Number(price);
+    if (!p || p < 1) return res.status(400).json({ error: 'Preț invalid' });
+    const cat = category || 'Toate categoriile';
+    const existing = await db.prices.findOne({ worker_id: req.params.workerId, category: cat });
+    if (existing) {
+      await db.prices.update({ _id: existing._id }, { $set: { price: p } });
+    } else {
+      await db.prices.insert({ worker_id: req.params.workerId, category: cat, price: p });
+    }
+    res.json({ message: 'Preț actualizat: ' + p + ' lei', price: p });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// FIX: stergere user
 router.delete('/users/:id', async (req, res) => {
   try {
     const user = await db.users.findOne({ _id: req.params.id });
     if (!user || user.role === 'admin') return res.status(403).json({ error: 'Nu poți șterge acest cont' });
-    // Sterge si worker-ul asociat
-    await db.workers.remove({ user_id: req.params.id }, {});
+    const w = await db.workers.findOne({ user_id: req.params.id });
+    if (w) { await db.prices.remove({ worker_id: w._id }, { multi: true }); await db.workers.remove({ _id: w._id }, {}); }
     await db.users.remove({ _id: req.params.id }, {});
     res.json({ message: 'Utilizator șters' });
   } catch(e) { res.status(500).json({ error: e.message }); }

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const db = require('../db').db;
 const { auth, requireRole } = require('../middleware/auth');
 
 // POST /api/reviews — client lasa review dupa job finalizat

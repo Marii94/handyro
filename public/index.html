@@ -534,9 +534,9 @@ function ss(el,cat,ico){
           <div class="wts"><span class="wt">Verificat</span><span class="wt">Garanție</span><span class="wt">Răspuns &lt;2h</span></div>
         </div>
         <div class="wri">
-          <div class="wpr">${w.price_per_job||100} lei<span>/lucrare</span></div>
+          <div class="wpr">${w.price_for_category||'—'} lei<span>/lucrare</span></div>
           <div style="font-size:12px;color:var(--mu);">⭐ ${w.rating||5.0} · ${w.reviews_count||0}</div>
-          <button class="btn bt-bl bt-sm" onclick="selectWorker('${w._id}',${w.price_per_job||100},'${w.name}')">Alege</button>
+          <button class="btn bt-bl bt-sm" onclick="selectWorker('${w._id}',${w.price_for_category||0},'${w.name}')">Alege</button>
         </div>
       </div>`).join('');
   }).catch(()=>{});
@@ -812,7 +812,19 @@ async function loadAW(){
     const ws=us.filter(u=>u.role==='meserias');
     document.getElementById('tw').innerHTML=`<table><thead><tr><th>Meșter</th><th>Specializare</th><th>Preț/lucrare (editabil)</th><th>Rating</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>
     ${ws.map(w=>{const uid=w._id||w.id;const wid=w.worker_id;return`<tr id="wr-${uid}"><td><strong>${w.name}</strong><br><span style="font-size:11px;color:var(--mu);">${w.email}</span></td><td>${w.specialization||'—'}</td>
-    <td><div style="display:flex;align-items:center;gap:6px;"><input class="pin" type="number" id="pr-${wid}" value="${w.price_per_job||100}" min="1" max="9999"/> lei/lucrare <button class="btn bt-bl bt-sm" onclick="savePr('${wid}')"><i class="ti ti-check"></i></button></div></td>
+    <td>
+      <div style="display:flex;flex-direction:column;gap:6px;min-width:280px;">
+        ${['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'].map(cat=>{
+          const pr=w.prices?.find(p=>p.category===cat);
+          return `<div style="display:flex;align-items:center;gap:5px;font-size:12px;">
+            <span style="min-width:140px;color:var(--mu);">${cat.split(' ')[0]+' '+cat.split(' ')[1]}:</span>
+            <input class="pin" type="number" id="pr-${wid}-${cat.replace(/[^a-z]/gi,'')}" value="${pr?pr.price:''}" placeholder="—" min="1" max="99999" style="width:65px;"/>
+            <span style="font-size:11px;color:var(--mu);">lei</span>
+            <button class="btn bt-bl" style="padding:3px 8px;font-size:11px;" onclick="savePr2('${wid}','${cat}','pr-${wid}-${cat.replace(/[^a-z]/gi,'')}')">✓</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </td>
     <td>⭐ ${w.rating||'5.0'} (${w.reviews_count||0})</td>
     <td><span class="sb ${w.status==='active'?'sb-a':w.status==='pending'?'sb-p':'sb-b'}" id="sb-${uid}">${w.status}</span></td>
     <td><div class="ab-row">${w.status==='pending'?`<button class="btn bt-gr bt-sm" onclick="sSt('${uid}','active','sb-${uid}')"><i class="ti ti-check"></i> Aprobă</button>`:''} ${w.status!=='blocked'?`<button class="btn bt-re bt-sm" onclick="sSt('${uid}','blocked','sb-${uid}')"><i class="ti ti-ban"></i></button>`:`<button class="btn bt-gh bt-sm" onclick="sSt('${uid}','active','sb-${uid}')"><i class="ti ti-lock-open"></i></button>`}</div></td></tr>`;}).join('')}
@@ -844,6 +856,17 @@ async function loadAM(){
     </tbody></table><div style="margin-top:8px;font-size:11px;color:var(--mu);"><i class="ti ti-shield-check" style="font-size:12px;vertical-align:-1px;"></i> Numerele de telefon sunt blocate automat.</div>`;
   }catch(e){}
 }
+async function savePr2(wid, category, inputId){
+  const input=document.getElementById(inputId);
+  if(!input){toast('Câmp negăsit');return;}
+  const v=Number(input.value);
+  if(!v||v<1){toast('Preț invalid');return;}
+  try{
+    await api('PATCH','/api/admin/workers/'+wid+'/price',{category,price:v});
+    toast('✓ '+category.split(' ')[0]+': '+v+' lei');
+  }catch(e){toast('Eroare: '+e.message);}
+}
+
 async function savePr(wid){
   const input=document.getElementById('pr-'+wid);
   if(!input){toast('Camp negasit');return;}
@@ -866,6 +889,29 @@ function at(btn,tab){
 }
 
 document.getElementById('mov').addEventListener('click',e=>{if(e.target===document.getElementById('mov'))cm();});
+
+// Incarca categoriile/serviciile dinamic
+async function loadSvcGrid(){
+  try{
+    const cats=[
+      {name:'Instalații sanitare',ico:'ti-droplet',desc:'Robineți, țevi, boilere'},
+      {name:'Instalații electrice',ico:'ti-bolt',desc:'Prize, tablouri, cablaje'},
+      {name:'Renovări & zugrăveală',ico:'ti-brush',desc:'Vopsit, gresie, faianță'},
+      {name:'Curățenie profesională',ico:'ti-sparkles',desc:'Rezidențial & comercial'},
+      {name:'Tâmplărie & mobilier',ico:'ti-armchair',desc:'Montaj, reparații'},
+      {name:'Mentenanță generală',ico:'ti-settings',desc:'Intervenții rapide'},
+    ];
+    const grid=document.getElementById('svc-grid');
+    if(!grid)return;
+    grid.innerHTML=cats.map(c=>`
+      <div class="sc" onclick="ss(this,'${c.name}','${c.ico}')">
+        <div class="si"><i class="ti ${c.ico}"></i></div>
+        <div class="sn">${c.name}</div>
+        <div class="sd">${c.desc}</div>
+      </div>`).join('');
+  }catch(e){}
+}
+loadSvcGrid();
 
 // Auto-login din token
 (async()=>{
