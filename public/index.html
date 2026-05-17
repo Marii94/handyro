@@ -363,12 +363,8 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
           </select>
         </div>
         <div class="ww" style="margin-bottom:14px;">
-          <div class="wh"><div class="wht" id="ww-t">Meșter disponibil</div><div class="avb"><span class="avd"></span>Disponibil</div></div>
-          <div class="wr">
-            <div class="wa">IȘ</div>
-            <div class="wi"><div class="wn">Ionuț Șerban</div><div class="wsp">Specialist în toate categoriile · București</div><div class="wts"><span class="wt">Verificat</span><span class="wt">Garanție</span><span class="wt">Răspuns &lt;2h</span></div></div>
-            <div class="wri"><div class="wpr" id="svc-pr">100 lei<span>/lucrare</span></div><div style="font-size:12px;color:var(--mu);">⭐ 5.0 · 214</div></div>
-          </div>
+          <div class="wh"><div class="wht" id="ww-t">Meseriași disponibili</div><div class="avb"><span class="avd"></span>Disponibili acum</div></div>
+          <div id="workers-list">Se încarcă...</div>
         </div>
         <button class="btn bt-bl" id="sub-btn" style="width:100%;justify-content:center;padding:11px;" onclick="submitJob()"><i class="ti ti-send"></i> Trimite cererea</button>
         <div class="ok" id="job-ok"><i class="ti ti-circle-check"></i><h3>Cerere trimisă cu succes!</h3><p id="ok-txt">Ionuț Șerban a primit cererea ta și îți va răspunde prin mesageria HandyRO.</p></div>
@@ -524,7 +520,26 @@ function ss(el,cat,ico){
   document.getElementById('job-ok').style.display='none';
   document.getElementById('sub-btn').disabled=false;
   document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea';
-  api('GET','/api/workers').then(w=>{if(w.length){const p=w[0].price_per_job;document.getElementById('svc-pr').innerHTML=p+' lei<span>/lucrare</span>';document.getElementById('hero-pr').innerHTML=p+' lei<span>/lucrare</span>';}}).catch(()=>{});
+  api('GET','/api/workers').then(workers=>{
+    const list=document.getElementById('workers-list');
+    if(!workers.length){list.innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Nu există meseriași disponibili momentan.</div>';return;}
+    // Update hero price with first worker
+    if(workers[0]) document.getElementById('hero-pr').innerHTML=workers[0].price_per_job+' lei<span style="font-size:11px;font-weight:400;font-family:\'DM Sans\',sans-serif;color:var(--mu);">/lucrare</span>';
+    list.innerHTML=workers.map(w=>`
+      <div class="wr" style="border-top:0.5px solid var(--br);">
+        <div class="wa">${ini(w.name)}</div>
+        <div class="wi">
+          <div class="wn">${w.name}</div>
+          <div class="wsp">${w.specialization||'Specialist'} · ${w.city||'București'}</div>
+          <div class="wts"><span class="wt">Verificat</span><span class="wt">Garanție</span><span class="wt">Răspuns &lt;2h</span></div>
+        </div>
+        <div class="wri">
+          <div class="wpr">${w.price_per_job||100} lei<span>/lucrare</span></div>
+          <div style="font-size:12px;color:var(--mu);">⭐ ${w.rating||5.0} · ${w.reviews_count||0}</div>
+          <button class="btn bt-bl bt-sm" onclick="selectWorker('${w._id}',${w.price_per_job||100},'${w.name}')">Alege</button>
+        </div>
+      </div>`).join('');
+  }).catch(()=>{});
   document.getElementById('fc').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function su(u){urg=u;document.getElementById('u-n').classList.toggle('on',u==='normal');document.getElementById('u-u').classList.toggle('on',u==='urgent');}
@@ -550,6 +565,16 @@ function rp(){
 }
 function rf(i){files.splice(i,1);document.getElementById('uz').style.display='block';rp();}
 
+let selectedWorkerId = null;
+function selectWorker(wid, price, name){
+  selectedWorkerId = wid;
+  // Highlight selected
+  document.querySelectorAll('.wr').forEach(r=>r.style.background='');
+  document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea către '+name;
+  document.getElementById('sub-btn').disabled=false;
+  toast('Meșter selectat: '+name+' — '+price+' lei/lucrare');
+}
+
 async function submitJob(){
   if(!CU){toast('Trebuie să fii autentificat');om('login');return;}
   if(CU.role!=='client'){toast('Doar clienții pot trimite cereri');return;}
@@ -568,7 +593,7 @@ async function submitJob(){
       if(r.ok)photoUrls=d.urls;
     }
     const workers=await api('GET','/api/workers');
-    const wid=workers[0]?.id;
+    const wid=selectedWorkerId||workers[0]?._id||workers[0]?.id;
     await api('POST','/api/jobs',{category:curCat,description:desc,worker_id:wid,urgency:urg,time_slot:document.getElementById('slot').value,photos:photoUrls});
     const ptxt=files.length>0?` cu ${files.length} ${files.length===1?'poză':'poze'}`:'';
     const utxt=urg==='urgent'?' Marcat ca urgent.':'';
