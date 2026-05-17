@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HandyRO — Meseriași de încredere în București</title>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#0F1F3D"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="HandyRO"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css"/>
+<style>
+:root{--bg:#F7F5F0;--card:#FFF;--navy:#0F1F3D;--blue:#1A56DB;--bl:#EBF1FF;--acc:#FF5C35;--al:#FFF0EC;--mu:#6B7280;--br:rgba(15,31,61,0.1);--r:16px;--rs:10px;--gr:#059669;--gl:#D1FAE5;--re:#DC2626;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--navy);font-size:15px;line-height:1.6;}
+nav{position:sticky;top:0;z-index:50;background:rgba(247,245,240,0.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--br);}
+.nav-in{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:62px;padding:0 2rem;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--navy);cursor:pointer;}
+.logo .dot{color:var(--acc);}
+.nav-ul{display:flex;gap:1.75rem;list-style:none;}
+.nav-ul a{font-size:13px;font-weight:500;color:var(--mu);cursor:pointer;transition:color .15s;}
+.nav-ul a:hover,.nav-ul a.on{color:var(--navy);}
+.nav-act{display:flex;gap:8px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.bt-gh{background:transparent;border:1.5px solid var(--br);color:var(--navy);}
+.bt-gh:hover{border-color:var(--navy);}
+.bt-nv{background:var(--navy);color:#fff;}
+.bt-nv:hover{background:#1A2F5A;}
+.bt-ac{background:var(--acc);color:#fff;}
+.bt-ac:hover{background:#e04020;}
+.bt-bl{background:var(--blue);color:#fff;}
+.bt-bl:hover{background:#1345b5;}
+.bt-gr{background:var(--gr);color:#fff;}
+.bt-gr:hover{background:#047857;}
+.bt-re{background:var(--re);color:#fff;}
+.bt-re:hover{background:#b91c1c;}
+.bt-sm{padding:5px 12px;font-size:12px;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.page{display:none;}
+.page.on{display:block;animation:fu .3s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* HERO */
+.hero{max-width:1100px;margin:0 auto;padding:4.5rem 2rem 3.5rem;display:grid;grid-template-columns:1fr 400px;gap:3.5rem;align-items:center;}
+.htag{display:inline-flex;align-items:center;gap:6px;background:var(--al);color:var(--acc);font-size:12px;font-weight:500;padding:4px 12px;border-radius:999px;margin-bottom:1rem;}
+.hero h1{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;line-height:1.1;color:var(--navy);margin-bottom:1rem;}
+.hero h1 em{font-style:normal;color:var(--acc);}
+.hero-sub{font-size:16px;color:var(--mu);line-height:1.75;margin-bottom:1.75rem;font-weight:300;}
+.hero-cta{display:flex;gap:10px;margin-bottom:2rem;}
+.hcard{background:var(--card);border-radius:22px;border:1px solid var(--br);padding:1.75rem;box-shadow:0 8px 40px rgba(15,31,61,0.08);}
+.hct{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:1rem;}
+.pills{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:1.25rem;}
+.pill{padding:7px 14px;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--br);background:var(--bg);color:var(--navy);transition:all .2s;}
+.pill:hover,.pill.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+.wp{background:var(--bg);border-radius:var(--rs);padding:.9rem;margin-bottom:.9rem;}
+.wp-t{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.av{width:42px;height:42px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;}
+.avb{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gr);font-weight:500;margin-bottom:.9rem;}
+.avd{width:7px;height:7px;border-radius:50%;background:var(--gr);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+/* SECTIONS */
+.sec{max-width:1100px;margin:0 auto;padding:3.5rem 2rem;}
+.sl{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin-bottom:.4rem;}
+.st{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--navy);margin-bottom:.6rem;line-height:1.2;}
+.ss{font-size:15px;color:var(--mu);max-width:460px;font-weight:300;}
+.sh{margin-bottom:2.5rem;}
+.div{height:1px;background:var(--br);max-width:1100px;margin:0 auto;}
+
+/* SERVICES */
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.sc{background:var(--card);border:1px solid var(--br);border-radius:var(--r);padding:1.35rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);transform:scaleX(0);transform-origin:left;transition:transform .2s;}
+.sc:hover::before,.sc.on::before{transform:scaleX(1);}
+.sc:hover,.sc.on{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,86,219,0.1);}
+.si{width:44px;height:44px;border-radius:11px;background:var(--bl);display:flex;align-items:center;justify-content:center;margin-bottom:.85rem;}
+.si i{font-size:22px;color:var(--blue);}
+.sn{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+.sd{font-size:12px;color:var(--mu);line-height:1.5;}
+
+/* FORM CERERE */
+.fc{background:var(--card);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-top:1.75rem;}
+.fc-h{padding:1rem 1.4rem;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:10px;background:var(--bg);}
+.fc-ico{width:38px;height:38px;border-radius:10px;background:var(--bl);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fc-ico i{font-size:19px;color:var(--blue);}
+.fc-cat{font-size:14px;font-weight:500;color:var(--navy);}
+.fc-sub{font-size:11px;color:var(--mu);}
+.fc-b{padding:1.25rem 1.4rem;}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.fg label{font-size:11px;font-weight:500;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;}
+.fg textarea,.fg select,.fg input[type=text]{font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 12px;border:0.5px solid rgba(15,31,61,0.2);border-radius:var(--rs);background:var(--bg);color:var(--navy);outline:none;width:100%;transition:border-color .15s;}
+.fg textarea{resize:vertical;min-height:90px;}
+.fg textarea:focus,.fg select:focus{border-color:var(--blue);}
+.cc{font-size:11px;color:var(--mu);text-align:right;margin-top:3px;}
+.urg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.uo{border:0.5px solid rgba(15,31,61,0.15);border-radius:var(--rs);padding:.7rem 1rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px;}
+.uo:hover{border-color:rgba(15,31,61,0.3);}
+.uo.on{border:1.5px solid var(--blue);background:var(--bl);}
+.ud{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ul{font-size:13px;font-weight:500;color:var(--navy);}
+.us{font-size:11px;color:var(--mu);}
+
+/* UPLOAD */
+.uz{border:1.5px dashed rgba(15,31,61,0.2);border-radius:var(--r);padding:1.5rem;text-align:center;cursor:pointer;transition:all .18s;background:var(--bg);position:relative;}
+.uz:hover,.uz.dov{border-color:var(--blue);background:var(--bl);}
+.uz input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.uz i{font-size:28px;color:var(--mu);display:block;margin-bottom:8px;}
+.uz-t{font-size:13px;color:var(--mu);}
+.uz-h{font-size:11px;color:var(--mu);opacity:.7;margin-top:3px;}
+.prev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.pi{position:relative;aspect-ratio:1;border-radius:var(--rs);overflow:hidden;border:0.5px solid var(--br);}
+.pi img{width:100%;height:100%;object-fit:cover;}
+.pi-rm{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;cursor:pointer;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1;}
+.pa{aspect-ratio:1;border-radius:var(--rs);border:1.5px dashed rgba(15,31,61,0.2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--bg);gap:4px;position:relative;}
+.pa:hover{border-color:var(--blue);}
+.pa i{font-size:20px;color:var(--mu);}
+.pa span{font-size:10px;color:var(--mu);}
+.pa input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+
+/* WORKERS */
+.ww{background:var(--card);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;}
+.wh{padding:1.1rem 1.4rem;border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;}
+.wht{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--navy);}
+.wr{padding:1.1rem 1.4rem;display:flex;align-items:center;gap:14px;}
+.wa{width:48px;height:48px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+.wi{flex:1;}
+.wn{font-weight:500;font-size:14px;color:var(--navy);}
+.wsp{font-size:12px;color:var(--mu);}
+.wts{display:flex;gap:5px;margin-top:4px;}
+.wt{font-size:10px;padding:2px 9px;border-radius:999px;background:var(--bl);color:var(--blue);font-weight:500;}
+.wri{display:flex;flex-direction:column;align-items:flex-end;gap:7px;}
+.wpr{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--navy);}
+.wpr span{font-size:11px;font-weight:400;font-family:'DM Sans',sans-serif;color:var(--mu);}
+
+/* STEPS */
+.stg{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--br);border-radius:var(--r);overflow:hidden;}
+.sbx{background:var(--card);padding:1.75rem 1.4rem;}
+.sn2{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;color:var(--bl);margin-bottom:.85rem;line-height:1;}
+.st2{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px;}
+.sd2{font-size:12px;color:var(--mu);line-height:1.6;}
+
+/* ABOUT */
+.ag{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:center;}
+.adk{background:var(--navy);border-radius:22px;padding:2.5rem;display:flex;flex-direction:column;gap:1.25rem;}
+.ast{border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:1.25rem;}
+.ast:last-child{border-bottom:none;padding-bottom:0;}
+.asn{font-family:'Syne',sans-serif;font-size:44px;font-weight:800;color:#fff;line-height:1;}
+.asl{font-size:13px;color:rgba(255,255,255,0.45);margin-top:3px;}
+.at h2{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--navy);line-height:1.2;margin-bottom:1rem;}
+.at h2 em{font-style:normal;color:var(--acc);}
+.at p{font-size:15px;color:var(--mu);font-weight:300;line-height:1.8;margin-bottom:.85rem;}
+
+/* CONTACT */
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;}
+.cf{background:var(--card);border:1px solid var(--br);border-radius:var(--r);padding:1.75rem;}
+.fg-r{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* DASHBOARD */
+.dw{max-width:960px;margin:0 auto;padding:2.25rem 2rem;}
+.dt{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;}
+.dti{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--navy);}
+.dsi{font-size:13px;color:var(--mu);margin-top:2px;}
+.dsg{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:1.75rem;}
+.ds{background:var(--card);border:1px solid var(--br);border-radius:var(--r);padding:1.1rem 1.35rem;}
+.dsn{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--navy);}
+.dsl{font-size:12px;color:var(--mu);margin-top:3px;}
+.set{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--navy);margin-bottom:.85rem;}
+.jc{background:var(--card);border:1px solid var(--br);border-radius:var(--r);padding:1.1rem 1.35rem;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;}
+.ji{width:42px;height:42px;border-radius:11px;background:var(--bl);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.ji i{font-size:21px;color:var(--blue);}
+.jif{flex:1;}
+.jt{font-weight:500;font-size:14px;color:var(--navy);}
+.jm{font-size:12px;color:var(--mu);margin-top:2px;}
+.jph{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+.jph img{width:52px;height:52px;border-radius:6px;object-fit:cover;border:0.5px solid var(--br);}
+.jurg{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:999px;font-weight:500;margin-top:4px;}
+.u-urg{background:#FEE2E2;color:#991B1B;}
+.u-nor{background:var(--bl);color:#0C447C;}
+.jr{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0;}
+.jb{font-size:10px;padding:3px 10px;border-radius:999px;font-weight:500;}
+.jb-n{background:var(--bl);color:var(--blue);}
+.jb-a{background:var(--gl);color:#065F46;}
+
+/* CHAT */
+.cw{background:var(--card);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-top:10px;}
+.ch{padding:.85rem 1.25rem;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:10px;background:var(--bg);}
+.cms{padding:1rem 1.25rem;height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+.msg{display:flex;flex-direction:column;max-width:72%;}
+.msg.me{align-self:flex-end;align-items:flex-end;}
+.msg.them{align-self:flex-start;}
+.mb{padding:9px 13px;border-radius:13px;font-size:13px;line-height:1.5;}
+.msg.me .mb{background:var(--blue);color:#fff;border-bottom-right-radius:3px;}
+.msg.them .mb{background:var(--bg);color:var(--navy);border-bottom-left-radius:3px;}
+.mt{font-size:10px;color:var(--mu);margin-top:3px;padding:0 4px;}
+.cir{padding:.75rem 1.25rem;border-top:1px solid var(--br);display:flex;gap:8px;}
+.ci{flex:1;font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 13px;border:0.5px solid rgba(15,31,61,0.2);border-radius:999px;background:var(--bg);color:var(--navy);outline:none;}
+.ci:focus{border-color:var(--blue);}
+
+/* ADMIN */
+.aw{max-width:1020px;margin:0 auto;padding:2.25rem 2rem;}
+.ahd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;padding-bottom:1.25rem;border-bottom:1px solid var(--br);}
+.ati{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--navy);}
+.ab{background:#FEF3C7;color:#92400E;font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;}
+.asg{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:2rem;}
+.atb{display:flex;gap:4px;margin-bottom:1.5rem;background:var(--bg);border-radius:999px;padding:4px;width:fit-content;}
+.atb button{padding:7px 18px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;color:var(--mu);border:none;background:transparent;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.atb button.on{background:var(--card);color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:var(--r);overflow:hidden;border:1px solid var(--br);}
+table th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--mu);padding:.85rem 1.25rem;border-bottom:1px solid var(--br);background:var(--bg);}
+table td{padding:.85rem 1.25rem;font-size:13px;color:var(--navy);border-bottom:1px solid var(--br);}
+table tr:last-child td{border-bottom:none;}
+table tr:hover td{background:var(--bg);}
+.sb{font-size:10px;padding:3px 10px;border-radius:999px;font-weight:500;}
+.sb-a{background:var(--gl);color:#065F46;}
+.sb-p{background:#FEF3C7;color:#92400E;}
+.sb-b{background:#FEE2E2;color:#991B1B;}
+.ab-row{display:flex;gap:5px;flex-wrap:wrap;}
+.pi2{width:70px;height:70px;border-radius:8px;object-fit:cover;border:0.5px solid var(--br);}
+.pin{font-size:11px;padding:4px 8px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);outline:none;font-family:'DM Sans',sans-serif;width:80px;}
+
+/* MODAL */
+.mov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
+.mov.on{display:flex;}
+.mb2{background:var(--card);border-radius:22px;padding:2.25rem;width:100%;max-width:390px;box-shadow:0 24px 80px rgba(0,0,0,0.2);}
+.ml{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--navy);margin-bottom:.2rem;}
+.ml .dot{color:var(--acc);}
+.ms{font-size:13px;color:var(--mu);margin-bottom:1.5rem;}
+.err{background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--rs);padding:9px 13px;font-size:12px;color:#991B1B;margin-bottom:10px;display:none;}
+.mtg{text-align:center;font-size:12px;color:var(--mu);margin-top:13px;}
+.mtg a{color:var(--blue);cursor:pointer;font-weight:500;}
+.ok{background:#F0FDF4;border:0.5px solid #A7F3D0;border-radius:var(--r);padding:1.25rem;text-align:center;margin-top:1.25rem;display:none;}
+.ok i{font-size:28px;color:var(--gr);margin-bottom:6px;display:block;}
+.ok h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#064E3B;margin-bottom:3px;}
+.ok p{font-size:12px;color:#047857;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;}
+.toast.on{opacity:1;transform:translateY(0);}
+footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
+.fi{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
+.fl{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--navy);}
+.fl .dot{color:var(--acc);}
+.fls{display:flex;gap:1.75rem;}
+.fls a{font-size:12px;color:var(--mu);cursor:pointer;}
+.fls a:hover{color:var(--navy);}
+.fc2{font-size:11px;color:var(--mu);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <div class="logo" onclick="gp('home')">Handy<span class="dot">RO</span></div>
+    <ul class="nav-ul" id="pub-nav">
+      <li><a id="nl-home" class="on" onclick="gp('home')">Acasă</a></li>
+      <li><a id="nl-services" onclick="gp('services')">Servicii</a></li>
+      <li><a id="nl-about" onclick="gp('about')">Despre noi</a></li>
+      <li><a id="nl-contact" onclick="gp('contact')">Contact</a></li>
+    </ul>
+    <div class="nav-act" id="nav-act">
+      <button class="btn bt-gh" onclick="om('login')"><i class="ti ti-login"></i> Intră în cont</button>
+      <button class="btn bt-ac" onclick="om('register')"><i class="ti ti-tool"></i> Fii meșter</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div class="page on" id="page-home">
+  <div class="hero">
+    <div>
+      <div class="htag"><i class="ti ti-map-pin"></i> București & împrejurimi</div>
+      <h1>Meseriași <em>verificați</em>,<br>la tine acasă azi.</h1>
+      <p class="hero-sub">Găsești rapid un specialist pentru orice lucrare — trimite poze cu problema, descrie situația, fără număr de telefon.</p>
+      <div class="hero-cta">
+        <button class="btn bt-nv" onclick="gp('services')"><i class="ti ti-search"></i> Găsește un meșter</button>
+        <button class="btn bt-gh" onclick="gp('about')">Cum funcționează</button>
+      </div>
+    </div>
+    <div class="hcard">
+      <div class="hct">Alege serviciul tău</div>
+      <div class="pills">
+        <span class="pill on" onclick="sp(this)">Sanitare</span>
+        <span class="pill" onclick="sp(this)">Electrice</span>
+        <span class="pill" onclick="sp(this)">Zugrăveală</span>
+        <span class="pill" onclick="sp(this)">Curățenie</span>
+        <span class="pill" onclick="sp(this)">Tâmplărie</span>
+        <span class="pill" onclick="sp(this)">Mentenanță</span>
+      </div>
+      <div class="wp">
+        <div class="wp-t"><div class="av">IȘ</div><div><div style="font-weight:500;font-size:14px;color:var(--navy);">Ionuț Șerban</div><div style="font-size:11px;color:var(--mu);">Specialist în toate categoriile</div></div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--navy);" id="hero-pr">100 lei<span style="font-size:11px;font-weight:400;font-family:'DM Sans',sans-serif;color:var(--mu);">/lucrare</span></div>
+          <div style="font-size:12px;color:var(--mu);">⭐ 5.0 · 214 recenzii</div>
+        </div>
+      </div>
+      <div class="avb"><span class="avd"></span> Disponibil astăzi în București</div>
+      <button class="btn bt-bl" style="width:100%;justify-content:center;" onclick="gp('services')"><i class="ti ti-calendar"></i> Programează acum</button>
+    </div>
+  </div>
+  <div class="div"></div>
+  <div class="sec">
+    <div class="sh"><div class="sl">Cum funcționează</div><div class="st">Simplu în 4 pași</div></div>
+    <div class="stg">
+      <div class="sbx"><div class="sn2">01</div><div class="st2">Alegi serviciul</div><div class="sd2">Selectezi categoria potrivită nevoii tale.</div></div>
+      <div class="sbx"><div class="sn2">02</div><div class="st2">Descrii problema</div><div class="sd2">Scrii ce s-a întâmplat și adaugi poze.</div></div>
+      <div class="sbx"><div class="sn2">03</div><div class="st2">Trimiți cererea</div><div class="sd2">Fără număr de telefon — totul pe platformă.</div></div>
+      <div class="sbx"><div class="sn2">04</div><div class="st2">Chat pe site</div><div class="sd2">Meșterul îți răspunde direct prin mesagerie.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<div class="page" id="page-services">
+  <div class="sec">
+    <div class="sh"><div class="sl">Servicii</div><div class="st">Alege categoria</div><div class="ss">Apasă pe o categorie, descrie problema și adaugă poze.</div></div>
+    <div class="sg">
+      <div class="sc" onclick="ss(this,'Instalații sanitare','ti-droplet')"><div class="si"><i class="ti ti-droplet"></i></div><div class="sn">Instalații sanitare</div><div class="sd">Robineți, țevi, boilere, grupuri sanitare</div></div>
+      <div class="sc" onclick="ss(this,'Instalații electrice','ti-bolt')"><div class="si"><i class="ti ti-bolt"></i></div><div class="sn">Instalații electrice</div><div class="sd">Prize, tablouri, iluminat, cablaje</div></div>
+      <div class="sc" onclick="ss(this,'Renovări & zugrăveală','ti-brush')"><div class="si"><i class="ti ti-brush"></i></div><div class="sn">Renovări & zugrăveală</div><div class="sd">Vopsit, tencuit, gresie, faianță</div></div>
+      <div class="sc" onclick="ss(this,'Curățenie profesională','ti-sparkles')"><div class="si"><i class="ti ti-sparkles"></i></div><div class="sn">Curățenie profesională</div><div class="sd">Spații rezidențiale și comerciale</div></div>
+      <div class="sc" onclick="ss(this,'Tâmplărie & mobilier','ti-armchair')"><div class="si"><i class="ti ti-armchair"></i></div><div class="sn">Tâmplărie & mobilier</div><div class="sd">Montaj, reparații, asamblare</div></div>
+      <div class="sc" onclick="ss(this,'Mentenanță generală','ti-settings')"><div class="si"><i class="ti ti-settings"></i></div><div class="sn">Mentenanță generală</div><div class="sd">Intervenții rapide și diverse</div></div>
+    </div>
+
+    <!-- FORM CERERE -->
+    <div class="fc" id="fc" style="display:none">
+      <div class="fc-h">
+        <div class="fc-ico"><i id="fc-i" class="ti ti-droplet"></i></div>
+        <div><div class="fc-cat" id="fc-cat">Instalații sanitare</div><div class="fc-sub">Completează detaliile problemei tale</div></div>
+      </div>
+      <div class="fc-b">
+        <div class="fg">
+          <label>Descrie problema <span style="color:#E24B4A;">*</span></label>
+          <textarea id="prob-desc" placeholder="Ex: Robinetul din bucătărie curge continuu, am observat și o pată de umezeală sub chiuvetă..." maxlength="500" oninput="document.getElementById('cc').textContent=this.value.length"></textarea>
+          <div class="cc"><span id="cc">0</span>/500 caractere</div>
+        </div>
+        <div class="fg">
+          <label>Adaugă poze cu problema <span style="color:var(--mu);font-size:10px;">(opțional, max 3)</span></label>
+          <div class="uz" id="uz" ondragover="dov(event,1)" ondragleave="dov(event,0)" ondrop="ddr(event)">
+            <input type="file" accept="image/*" multiple id="fi" onchange="onf(this.files)"/>
+            <i class="ti ti-camera-plus"></i>
+            <div class="uz-t">Apasă sau trage pozele aici</div>
+            <div class="uz-h">JPG, PNG — max 10MB per poză</div>
+          </div>
+          <div class="prev-grid" id="pg" style="display:none"></div>
+        </div>
+        <div class="fg">
+          <label>Urgența</label>
+          <div class="urg-row">
+            <div class="uo on" id="u-n" onclick="su('normal')"><div class="ud" style="background:#1A56DB;"></div><div><div class="ul">Normal</div><div class="us">În câteva zile</div></div></div>
+            <div class="uo" id="u-u" onclick="su('urgent')"><div class="ud" style="background:#E24B4A;"></div><div><div class="ul">Urgent</div><div class="us">Cât mai curând</div></div></div>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Interval orar preferat</label>
+          <select id="slot">
+            <option>Dimineața (08:00–12:00)</option>
+            <option>Prânz (12:00–15:00)</option>
+            <option>După-amiaza (15:00–18:00)</option>
+            <option>Seara (18:00–20:00)</option>
+            <option>Orice interval disponibil</option>
+          </select>
+        </div>
+        <div class="ww" style="margin-bottom:14px;">
+          <div class="wh"><div class="wht" id="ww-t">Meșter disponibil</div><div class="avb"><span class="avd"></span>Disponibil</div></div>
+          <div class="wr">
+            <div class="wa">IȘ</div>
+            <div class="wi"><div class="wn">Ionuț Șerban</div><div class="wsp">Specialist în toate categoriile · București</div><div class="wts"><span class="wt">Verificat</span><span class="wt">Garanție</span><span class="wt">Răspuns &lt;2h</span></div></div>
+            <div class="wri"><div class="wpr" id="svc-pr">100 lei<span>/lucrare</span></div><div style="font-size:12px;color:var(--mu);">⭐ 5.0 · 214</div></div>
+          </div>
+        </div>
+        <button class="btn bt-bl" id="sub-btn" style="width:100%;justify-content:center;padding:11px;" onclick="submitJob()"><i class="ti ti-send"></i> Trimite cererea</button>
+        <div class="ok" id="job-ok"><i class="ti ti-circle-check"></i><h3>Cerere trimisă cu succes!</h3><p id="ok-txt">Ionuț Șerban a primit cererea ta și îți va răspunde prin mesageria HandyRO.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="page" id="page-about">
+  <div class="sec">
+    <div class="ag">
+      <div class="adk">
+        <div class="ast"><div class="asn">1.200+</div><div class="asl">Clienți mulțumiți în București</div></div>
+        <div class="ast"><div class="asn">98%</div><div class="asl">Rată de satisfacție</div></div>
+        <div class="ast"><div class="asn">6</div><div class="asl">Categorii de servicii</div></div>
+        <div class="ast"><div class="asn">&lt;2h</div><div class="asl">Timp de răspuns garantat</div></div>
+      </div>
+      <div class="at">
+        <div class="sl">Despre noi</div>
+        <h2>Platforma care conectează <em>oameni</em> cu meseriași de încredere</h2>
+        <p>HandyRO s-a născut dintr-o nevoie simplă: să poți găsi rapid un meșter bun în București, totul transparent și sigur.</p>
+        <p>Trimiți poze cu problema, descrii situația, și meșterul îți răspunde direct pe platformă — fără să schimbi niciodată numărul de telefon.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<div class="page" id="page-contact">
+  <div class="sec">
+    <div class="cg">
+      <div><div class="sl">Contact</div><div class="st">Hai să vorbim</div><p style="color:var(--mu);font-weight:300;line-height:1.8;margin-top:1rem;font-size:15px;">Ai o întrebare sau vrei să te alături platformei ca meșter?</p><br><p style="font-size:14px;color:var(--mu);">Email: <strong style="color:var(--navy);">contact@handyro.ro</strong></p><p style="font-size:14px;color:var(--mu);margin-top:.5rem;">Program: <strong style="color:var(--navy);">Luni–Sâmbătă, 08:00–20:00</strong></p></div>
+      <div class="cf">
+        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--navy);margin-bottom:1.25rem;">Trimite un mesaj</div>
+        <div class="fg-r"><div class="fg"><label>Nume</label><input type="text" placeholder="Numele tău"/></div><div class="fg"><label>Email</label><input type="text" placeholder="email@exemplu.ro"/></div></div>
+        <div class="fg"><label>Mesaj</label><textarea placeholder="Descrie pe scurt ce ai nevoie..." style="min-height:90px;"></textarea></div>
+        <button class="btn bt-bl" style="width:100%;justify-content:center;" onclick="document.getElementById('c-ok').style.display='block'"><i class="ti ti-send"></i> Trimite</button>
+        <div class="ok" id="c-ok"><i class="ti ti-circle-check"></i><h3>Mesaj trimis!</h3><p>Te contactăm în cel mai scurt timp.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MESERIAS -->
+<div class="page" id="page-meserias">
+  <div class="dw">
+    <div class="dt"><div><div class="dti" id="m-hi">Bună, Ionuț! 👋</div><div class="dsi">Joburile și mesajele tale</div></div><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button></div>
+    <div class="dsg">
+      <div class="ds"><div class="dsn" id="ms-j">—</div><div class="dsl">Joburi active</div></div>
+      <div class="ds"><div class="dsn" id="ms-a">0</div><div class="dsl">Acceptate azi</div></div>
+      <div class="ds"><div class="dsn" id="ms-m">—</div><div class="dsl">Mesaje necitite</div></div>
+    </div>
+    <div class="set">Joburi disponibile</div>
+    <div id="m-jobs">Se încarcă...</div>
+    <div id="m-convs-wrap" style="margin-top:1.5rem;display:none"><div class="set">Conversații</div><div id="m-convs"></div><div id="m-chat"></div></div>
+  </div>
+</div>
+
+<!-- CLIENT -->
+<div class="page" id="page-client">
+  <div class="dw">
+    <div class="dt"><div><div class="dti" id="c-hi">Contul meu 👤</div><div class="dsi">Cererile și mesajele tale pe HandyRO</div></div><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button></div>
+    <div class="set">Cererile mele</div>
+    <div id="c-jobs">Se încarcă...</div>
+    <div style="margin-top:1.5rem;"><div class="set">Mesaje</div><div id="c-convs"></div><div id="c-chat"></div></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="page" id="page-admin">
+  <div class="aw">
+    <div class="ahd"><div><div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;"><div class="ati">Panou Admin</div><div class="ab"><i class="ti ti-shield" style="font-size:12px;"></i> Administrator</div></div><div style="font-size:13px;color:var(--mu);">Gestionezi platforma HandyRO</div></div><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button></div>
+    <div class="asg">
+      <div class="ds"><div class="dsn" id="as-u">—</div><div class="dsl">Utilizatori totali</div></div>
+      <div class="ds"><div class="dsn" id="as-w">—</div><div class="dsl">Meseriași activi</div></div>
+      <div class="ds"><div class="dsn" id="as-j">—</div><div class="dsl">Joburi postate</div></div>
+      <div class="ds"><div class="dsn" id="as-p">—</div><div class="dsl">În așteptare</div></div>
+    </div>
+    <div class="atb">
+      <button class="on" onclick="at(this,'tw')">Meseriași</button>
+      <button onclick="at(this,'tc')">Clienți</button>
+      <button onclick="at(this,'tj')">Joburi</button>
+      <button onclick="at(this,'tm')">Mesaje</button>
+    </div>
+    <div id="tw">Se încarcă...</div>
+    <div id="tc" style="display:none"></div>
+    <div id="tj" style="display:none"></div>
+    <div id="tm" style="display:none"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="mov" id="mov">
+  <div class="mb2">
+    <div class="ml">Handy<span class="dot">RO</span></div>
+    <div class="ms" id="msub">Intră în contul tău</div>
+    <div class="err" id="merr"></div>
+    <div class="fg" id="mng" style="display:none"><label>Nume complet</label><input type="text" id="mn" placeholder="Numele tău"/></div>
+    <div class="fg"><label>Email</label><input type="email" id="me" placeholder="email@exemplu.ro"/></div>
+    <div class="fg"><label>Parolă</label><input type="password" id="mp" placeholder="••••••••"/></div>
+    <div class="fg" id="mrg" style="display:none"><label>Înregistrare ca</label><select id="mr"><option value="client">Client</option><option value="meserias">Meșter</option></select></div>
+    <div style="display:flex;gap:8px;margin-top:4px;"><button class="btn bt-gh" style="flex:1" onclick="cm()">Anulează</button><button class="btn bt-nv" style="flex:1" id="msub2" onclick="subm()">Intră în cont</button></div>
+    <div class="mtg" id="mtog">Nu ai cont? <a onclick="tm2()">Înregistrează-te gratuit</a></div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--br);font-size:11px;color:var(--mu);text-align:center;">Demo: admin@handyro.ro/admin123 · ionut@handyro.ro/ionut123 · maria@handyro.ro/maria123</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer id="ft">
+  <div class="fi">
+    <div class="fl">Handy<span class="dot">RO</span></div>
+    <div class="fls"><a onclick="gp('home')">Acasă</a><a onclick="gp('services')">Servicii</a><a onclick="gp('about')">Despre noi</a><a onclick="gp('contact')">Contact</a></div>
+    <div class="fc2">© 2026 HandyRO.ro · București</div>
+  </div>
+</footer>
+
+<script>
+const API='';
+let CU=null,mm='login',urg='normal',files=[],accT=0,convId=null,curCat='',curIco='';
+
+function toast(m,d=3000){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),d);}
+async function api(method,path,body){
+  const tk=localStorage.getItem('hro_tk');
+  const o={method,headers:{'Content-Type':'application/json'},credentials:'include'};
+  if(tk)o.headers['Authorization']='Bearer '+tk;
+  if(body)o.body=JSON.stringify(body);
+  const r=await fetch(API+path,o);
+  const d=await r.json();
+  if(!r.ok)throw new Error(d.error||'Eroare');
+  return d;
+}
+function ini(n){return(n||'').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';}
+function ts(dt){const d=new Date(dt);return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');}
+function catIco(c){const m={'Instalații sanitare':'ti-droplet','Instalații electrice':'ti-bolt','Renovări & zugrăveală':'ti-brush','Curățenie profesională':'ti-sparkles','Tâmplărie & mobilier':'ti-armchair','Mentenanță generală':'ti-settings'};return m[c]||'ti-tool';}
+
+function gp(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('page-'+id).classList.add('on');
+  document.querySelectorAll('.nav-ul a').forEach(a=>a.classList.remove('on'));
+  const nl=document.getElementById('nl-'+id);if(nl)nl.classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function sp(el){document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');}
+function ss(el,cat,ico){
+  document.querySelectorAll('.sc').forEach(c=>c.classList.remove('on'));el.classList.add('on');
+  curCat=cat;curIco=ico;
+  document.getElementById('fc-cat').textContent=cat;
+  document.getElementById('fc-i').className='ti '+ico;
+  document.getElementById('ww-t').textContent='Meșter disponibil — '+cat;
+  document.getElementById('fc').style.display='block';
+  document.getElementById('job-ok').style.display='none';
+  document.getElementById('sub-btn').disabled=false;
+  document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea';
+  api('GET','/api/workers').then(w=>{if(w.length){const p=w[0].price_per_job;document.getElementById('svc-pr').innerHTML=p+' lei<span>/lucrare</span>';document.getElementById('hero-pr').innerHTML=p+' lei<span>/lucrare</span>';}}).catch(()=>{});
+  document.getElementById('fc').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function su(u){urg=u;document.getElementById('u-n').classList.toggle('on',u==='normal');document.getElementById('u-u').classList.toggle('on',u==='urgent');}
+function dov(e,v){e.preventDefault();document.getElementById('uz').classList.toggle('dov',v);}
+function ddr(e){e.preventDefault();document.getElementById('uz').classList.remove('dov');onf(e.dataTransfer.files);}
+function onf(fls){
+  Array.from(fls).filter(f=>f.type.startsWith('image/')).slice(0,3-files.length).forEach(f=>{files.push(f);});
+  rp();
+}
+function rp(){
+  const pg=document.getElementById('pg');
+  if(!files.length){pg.style.display='none';document.getElementById('uz').style.display='block';return;}
+  pg.style.display='grid';
+  if(files.length>=3)document.getElementById('uz').style.display='none';
+  pg.innerHTML='';
+  files.forEach((f,i)=>{
+    const u=URL.createObjectURL(f);
+    const d=document.createElement('div');d.className='pi';
+    d.innerHTML=`<img src="${u}" alt="Poza ${i+1}"/><button class="pi-rm" onclick="rf(${i})" aria-label="Sterge">&times;</button>`;
+    pg.appendChild(d);
+  });
+  if(files.length<3){const a=document.createElement('div');a.className='pa';a.innerHTML=`<i class="ti ti-plus"></i><span>Adaugă</span><input type="file" accept="image/*" onchange="onf(this.files)"/>`;pg.appendChild(a);}
+}
+function rf(i){files.splice(i,1);document.getElementById('uz').style.display='block';rp();}
+
+async function submitJob(){
+  if(!CU){toast('Trebuie să fii autentificat');om('login');return;}
+  if(CU.role!=='client'){toast('Doar clienții pot trimite cereri');return;}
+  const desc=document.getElementById('prob-desc').value.trim();
+  if(!desc){document.getElementById('prob-desc').focus();document.getElementById('prob-desc').style.borderColor='#E24B4A';setTimeout(()=>document.getElementById('prob-desc').style.borderColor='',2000);return;}
+  const btn=document.getElementById('sub-btn');
+  btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Se trimite...';
+  try{
+    let photoUrls=[];
+    if(files.length>0){
+      const fd=new FormData();
+      files.forEach(f=>fd.append('photos',f));
+      const tk=localStorage.getItem('hro_tk');
+      const r=await fetch('/api/upload/photos',{method:'POST',headers:{Authorization:'Bearer '+tk},body:fd,credentials:'include'});
+      const d=await r.json();
+      if(r.ok)photoUrls=d.urls;
+    }
+    const workers=await api('GET','/api/workers');
+    const wid=workers[0]?.id;
+    await api('POST','/api/jobs',{category:curCat,description:desc,worker_id:wid,urgency:urg,time_slot:document.getElementById('slot').value,photos:photoUrls});
+    const ptxt=files.length>0?` cu ${files.length} ${files.length===1?'poză':'poze'}`:'';
+    const utxt=urg==='urgent'?' Marcat ca urgent.':'';
+    document.getElementById('ok-txt').textContent=`Ionuț Șerban a primit cererea ta${ptxt}.${utxt} Îți va răspunde prin mesageria HandyRO.`;
+    document.getElementById('job-ok').style.display='block';
+    document.getElementById('job-ok').scrollIntoView({behavior:'smooth',block:'nearest'});
+    btn.innerHTML='<i class="ti ti-check"></i> Trimis!';
+  }catch(e){toast(e.message);btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea';}
+}
+
+// AUTH
+function om(m){mm=m;document.getElementById('mov').classList.add('on');document.getElementById('merr').style.display='none';rm();}
+function cm(){document.getElementById('mov').classList.remove('on');}
+function rm(){
+  const l=mm==='login';
+  document.getElementById('msub').textContent=l?'Intră în contul tău':'Creează cont gratuit';
+  document.getElementById('msub2').textContent=l?'Intră în cont':'Creează cont';
+  document.getElementById('mng').style.display=l?'none':'flex';
+  document.getElementById('mrg').style.display=l?'none':'flex';
+  document.getElementById('mtog').innerHTML=l?'Nu ai cont? <a onclick="tm2()">Înregistrează-te gratuit</a>':'Ai deja cont? <a onclick="tm2()">Intră în cont</a>';
+}
+function tm2(){mm=mm==='login'?'register':'login';document.getElementById('merr').style.display='none';rm();}
+async function subm(){
+  const email=document.getElementById('me').value.trim();
+  const pass=document.getElementById('mp').value.trim();
+  const btn=document.getElementById('msub2');btn.disabled=true;
+  try{
+    let data;
+    if(mm==='login'){data=await api('POST','/api/auth/login',{email,password:pass});}
+    else{const name=document.getElementById('mn').value.trim();const role=document.getElementById('mr').value;data=await api('POST','/api/auth/register',{name,email,password:pass,role});if(!data.token){toast(data.message||'Cont creat!');cm();btn.disabled=false;return;}}
+    localStorage.setItem('hro_tk',data.token);CU=data.user;cm();loginOk();
+  }catch(e){const er=document.getElementById('merr');er.textContent=e.message;er.style.display='block';}
+  btn.disabled=false;
+}
+function loginOk(){
+  document.getElementById('pub-nav').style.display='none';
+  document.getElementById('ft').style.display='none';
+  document.getElementById('nav-act').innerHTML=`<span style="font-size:13px;color:var(--mu);">${CU.name}</span><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>`;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  if(CU.role==='admin'){document.getElementById('page-admin').classList.add('on');loadAdmin();}
+  else if(CU.role==='meserias'){document.getElementById('page-meserias').classList.add('on');loadMes();}
+  else{document.getElementById('page-client').classList.add('on');loadClient();}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function lo(){
+  try{await api('POST','/api/auth/logout');}catch(e){}
+  localStorage.removeItem('hro_tk');CU=null;
+  document.getElementById('pub-nav').style.display='flex';
+  document.getElementById('ft').style.display='block';
+  document.getElementById('nav-act').innerHTML='<button class="btn bt-gh" onclick="om(\'login\')"><i class="ti ti-login"></i> Intră în cont</button><button class="btn bt-ac" onclick="om(\'register\')"><i class="ti ti-tool"></i> Fii meșter</button>';
+  gp('home');
+}
+
+// MESERIAS
+async function loadMes(){
+  document.getElementById('m-hi').textContent='Bună, '+CU.name+'! 👋';
+  try{
+    const d=await api('GET','/api/workers/me/dashboard');
+    document.getElementById('ms-j').textContent=d.jobs.filter(j=>j.status==='pending'||j.status==='accepted').length;
+    document.getElementById('ms-m').textContent=d.unread_messages;
+    const el=document.getElementById('m-jobs');
+    const active=d.jobs.filter(j=>j.status==='pending'||j.status==='accepted');
+    if(!active.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;">Nu ai joburi active.</div>';return;}
+    el.innerHTML=active.map(j=>{
+      const ph=(j.photos||[]);
+      const phHtml=ph.length?`<div class="jph">${ph.map(u=>`<img src="${u}" class="pi2" alt="poza job"/>`).join('')}</div>`:'';
+      const urgHtml=j.urgency==='urgent'?`<div class="jurg u-urg"><i class="ti ti-alert-triangle" style="font-size:11px;"></i> Urgent</div>`:`<div class="jurg u-nor">Normal</div>`;
+      return`<div class="jc" id="mj-${j.id}">
+        <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
+        <div class="jif"><div class="jt">${j.category} — ${j.city||'București'}</div><div class="jm">Client: ${j.client_name} · ${j.time_slot||''}</div>${urgHtml}${phHtml}</div>
+        <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'Nou'}</span>
+        <div style="display:flex;gap:5px;">${j.status!=='accepted'?`<button class="btn bt-bl bt-sm" onclick="accJob(${j.id},this)"><i class="ti ti-check"></i> Acceptă</button>`:''}<button class="btn bt-gh bt-sm" onclick="openConv(${j.id},'${j.client_name}')"><i class="ti ti-message"></i> Chat</button></div></div>
+      </div>`;
+    }).join('');
+    loadMConvs();
+  }catch(e){toast('Eroare: '+e.message);}
+}
+async function accJob(id,btn){
+  btn.disabled=true;
+  try{
+    await api('PATCH','/api/jobs/'+id+'/accept',{});
+    const c=document.getElementById('mj-'+id);
+    c.querySelector('.jb').className='jb jb-a';c.querySelector('.jb').textContent='Acceptat';
+    btn.remove();accT++;document.getElementById('ms-a').textContent=accT;
+    toast('Job acceptat!');loadMConvs();
+  }catch(e){toast(e.message);btn.disabled=false;}
+}
+async function loadMConvs(){
+  try{
+    const cs=await api('GET','/api/messages/conversations');
+    const w=document.getElementById('m-convs-wrap');w.style.display=cs.length?'block':'none';
+    document.getElementById('m-convs').innerHTML=cs.map(c=>`
+      <div class="jc" style="cursor:pointer;" onclick="openChat(${c.id},'${c.client_name}','${ini(c.client_name)}','m-chat')">
+        <div class="ji"><i class="ti ti-message-circle"></i></div>
+        <div class="jif"><div class="jt">${c.client_name}</div><div class="jm">${c.last_message||'—'}</div></div>
+        <div class="jr">${c.unread>0?`<span class="jb jb-n">${c.unread} nou</span>`:''}</div>
+      </div>`).join('');
+  }catch(e){}
+}
+
+async function completeJob(id, btn){
+  if(!confirm('Marchezi lucrarea ca finalizată?'))return;
+  btn.disabled=true;
+  try{
+    await api('PATCH','/api/jobs/'+id+'/complete',{});
+    const card=document.getElementById('mj-'+id);
+    card.querySelector('.jb').className='jb jb-a';
+    card.querySelector('.jb').textContent='Finalizat ✓';
+    btn.remove();
+    toast('Lucrare marcată ca finalizată! Clientul poate lăsa review.');
+    loadMes();
+  }catch(e){toast(e.message);btn.disabled=false;}
+}
+
+async function leaveReview(jobId, stars){
+  try{
+    await api('POST','/api/reviews',{job_id:jobId,stars});
+    toast('Review trimis! Mulțumim! ⭐'.repeat(stars));
+    document.getElementById('rev-'+jobId)?.remove();
+    loadClient();
+  }catch(e){toast(e.message);}
+}
+
+function starWidget(jobId){
+  return `<div id="rev-${jobId}" style="margin-top:10px;padding:10px;background:var(--bl);border-radius:var(--rs);">
+    <div style="font-size:12px;font-weight:500;color:var(--navy);margin-bottom:6px;">Lasă un review pentru această lucrare:</div>
+    <div style="display:flex;gap:6px;">
+      ${[1,2,3,4,5].map(s=>`<button onclick="leaveReview('${jobId}',${s})" style="width:32px;height:32px;border-radius:50%;border:1.5px solid var(--blue);background:transparent;font-size:16px;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='var(--blue)'" onmouseout="this.style.background='transparent'">⭐</button>`).join('')}
+    </div>
+    <div style="font-size:11px;color:var(--mu);margin-top:4px;">Apasă pe numărul de stele dorit</div>
+  </div>`;
+}
+
+async function openConv(jobId,cname){
+  const cs=await api('GET','/api/messages/conversations').catch(()=>[]);
+  const c=cs.find(x=>x.job_id==jobId);
+  if(c)openChat(c.id,cname,ini(cname),'m-chat');
+  else toast('Acceptă jobul mai întâi pentru a deschide chatul.');
+}
+
+// CLIENT
+async function loadClient(){
+  document.getElementById('c-hi').textContent='Bună, '+CU.name+'! 👤';
+  try{
+    const jobs=await api('GET','/api/jobs');
+    const el=document.getElementById('c-jobs');
+    if(!jobs.length){el.innerHTML=`<div style="color:var(--mu);font-size:13px;">Nu ai cereri. <a style="color:var(--blue);cursor:pointer;" onclick="gp('services')">Găsește un meșter</a></div>`;return;}
+    el.innerHTML=jobs.map(j=>{
+      const ph=j.photos||[];
+      const phHtml=ph.length?`<div class="jph">${ph.map(u=>`<img src="${u}" class="pi2" alt="poza"/>`).join('')}</div>`:'';
+      const urgHtml=j.urgency==='urgent'?`<div class="jurg u-urg"><i class="ti ti-alert-triangle" style="font-size:11px;"></i> Urgent</div>`:'';
+      return`<div class="jc">
+        <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
+        <div class="jif"><div class="jt">${j.category}</div><div class="jm">Meșter: ${j.worker_name||'În așteptare'} · ${j.time_slot||''}</div>${urgHtml}<div class="jm" style="margin-top:4px;font-style:italic;">${j.description||''}</div>${phHtml}</div>
+        <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'În așteptare'}</span></div>
+      </div>`;
+    }).join('');
+    loadCConvs();
+  }catch(e){toast('Eroare: '+e.message);}
+}
+async function loadCConvs(){
+  try{
+    const cs=await api('GET','/api/messages/conversations');
+    document.getElementById('c-convs').innerHTML=cs.map(c=>`
+      <div class="jc" style="cursor:pointer;" onclick="openChat(${c.id},'${c.worker_name}','IȘ','c-chat')">
+        <div class="ji"><i class="ti ti-message-circle"></i></div>
+        <div class="jif"><div class="jt">${c.worker_name||'Meșter'} — ${c.category}</div><div class="jm">${c.last_message||'—'}</div></div>
+        <div class="jr">${c.unread>0?`<span class="jb jb-n">${c.unread} nou</span>`:''}</div>
+      </div>`).join('');
+  }catch(e){}
+}
+
+// CHAT
+async function openChat(cid,name,av,container){
+  convId=cid;
+  const box=document.getElementById(container);
+  box.innerHTML=`<div class="cw"><div class="ch"><div class="av" style="width:36px;height:36px;font-size:11px;">${av}</div><div><div style="font-weight:500;font-size:13px;color:var(--navy);">${name}</div><div style="font-size:11px;color:var(--gr);">Online acum</div></div></div>
+    <div class="cms" id="cms-${cid}">Se încarcă...</div>
+    <div style="font-size:11px;color:var(--mu);padding:4px 1.25rem;background:var(--bg);text-align:center;"><i class="ti ti-shield-check" style="font-size:12px;vertical-align:-1px;"></i> Numerele de telefon sunt blocate automat</div>
+    <div class="cir"><input class="ci" id="ci-${cid}" type="text" placeholder="Scrie un mesaj..." onkeydown="if(event.key==='Enter')sendMsg(${cid})"/><button class="btn bt-bl bt-sm" onclick="sendMsg(${cid})"><i class="ti ti-send"></i></button></div>
+  </div>`;
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+  loadMsgs(cid);
+}
+async function loadMsgs(cid){
+  try{
+    const msgs=await api('GET','/api/messages/'+cid);
+    const el=document.getElementById('cms-'+cid);
+    if(!el)return;
+    el.innerHTML=msgs.map(m=>`<div class="msg ${m.sender_id===CU?.id?'me':'them'}"><div class="mb">${m.content}</div><div class="mt">${ts(m.created_at)}</div></div>`).join('');
+    el.scrollTop=el.scrollHeight;
+  }catch(e){}
+}
+async function sendMsg(cid){
+  const input=document.getElementById('ci-'+cid);
+  const txt=input.value.trim();if(!txt)return;input.value='';
+  try{
+    const msg=await api('POST','/api/messages/'+cid,{content:txt});
+    const el=document.getElementById('cms-'+cid);
+    const d=document.createElement('div');d.className='msg me';
+    d.innerHTML=`<div class="mb">${msg.content}</div><div class="mt">${ts(msg.created_at)}</div>`;
+    el.appendChild(d);el.scrollTop=el.scrollHeight;
+    if(msg.was_filtered)toast('Numărul de telefon a fost blocat din mesaj.');
+  }catch(e){toast(e.message);}
+}
+
+// ADMIN
+async function loadAdmin(){
+  try{
+    const s=await api('GET','/api/admin/stats');
+    document.getElementById('as-u').textContent=s.total_users;
+    document.getElementById('as-w').textContent=s.active_workers;
+    document.getElementById('as-j').textContent=s.total_jobs;
+    document.getElementById('as-p').textContent=s.pending_workers;
+    await loadAW();
+  }catch(e){toast('Eroare admin: '+e.message);}
+}
+async function loadAW(){
+  try{
+    const us=await api('GET','/api/admin/users');
+    const ws=us.filter(u=>u.role==='meserias');
+    document.getElementById('tw').innerHTML=`<table><thead><tr><th>Meșter</th><th>Specializare</th><th>Preț/lucrare (editabil)</th><th>Rating</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>
+    ${ws.map(w=>{const uid=w._id||w.id;const wid=w.worker_id;return`<tr id="wr-${uid}"><td><strong>${w.name}</strong><br><span style="font-size:11px;color:var(--mu);">${w.email}</span></td><td>${w.specialization||'—'}</td>
+    <td><div style="display:flex;align-items:center;gap:6px;"><input class="pin" type="number" id="pr-${wid}" value="${w.price_per_job||100}" min="1" max="9999"/> lei/lucrare <button class="btn bt-bl bt-sm" onclick="savePr('${wid}')"><i class="ti ti-check"></i></button></div></td>
+    <td>⭐ ${w.rating||'5.0'} (${w.reviews_count||0})</td>
+    <td><span class="sb ${w.status==='active'?'sb-a':w.status==='pending'?'sb-p':'sb-b'}" id="sb-${uid}">${w.status}</span></td>
+    <td><div class="ab-row">${w.status==='pending'?`<button class="btn bt-gr bt-sm" onclick="sSt('${uid}','active','sb-${uid}')"><i class="ti ti-check"></i> Aprobă</button>`:''} ${w.status!=='blocked'?`<button class="btn bt-re bt-sm" onclick="sSt('${uid}','blocked','sb-${uid}')"><i class="ti ti-ban"></i></button>`:`<button class="btn bt-gh bt-sm" onclick="sSt('${uid}','active','sb-${uid}')"><i class="ti ti-lock-open"></i></button>`}</div></td></tr>`;}).join('')}
+    </tbody></table>`;
+    const cs=us.filter(u=>u.role==='client');
+    document.getElementById('tc').innerHTML=`<table><thead><tr><th>Client</th><th>Email</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>
+    ${cs.map(c=>{const cid=c._id||c.id;return`<tr><td><strong>${c.name}</strong></td><td>${c.email}</td><td><span class="sb ${c.status==='active'?'sb-a':'sb-b'}" id="sb-${cid}">${c.status}</span></td>
+    <td>${c.status!=='blocked'?`<button class="btn bt-re bt-sm" onclick="sSt('${cid}','blocked','sb-${cid}')"><i class="ti ti-ban"></i> Blochează</button>`:`<button class="btn bt-gh bt-sm" onclick="sSt('${cid}','active','sb-${cid}')"><i class="ti ti-lock-open"></i> Activează</button>`}</td></tr>`;}).join('')}
+    </tbody></table>`;
+  }catch(e){toast(e.message);}
+}
+async function loadAJ(){
+  try{
+    const js=await api('GET','/api/jobs');
+    document.getElementById('tj').innerHTML=`<table><thead><tr><th>Serviciu</th><th>Client</th><th>Poze</th><th>Urgență</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>
+    ${js.map(j=>`<tr id="jr-${j.id}"><td><strong>${j.category}</strong><br><span style="font-size:11px;color:var(--mu);">${j.description||''}</span></td><td>${j.client_name||'—'}</td>
+    <td>${(j.photos||[]).map(u=>`<img src="${u}" class="pi2" alt="poza"/>`).join('')||'—'}</td>
+    <td>${j.urgency==='urgent'?'<span class="jb u-urg">Urgent</span>':'Normal'}</td>
+    <td><span class="sb ${j.status==='accepted'||j.status==='completed'?'sb-a':'sb-p'}">${j.status}</span></td>
+    <td><button class="btn bt-re bt-sm" onclick="delJ(${j.id})"><i class="ti ti-trash"></i></button></td></tr>`).join('')}
+    </tbody></table>`;
+  }catch(e){}
+}
+async function loadAM(){
+  try{
+    const cs=await api('GET','/api/messages/conversations');
+    document.getElementById('tm').innerHTML=`<table><thead><tr><th>Conversație</th><th>Ultimul mesaj</th><th>Categorie</th></tr></thead><tbody>
+    ${cs.map(c=>`<tr><td><strong>${c.client_name||'—'} ↔ ${c.worker_name||'—'}</strong></td><td>${c.last_message||'—'}</td><td>${c.category}</td></tr>`).join('')}
+    </tbody></table><div style="margin-top:8px;font-size:11px;color:var(--mu);"><i class="ti ti-shield-check" style="font-size:12px;vertical-align:-1px;"></i> Numerele de telefon sunt blocate automat.</div>`;
+  }catch(e){}
+}
+async function savePr(wid){
+  const input=document.getElementById('pr-'+wid);
+  if(!input){toast('Camp negasit');return;}
+  const v=Number(input.value);
+  if(!v||v<1){toast('Pret invalid');return;}
+  try{
+    await api('PATCH','/api/admin/workers/'+wid+'/price',{price_per_job:v});
+    toast('Pret salvat: '+v+' lei/lucrare');
+  }catch(e){toast('Eroare: '+e.message);}
+});toast('Preț salvat: '+v+' lei/lucrare');}catch(e){toast(e.message);}
+}
+async function sSt(uid,st,bid){
+  try{await api('PATCH','/api/admin/users/'+uid+'/status',{status:st});const b=document.getElementById(bid);b.className='sb '+(st==='active'?'sb-a':st==='pending'?'sb-p':'sb-b');b.textContent=st;toast('Status: '+st);loadAdmin();}catch(e){toast(e.message);}
+}
+async function delJ(id){if(!confirm('Ștergi jobul?'))return;try{await api('DELETE','/api/jobs/'+id);document.getElementById('jr-'+id)?.remove();toast('Job șters');}catch(e){toast('Eroare: '+e.message);}}
+function at(btn,tab){
+  document.querySelectorAll('.atb button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  ['tw','tc','tj','tm'].forEach(t=>document.getElementById(t).style.display='none');
+  document.getElementById(tab).style.display='block';
+  if(tab==='tj')loadAJ();if(tab==='tm')loadAM();
+}
+
+document.getElementById('mov').addEventListener('click',e=>{if(e.target===document.getElementById('mov'))cm();});
+
+// Auto-login din token
+(async()=>{
+  const tk=localStorage.getItem('hro_tk');
+  if(!tk)return;
+  try{
+    const pl=JSON.parse(atob(tk.split('.')[1]));
+    if(pl.exp>Date.now()/1000){CU=pl;loginOk();}
+    else localStorage.removeItem('hro_tk');
+  }catch(e){localStorage.removeItem('hro_tk');}
+})();
+
+// PWA Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+
+</script>
+</body>
+</html>
