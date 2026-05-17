@@ -828,7 +828,6 @@ async function savePr(wid){
     await api('PATCH','/api/admin/workers/'+wid+'/price',{price_per_job:v});
     toast('Pret salvat: '+v+' lei/lucrare');
   }catch(e){toast('Eroare: '+e.message);}
-});toast('Preț salvat: '+v+' lei/lucrare');}catch(e){toast(e.message);}
 }
 async function sSt(uid,st,bid){
   try{await api('PATCH','/api/admin/users/'+uid+'/status',{status:st});const b=document.getElementById(bid);b.className='sb '+(st==='active'?'sb-a':st==='pending'?'sb-p':'sb-b');b.textContent=st;toast('Status: '+st);loadAdmin();}catch(e){toast(e.message);}
