@@ -717,29 +717,27 @@ const SUBCATS = {
 
 let selectedSubcat = null;
 
-function showSubcats(cat) {
-  const subs = SUBCATS[cat] || [];
+async function showSubcats(cat) {
   const existing = document.getElementById('subcats-wrap');
   if (existing) existing.remove();
-  if (!subs.length) return;
-
-  const div = document.createElement('div');
-  div.id = 'subcats-wrap';
-  div.style.cssText = 'margin-bottom:14px;';
-  div.innerHTML = `
-    <div style="font-size:11px;font-weight:500;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Alege tipul lucrării</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;" id="subcat-grid">
-      ${subs.map((s,i) => `
-        <div class="subcat-btn" id="sb-${i}" onclick="selSubcat(${i},'${s.name.replace(/'/g,"\'")}',${s.price},'${cat}')"
-          style="background:var(--bg);border:0.5px solid var(--br);border-radius:var(--rs);padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:space-between;gap:8px;">
-          <div style="font-size:13px;color:var(--navy);font-weight:500;">${s.name}</div>
-          <div style="font-size:13px;font-weight:700;color:var(--blue);white-space:nowrap;">${s.price} lei</div>
-        </div>`).join('')}
-    </div>`;
-
-  // Insert before urgenta section
-  const urgDiv = document.getElementById('fc').querySelector('.urg-row').closest('.fg');
-  urgDiv.parentNode.insertBefore(div, urgDiv);
+  try {
+    const subs = await api('GET', '/api/subcats?category=' + encodeURIComponent(cat));
+    if (!subs.length) return;
+    const div = document.createElement('div');
+    div.id = 'subcats-wrap';
+    div.style.cssText = 'margin-bottom:14px;';
+    div.innerHTML = '<div style="font-size:11px;font-weight:500;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Alege tipul lucrării</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;" id="subcat-grid">' +
+      subs.map((s,i) =>
+        '<div class="subcat-btn" id="sb-'+i+'" onclick="selSubcat('+i+',\''+s.name.replace(/'/g,"\\'")+'\','+s.price+',\''+cat+'\')' +
+        '" style="background:var(--bg);border:0.5px solid var(--br);border-radius:var(--rs);padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
+        '<div style="font-size:13px;color:var(--navy);font-weight:500;">'+s.name+'</div>' +
+        '<div style="font-size:13px;font-weight:700;color:var(--blue);white-space:nowrap;">'+s.price+' lei</div>' +
+        '</div>'
+      ).join('') + '</div>';
+    const urgDiv = document.getElementById('fc').querySelector('.urg-row').closest('.fg');
+    urgDiv.parentNode.insertBefore(div, urgDiv);
+  } catch(e) { console.log('subcats error:', e); }
 }
 
 function selSubcat(idx, name, price, cat) {
@@ -1076,9 +1074,31 @@ async function sSt(uid,st,bid){
 async function delJ(id){if(!confirm('Ștergi jobul?'))return;try{await api('DELETE','/api/jobs/'+id);document.getElementById('jr-'+id)?.remove();toast('Job șters');}catch(e){toast('Eroare: '+e.message);}}
 function at(btn,tab){
   document.querySelectorAll('.atb button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
-  ['tw','tc','tj','tm'].forEach(t=>document.getElementById(t).style.display='none');
+  ['tw','tc','tj','tsubcat','tm'].forEach(t=>document.getElementById(t).style.display='none');
   document.getElementById(tab).style.display='block';
-  if(tab==='tj')loadAJ();if(tab==='tm')loadAM();
+  if(tab==='tj')loadAJ();if(tab==='tm')loadAM();if(tab==='tsubcat')loadSubcatPrices();
+}
+
+async function loadSubcatPrices(){
+  try{
+    const cats=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
+    const all=await api('GET','/api/subcats');
+    let html='';
+    cats.forEach(cat=>{
+      const subs=all.filter(s=>s.category===cat);
+      html+='<div style="margin-bottom:1.5rem;"><div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--br);">'+cat+'</div><table style="width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;"><thead><tr><th style="text-align:left;font-size:11px;color:var(--mu);padding:.6rem 1rem;background:var(--bg);">Serviciu</th><th style="text-align:left;font-size:11px;color:var(--mu);padding:.6rem 1rem;background:var(--bg);">Preț</th><th style="background:var(--bg);"></th></tr></thead><tbody>'+
+      subs.map(s=>'<tr style="border-bottom:0.5px solid var(--br);"><td style="padding:.6rem 1rem;font-size:13px;color:var(--navy);">'+s.name+'</td><td style="padding:.6rem 1rem;"><div style="display:flex;align-items:center;gap:5px;"><input type="number" id="sp-'+s._id+'" value="'+s.price+'" min="1" style="width:75px;padding:4px 8px;font-size:12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);font-family:\'DM Sans\',sans-serif;"/> lei</div></td><td style="padding:.6rem 1rem;"><button class="btn bt-bl bt-sm" onclick="saveSubcat(\''+s._id+'\')"><i class="ti ti-check"></i></button></td></tr>'
+      ).join('')+'</tbody></table></div>';
+    });
+    document.getElementById('tsubcat').innerHTML=html||'<div style="color:var(--mu);font-size:13px;">Se încarcă...</div>';
+  }catch(e){toast('Eroare: '+e.message);}
+}
+
+async function saveSubcat(id){
+  const val=Number(document.getElementById('sp-'+id)?.value);
+  if(!val||val<1){toast('Preț invalid');return;}
+  try{await api('PATCH','/api/subcats/'+id,{price:val});toast('Preț salvat: '+val+' lei ✓');}
+  catch(e){toast('Eroare: '+e.message);}
 }
 
 document.getElementById('mov').addEventListener('click',e=>{if(e.target===document.getElementById('mov'))cm();});

@@ -4,6 +4,9 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const fs = require('fs');
 
+// Conecteaza MongoDB
+require('./db');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -23,11 +26,10 @@ app.use('/api/messages', require('./routes/messages'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/reviews', require('./routes/reviews'));
-app.use('/api/categories', require('./routes/categories'));
+app.use('/api/subcats', require('./routes/subcats'));
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok', version: '4.0.0' }));
+app.get('/api/health', (req, res) => res.json({ status: 'ok', version: '6.0.0', db: 'MongoDB Atlas' }));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-app.listen(PORT, () => console.log('HandyRO v4 pornit pe http://localhost:' + PORT));
+app.listen(PORT, () => console.log('HandyRO v6 pornit pe http://localhost:' + PORT));
 module.exports = app;
-// Categories route - already added via require below
