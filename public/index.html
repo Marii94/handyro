@@ -1027,9 +1027,9 @@ async function loadAW(){
       });
       pricesHtml+='</div>';
       let actHtml='<div style="display:flex;gap:5px;">';
-      if(w.status==='pending') actHtml+='<button class="btn bt-gr bt-sm" onclick="sSt(''+uid+'','active','sb-'+uid+'')"><i class="ti ti-check"></i> Aprobă</button>';
-      if(w.status!=='blocked') actHtml+='<button class="btn bt-re bt-sm" onclick="sSt(''+uid+'','blocked','sb-'+uid+'')"><i class="ti ti-ban"></i></button>';
-      else actHtml+='<button class="btn bt-gh bt-sm" onclick="sSt(''+uid+'','active','sb-'+uid+'')"><i class="ti ti-lock-open"></i></button>';
+      if(w.status==='pending') actHtml+='<button class="btn bt-gr bt-sm" data-uid="'+uid+'" data-st="active" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-check"></i> Aprobă</button>';
+      if(w.status!=='blocked') actHtml+='<button class="btn bt-re bt-sm" data-uid="'+uid+'" data-st="blocked" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-ban"></i></button>';
+      else actHtml+='<button class="btn bt-gh bt-sm" data-uid="'+uid+'" data-st="active" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-lock-open"></i></button>';
       actHtml+='</div>';
       wtbl+='<tr id="wr-'+uid+'"><td><strong>'+w.name+'</strong><br><span style="font-size:11px;color:var(--mu);">'+w.email+'</span></td>';
       wtbl+='<td>'+(w.specialization||'—')+'</td><td>'+pricesHtml+'</td>';
@@ -1046,7 +1046,9 @@ async function loadAW(){
     cs.forEach(c=>{
       const cid=String(c._id||c.id);
       const statusCls=c.status==='active'?'sb-a':'sb-b';
-      let actHtml=c.status!=='blocked'
+      const actHtml=c.status!=='blocked'
+        ?'<button class="btn bt-re bt-sm" data-uid="'+cid+'" data-st="blocked" data-bid="sb-'+cid+'" onclick="handleSst(this)"><i class="ti ti-ban"></i> Blochează</button>'
+        :'<button class="btn bt-gh bt-sm" data-uid="'+cid+'" data-st="active" data-bid="sb-'+cid+'" onclick="handleSst(this)"><i class="ti ti-lock-open"></i> Activează</button>';
         ?'<button class="btn bt-re bt-sm" onclick="sSt(''+cid+'','blocked','sb-'+cid+'')"><i class="ti ti-ban"></i> Blochează</button>'
         :'<button class="btn bt-gh bt-sm" onclick="sSt(''+cid+'','active','sb-'+cid+'')"><i class="ti ti-lock-open"></i> Activează</button>';
       ctbl+='<tr><td><strong>'+c.name+'</strong></td><td>'+c.email+'</td>';
@@ -1115,7 +1117,14 @@ async function savePr(wid){
   }catch(e){toast('Eroare: '+e.message);}
 }
 async function sSt(uid,st,bid){
-  try{await api('PATCH','/api/admin/users/'+uid+'/status',{status:st});const b=document.getElementById(bid);b.className='sb '+(st==='active'?'sb-a':st==='pending'?'sb-p':'sb-b');b.textContent=st;toast('Status: '+st);loadAdmin();}catch(e){toast(e.message);}
+  try{await api('PATCH','/api/admin/users/'+uid+'/status',{status:st});const b=document.getElementById(bid);if(b){b.className='sb '+(st==='active'?'sb-a':st==='pending'?'sb-p':'sb-b');b.textContent=st;}toast('Status: '+st);loadAdmin();}catch(e){toast(e.message);}
+}
+
+function handleSst(btn){
+  const uid=btn.dataset.uid;
+  const st=btn.dataset.st;
+  const bid=btn.dataset.bid;
+  sSt(uid,st,bid);
 }
 async function delJ(id){if(!confirm('Ștergi jobul?'))return;try{await api('DELETE','/api/jobs/'+id);document.getElementById('jr-'+id)?.remove();toast('Job șters');}catch(e){toast('Eroare: '+e.message);}}
 function at(btn,tab){
