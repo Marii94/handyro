@@ -614,6 +614,7 @@ function ss(el,cat,ico){
       </div>`).join('');
   }).catch(()=>{});
   document.getElementById('fc').scrollIntoView({behavior:'smooth',block:'start'});
+  showSubcats(cat);
 }
 function su(u){urg=u;document.getElementById('u-n').classList.toggle('on',u==='normal');document.getElementById('u-u').classList.toggle('on',u==='urgent');}
 function dov(e,v){e.preventDefault();document.getElementById('uz').classList.toggle('dov',v);}
@@ -637,6 +638,124 @@ function rp(){
   if(files.length<3){const a=document.createElement('div');a.className='pa';a.innerHTML=`<i class="ti ti-plus"></i><span>Adaugă</span><input type="file" accept="image/*" onchange="onf(this.files)"/>`;pg.appendChild(a);}
 }
 function rf(i){files.splice(i,1);document.getElementById('uz').style.display='block';rp();}
+
+
+const SUBCATS = {
+  'Instalații sanitare': [
+    {name:'Schimbat robinet',price:120},
+    {name:'Montat baterie chiuvetă/duș',price:150},
+    {name:'Deblocat țeavă',price:180},
+    {name:'Montat boiler',price:400},
+    {name:'Remediat scurgere',price:150},
+    {name:'Montat vas WC',price:200},
+    {name:'Montat lavoar',price:180},
+    {name:'Montat cabină duș',price:350},
+    {name:'Verificat instalație apă',price:120},
+    {name:'Montat filtru apă',price:150},
+  ],
+  'Instalații electrice': [
+    {name:'Montat priză/întrerupător',price:80},
+    {name:'Montat corp de iluminat',price:100},
+    {name:'Verificat tablou electric',price:180},
+    {name:'Tras cablu electric (până la 10m)',price:200},
+    {name:'Montat spot/aplică',price:80},
+    {name:'Montat ventilator baie',price:120},
+    {name:'Montat termostat',price:150},
+    {name:'Remediat pană curent',price:150},
+    {name:'Montat sonerie/interfon',price:200},
+    {name:'Montat pompă recirculare',price:250},
+  ],
+  'Renovări & zugrăveală': [
+    {name:'Zugrăvit cameră (vopsea client)',price:250},
+    {name:'Zugrăvit cameră (vopsea inclusă)',price:400},
+    {name:'Glet + vopsit perete (mp)',price:45},
+    {name:'Montat gresie (mp)',price:60},
+    {name:'Montat faianță (mp)',price:65},
+    {name:'Montat parchet (mp)',price:50},
+    {name:'Tencuit perete (mp)',price:40},
+    {name:'Montat plinte',price:150},
+    {name:'Montat tavan fals (mp)',price:70},
+    {name:'Demontat faianță/gresie (mp)',price:25},
+  ],
+  'Curățenie profesională': [
+    {name:'Curățenie apartament 1 cameră',price:200},
+    {name:'Curățenie apartament 2 camere',price:280},
+    {name:'Curățenie apartament 3 camere',price:350},
+    {name:'Curățenie post-construcție (mp)',price:8},
+    {name:'Curățenie birouri (mp)',price:5},
+    {name:'Spălat geamuri apartament',price:150},
+    {name:'Curățenie după mutare',price:300},
+    {name:'Dezinfecție spații',price:250},
+    {name:'Curățenie baie completă',price:120},
+    {name:'Spălat covoare/mochete',price:80},
+  ],
+  'Tâmplărie & mobilier': [
+    {name:'Asamblat mobilier IKEA (piesă)',price:80},
+    {name:'Montat ușă interior',price:280},
+    {name:'Montat jaluzele/rolete',price:80},
+    {name:'Montat perdele/draperii',price:100},
+    {name:'Montat oglindă/tablou',price:60},
+    {name:'Reparat ușă/geam',price:150},
+    {name:'Montat dulap suspendat',price:120},
+    {name:'Montat polițe/rafturi',price:100},
+    {name:'Reparat mobilier',price:150},
+    {name:'Montat pat/canapea extensibilă',price:120},
+  ],
+  'Mentenanță generală': [
+    {name:'Vizită diagnostic',price:120},
+    {name:'Reparații diverse (1h)',price:120},
+    {name:'Montat aer condiționat',price:400},
+    {name:'Curățat aer condiționat',price:200},
+    {name:'Montat TV pe perete',price:150},
+    {name:'Montat suport bicicletă/rafturi',price:100},
+    {name:'Reparat gard/poartă',price:200},
+    {name:'Montat copertină/prelată',price:250},
+    {name:'Igienizare țevi/sifoane',price:150},
+    {name:'Reparat urgențe diverse',price:180},
+  ],
+};
+
+let selectedSubcat = null;
+
+function showSubcats(cat) {
+  const subs = SUBCATS[cat] || [];
+  const existing = document.getElementById('subcats-wrap');
+  if (existing) existing.remove();
+  if (!subs.length) return;
+
+  const div = document.createElement('div');
+  div.id = 'subcats-wrap';
+  div.style.cssText = 'margin-bottom:14px;';
+  div.innerHTML = `
+    <div style="font-size:11px;font-weight:500;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Alege tipul lucrării</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;" id="subcat-grid">
+      ${subs.map((s,i) => `
+        <div class="subcat-btn" id="sb-${i}" onclick="selSubcat(${i},'${s.name.replace(/'/g,"\'")}',${s.price},'${cat}')"
+          style="background:var(--bg);border:0.5px solid var(--br);border-radius:var(--rs);padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <div style="font-size:13px;color:var(--navy);font-weight:500;">${s.name}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--blue);white-space:nowrap;">${s.price} lei</div>
+        </div>`).join('')}
+    </div>`;
+
+  // Insert before urgenta section
+  const urgDiv = document.getElementById('fc').querySelector('.urg-row').closest('.fg');
+  urgDiv.parentNode.insertBefore(div, urgDiv);
+}
+
+function selSubcat(idx, name, price, cat) {
+  selectedSubcat = {name, price};
+  // Highlight selected
+  document.querySelectorAll('.subcat-btn').forEach(b => {
+    b.style.background = 'var(--bg)';
+    b.style.borderColor = 'var(--br)';
+  });
+  const btn = document.getElementById('sb-'+idx);
+  btn.style.background = 'var(--bl)';
+  btn.style.borderColor = 'var(--blue)';
+  // Update submit button
+  document.getElementById('sub-btn').innerHTML = '<i class="ti ti-send"></i> Trimite cererea — ' + name + ' (' + price + ' lei)';
+  document.getElementById('sub-btn').disabled = false;
+}
 
 let selectedWorkerId = null;
 function selectWorker(wid, price, name){
@@ -667,7 +786,8 @@ async function submitJob(){
     }
     const workers=await api('GET','/api/workers');
     const wid=selectedWorkerId||workers[0]?._id||workers[0]?.id;
-    await api('POST','/api/jobs',{category:curCat,description:desc,worker_id:wid,urgency:urg,time_slot:document.getElementById('slot').value,photos:photoUrls});
+    const fullDesc = selectedSubcat ? '[' + selectedSubcat.name + ' — ' + selectedSubcat.price + ' lei] ' + desc : desc;
+    await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:document.getElementById('slot').value,photos:photoUrls,subcat_name:selectedSubcat?.name,subcat_price:selectedSubcat?.price});
     const ptxt=files.length>0?` cu ${files.length} ${files.length===1?'poză':'poze'}`:'';
     const utxt=urg==='urgent'?' Marcat ca urgent.':'';
     document.getElementById('ok-txt').textContent=`Ionuț Șerban a primit cererea ta${ptxt}.${utxt} Îți va răspunde prin mesageria HandyRO.`;
