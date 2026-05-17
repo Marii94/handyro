@@ -996,8 +996,11 @@ async function loadAdmin(){
     document.getElementById('as-w').textContent=s.active_workers;
     document.getElementById('as-j').textContent=s.total_jobs;
     document.getElementById('as-p').textContent=s.pending_workers;
+    // Show tw tab first
+    const tw=document.getElementById('tw');
+    if(tw)tw.style.display='block';
     await loadAW();
-  }catch(e){toast('Eroare admin: '+e.message);}
+  }catch(e){toast('Eroare admin: '+e.message);console.error(e);}
 }
 async function loadAW(){
   try{
@@ -1116,7 +1119,7 @@ async function sSt(uid,st,bid){
 async function delJ(id){if(!confirm('Ștergi jobul?'))return;try{await api('DELETE','/api/jobs/'+id);document.getElementById('jr-'+id)?.remove();toast('Job șters');}catch(e){toast('Eroare: '+e.message);}}
 function at(btn,tab){
   document.querySelectorAll('.atb button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
-  ['tw','tc','tj','tsubcat','tm'].forEach(t=>document.getElementById(t).style.display='none');
+  ['tw','tc','tj','tsubcat','tm'].forEach(t=>{const el=document.getElementById(t);if(el)el.style.display='none';});
   document.getElementById(tab).style.display='block';
   if(tab==='tj')loadAJ();if(tab==='tm')loadAM();if(tab==='tsubcat')loadSubcatPrices();
 }
