@@ -825,14 +825,15 @@ async function loadAM(){
   }catch(e){}
 }
 async function savePr(wid){
-  const v=document.getElementById('pr-'+wid).value;
-  try{await api('PATCH','/api/admin/workers/'+wid+'/price',{price_per_job:v});toast('Preț salvat: '+v+' lei/lucrare');}catch(e){toast(e.message);}
+  const input = document.getElementById('pr-'+wid);
+  if(!input){ toast('Eroare: câmp negăsit'); return; }
+  const v = Number(input.value);
+  if(!v || v < 1){ toast('Preț invalid'); return; }
+  try{
+    const res = await api('PATCH','/api/admin/workers/'+wid+'/price',{price_per_job: v});
+    toast('Preț salvat: '+v+' lei/lucrare ✓');
+  }catch(e){ toast('Eroare: '+e.message); }
 }
-async function sSt(uid,st,bid){
-  try{await api('PATCH','/api/admin/users/'+uid+'/status',{status:st});const b=document.getElementById(bid);b.className='sb '+(st==='active'?'sb-a':st==='pending'?'sb-p':'sb-b');b.textContent=st;toast('Status: '+st);loadAdmin();}catch(e){toast(e.message);}
-}
-async function delJ(id){if(!confirm('Ștergi jobul?'))return;try{await api('DELETE','/api/jobs/'+id);document.getElementById('jr-'+id)?.remove();toast('Job șters');}catch(e){toast('Eroare: '+e.message);}}
-function at(btn,tab){
   document.querySelectorAll('.atb button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
   ['tw','tc','tj','tm'].forEach(t=>document.getElementById(t).style.display='none');
   document.getElementById(tab).style.display='block';
