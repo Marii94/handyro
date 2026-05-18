@@ -485,7 +485,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
 <!-- MESERIAS -->
 <div class="page" id="page-meserias">
   <div class="dw">
-    <div class="dt"><div><div class="dti" id="m-hi">Bună, Ionuț! 👋</div><div class="dsi">Joburile și mesajele tale</div></div><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button></div>
+    <div class="dt"><div><div class="dti" id="m-hi">Bună, Ionuț! 👋</div><div class="dsi">Joburile și mesajele tale</div></div><div style="display:flex;gap:8px;"><a href="mailto:contact@handyro.ro" class="btn bt-gh" style="font-size:12px;"><i class="ti ti-mail"></i> Contact admin</a><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button></div></div>
     <div class="dsg">
       <div class="ds"><div class="dsn" id="ms-j">—</div><div class="dsl">Joburi active</div></div>
       <div class="ds"><div class="dsn" id="ms-a">0</div><div class="dsl">Acceptate azi</div></div>
@@ -500,7 +500,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
 <!-- CLIENT -->
 <div class="page" id="page-client">
   <div class="dw">
-    <div class="dt"><div><div class="dti" id="c-hi">Contul meu 👤</div><div class="dsi">Cererile și mesajele tale pe HandyRO</div></div><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button></div>
+    <div class="dt"><div><div class="dti" id="c-hi">Contul meu 👤</div><div class="dsi">Cererile și mesajele tale pe HandyRO</div></div><div style="display:flex;gap:8px;"><a href="mailto:contact@handyro.ro" class="btn bt-gh" style="font-size:12px;"><i class="ti ti-mail"></i> Contact admin</a><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button></div></div>
     <div class="set">Cererile mele</div>
     <div id="c-jobs">Se încarcă...</div>
     <div style="margin-top:1.5rem;"><div class="set">Mesaje</div><div id="c-convs"></div><div id="c-chat"></div></div>
@@ -617,7 +617,17 @@ function ss(el,cat,ico){
   document.getElementById('fc').scrollIntoView({behavior:'smooth',block:'start'});
   showSubcats(cat);
 }
-function su(u){urg=u;document.getElementById('u-n').classList.toggle('on',u==='normal');document.getElementById('u-u').classList.toggle('on',u==='urgent');}
+function su(u){
+  urg=u;
+  document.getElementById('u-n').classList.toggle('on',u==='normal');
+  document.getElementById('u-u').classList.toggle('on',u==='urgent');
+  // Update price display if subcat selected
+  if(selectedSubcat){
+    const basePrice=selectedSubcat.price;
+    const finalPrice=u==='urgent'?basePrice+70:basePrice;
+    document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea — '+selectedSubcat.name+' ('+finalPrice+' lei'+(u==='urgent'?' incl. urgență)':')');
+  }
+}
 function dov(e,v){e.preventDefault();document.getElementById('uz').classList.toggle('dov',v);}
 function ddr(e){e.preventDefault();document.getElementById('uz').classList.remove('dov');onf(e.dataTransfer.files);}
 function onf(fls){
@@ -743,17 +753,15 @@ async function showSubcats(cat) {
 
 function selSubcat(idx, name, price, cat) {
   selectedSubcat = {name, price};
-  // Highlight selected
-  document.querySelectorAll('.subcat-btn').forEach(b => {
-    b.style.background = 'var(--bg)';
-    b.style.borderColor = 'var(--br)';
+  document.querySelectorAll('.subcat-btn').forEach(function(b){
+    b.style.background='var(--bg)';b.style.borderColor='var(--br)';
   });
-  const btn = document.getElementById('sb-'+idx);
-  btn.style.background = 'var(--bl)';
-  btn.style.borderColor = 'var(--blue)';
-  // Update submit button
-  document.getElementById('sub-btn').innerHTML = '<i class="ti ti-send"></i> Trimite cererea — ' + name + ' (' + price + ' lei)';
-  document.getElementById('sub-btn').disabled = false;
+  var btn=document.getElementById('sb-'+idx);
+  if(btn){btn.style.background='var(--bl)';btn.style.borderColor='var(--blue)';}
+  var finalPrice=urg==='urgent'?price+70:price;
+  var urgNote=urg==='urgent'?' incl. urgență':'';
+  document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea — '+name+' ('+finalPrice+' lei'+urgNote+')';
+  document.getElementById('sub-btn').disabled=false;
 }
 
 let selectedWorkerId = null;
@@ -785,7 +793,9 @@ async function submitJob(){
     }
     const workers=await api('GET','/api/workers');
     const wid=selectedWorkerId||workers[0]?._id||workers[0]?.id;
-    const fullDesc = selectedSubcat ? '[' + selectedSubcat.name + ' — ' + selectedSubcat.price + ' lei] ' + desc : desc;
+    const urgentExtra = urg==='urgent' ? 70 : 0;
+    const finalPrice = selectedSubcat ? selectedSubcat.price + urgentExtra : 0;
+    const fullDesc = selectedSubcat ? '[' + selectedSubcat.name + ' — ' + finalPrice + ' lei' + (urg==='urgent'?' (urgent)':'') + '] ' + desc : desc;
     await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:document.getElementById('slot').value,photos:photoUrls,subcat_name:selectedSubcat?.name,subcat_price:selectedSubcat?.price});
     const ptxt=files.length>0?` cu ${files.length} ${files.length===1?'poză':'poze'}`:'';
     const utxt=urg==='urgent'?' Marcat ca urgent.':'';
@@ -815,7 +825,10 @@ async function subm(){
   try{
     let data;
     if(mm==='login'){data=await api('POST','/api/auth/login',{email,password:pass});}
-    else{const name=document.getElementById('mn').value.trim();const role=document.getElementById('mr').value;data=await api('POST','/api/auth/register',{name,email,password:pass,role});if(!data.token){toast(data.message||'Cont creat!');cm();btn.disabled=false;return;}}
+    else{const name=document.getElementById('mn').value.trim();const role=document.getElementById('mr').value;
+      const specialization=role==='meserias'?(document.getElementById('mes-cat')?.value||'General'):'';
+      if(role==='meserias'&&!specialization){toast('Alege specialitatea ta!');btn.disabled=false;return;}
+      data=await api('POST','/api/auth/register',{name,email,password:pass,role,specialization});if(!data.token){toast(data.message||'Cont creat!');cm();btn.disabled=false;return;}}
     localStorage.setItem('hro_tk',data.token);CU=data.user;cm();loginOk();
   }catch(e){const er=document.getElementById('merr');er.textContent=e.message;er.style.display='block';}
   btn.disabled=false;
@@ -868,7 +881,7 @@ async function accJob(id,btn){
   try{
     await api('PATCH','/api/jobs/'+id+'/accept',{});
     const c=document.getElementById('mj-'+id);
-    c.querySelector('.jb').className='jb jb-a';c.querySelector('.jb').textContent='Acceptat';
+    if(c){const jb=c.querySelector('.jb');if(jb){jb.className='jb jb-a';jb.textContent='Acceptat';}}
     btn.remove();accT++;document.getElementById('ms-a').textContent=accT;
     toast('Job acceptat!');loadMConvs();
   }catch(e){toast(e.message);btn.disabled=false;}
@@ -914,11 +927,13 @@ function starWidget(jobId){
   return '<div id="rev-'+jobId+'" style="margin-top:10px;padding:10px;background:var(--bl);border-radius:var(--rs);"><div style="font-size:12px;font-weight:500;color:var(--navy);margin-bottom:6px;">Lasă un review pentru această lucrare:</div><div style="display:flex;gap:6px;">'+stars+'</div><div style="font-size:11px;color:var(--mu);margin-top:4px;">Apasă numărul de stele dorit</div></div>';
 }
 
-async function openConv(jobId,cname){
-  const cs=await api('GET','/api/messages/conversations').catch(()=>[]);
-  const c=cs.find(x=>x.job_id==jobId);
-  if(c)openChat(c.id,cname,ini(cname),'m-chat');
-  else toast('Acceptă jobul mai întâi pentru a deschide chatul.');
+async async function openConv(jobId,cname){
+  try{
+    const cs=await api('GET','/api/messages/conversations');
+    const c=cs.find(x=>String(x.job_id)===String(jobId));
+    if(c)openChat(String(c._id||c.id),cname,ini(cname),'m-chat');
+    else toast('Acceptă jobul mai întâi pentru a deschide chatul.');
+  }catch(e){toast('Eroare chat: '+e.message);}
 }
 
 // CLIENT

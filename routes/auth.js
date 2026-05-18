@@ -29,7 +29,8 @@ router.post('/register', async (req, res) => {
     const status = role === 'meserias' ? 'pending' : 'active';
     const user = await User.create({ name: name.trim(), email: email.toLowerCase().trim(), password: bcrypt.hashSync(password, 10), role, status });
     if (role === 'meserias') {
-      await Worker.create({ user_id: user._id, city: 'București' });
+      const spec = req.body.specialization || 'General';
+      await Worker.create({ user_id: user._id, city: 'București', specialization: spec });
       return res.status(201).json({ message: 'Cont creat! Așteaptă aprobarea adminului.' });
     }
     const token = jwt.sign({ id: user._id, name: user.name, email: user.email, role }, JWT_SECRET, { expiresIn: '7d' });
