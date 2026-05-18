@@ -1004,76 +1004,75 @@ async function loadAdmin(){
 }
 async function loadAW(){
   try{
-    const us=await api('GET','/api/admin/users');
-    // MESERIASI
-    const ws=us.filter(u=>u.role==='meserias');
-    const cats=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
-    let wtbl='<table><thead><tr><th>Meșter</th><th>Specializare</th><th>Preț per categorie (editabil)</th><th>Rating</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
-    ws.forEach(w=>{
-      const uid=String(w._id||w.id);
-      const wid=String(w.worker_id||'');
-      const statusCls=w.status==='active'?'sb-a':w.status==='pending'?'sb-p':'sb-b';
-      let pricesHtml='<div style="display:flex;flex-direction:column;gap:5px;">';
-      cats.forEach(function(cat){
-        const pr=w.prices&&w.prices.find(function(p){return p.category===cat;});
-        const catKey=cat.replace(/[^a-zA-Z]/g,'');
-        const inputId='pr-'+wid+'-'+catKey;
-        const val=pr?pr.price:'';
-        pricesHtml+='<div style="display:flex;align-items:center;gap:4px;font-size:11px;">';
-        pricesHtml+='<span style="min-width:90px;color:var(--mu);">'+cat.split(' ').slice(0,2).join(' ')+':</span>';
-        pricesHtml+='<input type="number" id="'+inputId+'" value="'+val+'" placeholder="—" min="1" style="width:60px;padding:3px 6px;font-size:11px;border:0.5px solid var(--br);border-radius:6px;background:var(--bg);color:var(--navy);" />';
-        pricesHtml+=' lei <button class="btn bt-bl" style="padding:2px 7px;font-size:11px;" data-wid="'+wid+'" data-cat="'+catKey+'" data-inp="'+inputId+'" onclick="handleSavePr2(this)">✓</button>';
-        pricesHtml+='</div>';
+    var us=await api('GET','/api/admin/users');
+    var ws=us.filter(function(u){return u.role==='meserias';});
+    var cats=['Instalatii sanitare','Instalatii electrice','Renovari & zugraveli','Curatenie profesionala','Tamplarie & mobilier','Mentenanta generala'];
+    var catsFull=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
+    var wtbl='<table><thead><tr><th>Meșter</th><th>Specializare</th><th>Prețuri per categorie</th><th>Rating</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
+    ws.forEach(function(w){
+      var uid=String(w._id||w.id);
+      var wid=String(w.worker_id||'');
+      var statusCls=w.status==='active'?'sb-a':w.status==='pending'?'sb-p':'sb-b';
+      var prHtml='<div style="display:flex;flex-direction:column;gap:4px;">';
+      catsFull.forEach(function(cat,ci){
+        var pr=w.prices&&w.prices.find(function(p){return p.category===cat;});
+        var catKey=cats[ci];
+        var inputId='pr-'+wid+'-'+ci;
+        prHtml+='<div style="display:flex;align-items:center;gap:4px;font-size:11px;">';
+        prHtml+='<span style="min-width:90px;color:var(--mu);">'+cat.split(' ').slice(0,2).join(' ')+':</span>';
+        prHtml+='<input type="number" id="'+inputId+'" value="'+(pr?pr.price:'')+'" placeholder="—" min="1" style="width:58px;padding:3px 5px;font-size:11px;border:0.5px solid var(--br);border-radius:6px;background:var(--bg);color:var(--navy);" />';
+        prHtml+=' lei <button class="btn bt-bl" style="padding:2px 6px;font-size:10px;" data-wid="'+wid+'" data-ci="'+ci+'" data-inp="'+inputId+'" onclick="handleSavePr2(this)">OK</button>';
+        prHtml+='</div>';
       });
-      pricesHtml+='</div>';
-      let actHtml='<div style="display:flex;gap:5px;">';
-      if(w.status==='pending') actHtml+='<button class="btn bt-gr bt-sm" data-uid="'+uid+'" data-st="active" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-check"></i> Aprobă</button>';
+      prHtml+='</div>';
+      var actHtml='<div style="display:flex;gap:4px;flex-wrap:wrap;">';
+      if(w.status==='pending') actHtml+='<button class="btn bt-gr bt-sm" data-uid="'+uid+'" data-st="active" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-check"></i> Aproba</button>';
       if(w.status!=='blocked') actHtml+='<button class="btn bt-re bt-sm" data-uid="'+uid+'" data-st="blocked" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-ban"></i></button>';
       else actHtml+='<button class="btn bt-gh bt-sm" data-uid="'+uid+'" data-st="active" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-lock-open"></i></button>';
       actHtml+='</div>';
-      wtbl+='<tr id="wr-'+uid+'"><td><strong>'+w.name+'</strong><br><span style="font-size:11px;color:var(--mu);">'+w.email+'</span></td>';
-      wtbl+='<td>'+(w.specialization||'—')+'</td><td>'+pricesHtml+'</td>';
-      wtbl+='<td>⭐ '+(w.rating||5.0)+' ('+(w.reviews_count||0)+')</td>';
+      wtbl+='<tr id="wr-'+uid+'">';
+      wtbl+='<td><strong>'+w.name+'</strong><br><span style="font-size:11px;color:var(--mu);">'+w.email+'</span></td>';
+      wtbl+='<td>'+(w.specialization||'-')+'</td>';
+      wtbl+='<td>'+prHtml+'</td>';
+      wtbl+='<td>'+String(w.rating||5.0)+' ('+String(w.reviews_count||0)+')</td>';
       wtbl+='<td><span class="sb '+statusCls+'" id="sb-'+uid+'">'+w.status+'</span></td>';
-      wtbl+='<td>'+actHtml+'</td></tr>';
+      wtbl+='<td>'+actHtml+'</td>';
+      wtbl+='</tr>';
     });
     wtbl+='</tbody></table>';
     document.getElementById('tw').innerHTML=wtbl;
-
-    // CLIENTI
-    const cs=us.filter(u=>u.role==='client');
-    let ctbl='<table><thead><tr><th>Client</th><th>Email</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
-    cs.forEach(c=>{
-      const cid=String(c._id||c.id);
-      const statusCls=c.status==='active'?'sb-a':'sb-b';
-      const actHtml=c.status!=='blocked'
-        ?'<button class="btn bt-re bt-sm" data-uid="'+cid+'" data-st="blocked" data-bid="sb-'+cid+'" onclick="handleSst(this)"><i class="ti ti-ban"></i> Blochează</button>'
-        :'<button class="btn bt-gh bt-sm" data-uid="'+cid+'" data-st="active" data-bid="sb-'+cid+'" onclick="handleSst(this)"><i class="ti ti-lock-open"></i> Activează</button>';
-        ?'<button class="btn bt-re bt-sm" onclick="sSt(''+cid+'','blocked','sb-'+cid+'')"><i class="ti ti-ban"></i> Blochează</button>'
-        :'<button class="btn bt-gh bt-sm" onclick="sSt(''+cid+'','active','sb-'+cid+'')"><i class="ti ti-lock-open"></i> Activează</button>';
+    var cs=us.filter(function(u){return u.role==='client';});
+    var ctbl='<table><thead><tr><th>Client</th><th>Email</th><th>Status</th><th>Actiuni</th></tr></thead><tbody>';
+    cs.forEach(function(c){
+      var cid=String(c._id||c.id);
+      var statusCls=c.status==='active'?'sb-a':'sb-b';
+      var actHtml=c.status!=='blocked'
+        ?'<button class="btn bt-re bt-sm" data-uid="'+cid+'" data-st="blocked" data-bid="sb-'+cid+'" onclick="handleSst(this)"><i class="ti ti-ban"></i> Blocheaza</button>'
+        :'<button class="btn bt-gh bt-sm" data-uid="'+cid+'" data-st="active" data-bid="sb-'+cid+'" onclick="handleSst(this)"><i class="ti ti-lock-open"></i> Activeaza</button>';
       ctbl+='<tr><td><strong>'+c.name+'</strong></td><td>'+c.email+'</td>';
       ctbl+='<td><span class="sb '+statusCls+'" id="sb-'+cid+'">'+c.status+'</span></td>';
       ctbl+='<td>'+actHtml+'</td></tr>';
     });
     ctbl+='</tbody></table>';
     document.getElementById('tc').innerHTML=ctbl;
-  }catch(e){toast('Eroare admin: '+e.message);console.error(e);}
+  }catch(e){toast('Eroare: '+e.message);console.error(e);}
 }
+
 async function loadAJ(){
   try{
-    const js=await api('GET','/api/jobs');
-    let tbl='<table><thead><tr><th>Serviciu</th><th>Client</th><th>Subcategorie</th><th>Urgență</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
-    js.forEach(j=>{
-      const jid=String(j._id||j.id);
-      const statusCls=(j.status==='accepted'||j.status==='completed')?'sb-a':'sb-p';
-      const urgHtml=j.urgency==='urgent'?'<span class="jb u-urg">Urgent</span>':'Normal';
+    var js=await api('GET','/api/jobs');
+    var tbl='<table><thead><tr><th>Serviciu</th><th>Client</th><th>Subcategorie</th><th>Urgenta</th><th>Status</th><th>Actiuni</th></tr></thead><tbody>';
+    js.forEach(function(j){
+      var jid=String(j._id||j.id);
+      var statusCls=(j.status==='accepted'||j.status==='completed')?'sb-a':'sb-p';
+      var urgHtml=j.urgency==='urgent'?'<span style="color:#e53935;font-size:11px;font-weight:600;">Urgent</span>':'Normal';
       tbl+='<tr id="jr-'+jid+'">';
-      tbl+='<td><strong>'+j.category+'</strong><br><span style="font-size:11px;color:var(--mu);">'+(j.description||'')+'</span></td>';
-      tbl+='<td>'+(j.client_name||'—')+'</td>';
-      tbl+='<td style="font-size:12px;color:var(--blue);">'+(j.subcat_name?j.subcat_name+' — '+(j.subcat_price||'')+ ' lei':'—')+'</td>';
+      tbl+='<td><strong>'+j.category+'</strong><br><span style="font-size:11px;color:var(--mu);">'+(j.description||'').substring(0,50)+'</span></td>';
+      tbl+='<td>'+(j.client_name||'-')+'</td>';
+      tbl+='<td style="font-size:12px;color:var(--blue);">'+(j.subcat_name?j.subcat_name+' - '+(j.subcat_price||'')+' lei':'-')+'</td>';
       tbl+='<td>'+urgHtml+'</td>';
       tbl+='<td><span class="sb '+statusCls+'">'+j.status+'</span></td>';
-      tbl+='<td><button class="btn bt-re bt-sm" onclick="delJ(''+jid+'')"><i class="ti ti-trash"></i></button></td>';
+      tbl+='<td><button class="btn bt-re bt-sm" data-jid="'+jid+'" onclick="handleDelJ(this)"><i class="ti ti-trash"></i></button></td>';
       tbl+='</tr>';
     });
     tbl+='</tbody></table>';
@@ -1083,78 +1082,115 @@ async function loadAJ(){
 
 async function loadAM(){
   try{
-    const cs=await api('GET','/api/messages/conversations');
-    let tbl='<table><thead><tr><th>Conversație</th><th>Ultimul mesaj</th><th>Categorie</th></tr></thead><tbody>';
-    cs.forEach(c=>{
-      tbl+='<tr><td><strong>'+(c.client_name||'—')+' ↔ '+(c.worker_name||'—')+'</strong></td>';
-      tbl+='<td>'+(c.last_message||'—')+'</td>';
-      tbl+='<td>'+(c.category||'—')+'</td></tr>';
+    var cs=await api('GET','/api/messages/conversations');
+    var tbl='<table><thead><tr><th>Conversatie</th><th>Ultimul mesaj</th><th>Categorie</th></tr></thead><tbody>';
+    cs.forEach(function(c){
+      tbl+='<tr><td><strong>'+(c.client_name||'-')+' vs '+(c.worker_name||'-')+'</strong></td>';
+      tbl+='<td style="font-size:12px;color:var(--mu);max-width:200px;">'+(c.last_message||'-')+'</td>';
+      tbl+='<td>'+(c.category||'-')+'</td></tr>';
     });
-    tbl+='</tbody></table><div style="margin-top:8px;font-size:11px;color:var(--mu);"><i class="ti ti-shield-check" style="font-size:12px;vertical-align:-1px;"></i> Numerele de telefon sunt blocate automat.</div>';
+    tbl+='</tbody></table>';
     document.getElementById('tm').innerHTML=tbl;
   }catch(e){toast(e.message);}
 }
 
-async function savePr2(wid, category, inputId){
-  const input=document.getElementById(inputId);
-  if(!input){toast('Câmp negăsit');return;}
-  const v=Number(input.value);
-  if(!v||v<1){toast('Preț invalid');return;}
+var CATS_FULL=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
+
+async function savePr2(wid,ci,inputId){
+  var input=document.getElementById(inputId);
+  if(!input){toast('Camp negasit');return;}
+  var v=Number(input.value);
+  if(!v||v<1){toast('Pret invalid');return;}
+  var category=CATS_FULL[Number(ci)];
   try{
-    await api('PATCH','/api/admin/workers/'+wid+'/price',{category,price:v});
-    toast('✓ '+category.split(' ')[0]+': '+v+' lei');
+    await api('PATCH','/api/admin/workers/'+wid+'/price',{category:category,price:v});
+    toast('Salvat: '+v+' lei');
   }catch(e){toast('Eroare: '+e.message);}
+}
+
+function handleSavePr2(btn){
+  savePr2(btn.dataset.wid, btn.dataset.ci, btn.dataset.inp);
 }
 
 async function savePr(wid){
-  const input=document.getElementById('pr-'+wid);
+  var input=document.getElementById('pr-'+wid);
   if(!input){toast('Camp negasit');return;}
-  const v=Number(input.value);
+  var v=Number(input.value);
   if(!v||v<1){toast('Pret invalid');return;}
   try{
-    await api('PATCH','/api/admin/workers/'+wid+'/price',{price_per_job:v});
-    toast('Pret salvat: '+v+' lei/lucrare');
+    await api('PATCH','/api/admin/workers/'+wid+'/price',{price:v});
+    toast('Salvat: '+v+' lei');
   }catch(e){toast('Eroare: '+e.message);}
 }
+
 async function sSt(uid,st,bid){
-  try{await api('PATCH','/api/admin/users/'+uid+'/status',{status:st});const b=document.getElementById(bid);if(b){b.className='sb '+(st==='active'?'sb-a':st==='pending'?'sb-p':'sb-b');b.textContent=st;}toast('Status: '+st);loadAdmin();}catch(e){toast(e.message);}
+  try{
+    await api('PATCH','/api/admin/users/'+uid+'/status',{status:st});
+    var b=document.getElementById(bid);
+    if(b){b.className='sb '+(st==='active'?'sb-a':st==='pending'?'sb-p':'sb-b');b.textContent=st;}
+    toast('Status: '+st);
+    loadAdmin();
+  }catch(e){toast(e.message);}
 }
 
 function handleSst(btn){
-  const uid=btn.dataset.uid;
-  const st=btn.dataset.st;
-  const bid=btn.dataset.bid;
-  sSt(uid,st,bid);
+  sSt(btn.dataset.uid, btn.dataset.st, btn.dataset.bid);
 }
-async function delJ(id){if(!confirm('Ștergi jobul?'))return;try{await api('DELETE','/api/jobs/'+id);document.getElementById('jr-'+id)?.remove();toast('Job șters');}catch(e){toast('Eroare: '+e.message);}}
-function at(btn,tab){
-  document.querySelectorAll('.atb button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
-  ['tw','tc','tj','tsubcat','tm'].forEach(t=>{const el=document.getElementById(t);if(el)el.style.display='none';});
-  document.getElementById(tab).style.display='block';
-  if(tab==='tj')loadAJ();if(tab==='tm')loadAM();if(tab==='tsubcat')loadSubcatPrices();
+
+function handleDelJ(btn){
+  delJ(btn.dataset.jid);
+}
+
+async function delJ(id){
+  if(!confirm('Stergi jobul?'))return;
+  try{
+    await api('DELETE','/api/jobs/'+id);
+    var el=document.getElementById('jr-'+id);
+    if(el)el.remove();
+    toast('Job sters');
+  }catch(e){toast('Eroare: '+e.message);}
 }
 
 async function loadSubcatPrices(){
   try{
-    const cats=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
-    const all=await api('GET','/api/subcats');
-    let html='';
-    cats.forEach(cat=>{
-      const subs=all.filter(s=>s.category===cat);
-      html+='<div style="margin-bottom:1.5rem;"><div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--br);">'+cat+'</div><table style="width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;"><thead><tr><th style="text-align:left;font-size:11px;color:var(--mu);padding:.6rem 1rem;background:var(--bg);">Serviciu</th><th style="text-align:left;font-size:11px;color:var(--mu);padding:.6rem 1rem;background:var(--bg);">Preț</th><th style="background:var(--bg);"></th></tr></thead><tbody>'+
-      subs.map(s=>'<tr style="border-bottom:0.5px solid var(--br);"><td style="padding:.6rem 1rem;font-size:13px;color:var(--navy);">'+s.name+'</td><td style="padding:.6rem 1rem;"><div style="display:flex;align-items:center;gap:5px;"><input type="number" id="sp-'+s._id+'" value="'+s.price+'" min="1" style="width:75px;padding:4px 8px;font-size:12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);font-family:\'DM Sans\',sans-serif;"/> lei</div></td><td style="padding:.6rem 1rem;"><button class="btn bt-bl bt-sm" onclick="saveSubcat(\''+s._id+'\')"><i class="ti ti-check"></i></button></td></tr>'
-      ).join('')+'</tbody></table></div>';
+    var all=await api('GET','/api/subcats');
+    var html='';
+    CATS_FULL.forEach(function(cat){
+      var subs=all.filter(function(s){return s.category===cat;});
+      html+='<div style="margin-bottom:1.5rem;">';
+      html+='<div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--br);">'+cat+'</div>';
+      html+='<table style="width:100%;border-collapse:collapse;"><thead><tr>';
+      html+='<th style="text-align:left;font-size:11px;color:var(--mu);padding:.5rem .75rem;background:var(--bg);">Serviciu</th>';
+      html+='<th style="text-align:left;font-size:11px;color:var(--mu);padding:.5rem .75rem;background:var(--bg);">Pret (lei)</th>';
+      html+='<th style="background:var(--bg);width:100px;"></th></tr></thead><tbody>';
+      subs.forEach(function(s){
+        html+='<tr style="border-bottom:0.5px solid var(--br);">';
+        html+='<td style="padding:.6rem .75rem;font-size:13px;color:var(--navy);">'+s.name+'</td>';
+        html+='<td style="padding:.6rem .75rem;"><input type="number" id="sp-'+s._id+'" value="'+s.price+'" min="1" style="width:80px;padding:4px 8px;font-size:12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);" /></td>';
+        html+='<td style="padding:.6rem .75rem;"><button class="btn bt-bl bt-sm" data-sid="'+s._id+'" onclick="handleSaveSubcat(this)"><i class="ti ti-check"></i> Salveaza</button></td>';
+        html+='</tr>';
+      });
+      html+='</tbody></table></div>';
     });
-    document.getElementById('tsubcat').innerHTML=html||'<div style="color:var(--mu);font-size:13px;">Se încarcă...</div>';
+    document.getElementById('tsubcat').innerHTML=html||'<div style="padding:1rem;color:var(--mu);">Nu exista date.</div>';
   }catch(e){toast('Eroare: '+e.message);}
 }
 
-async function saveSubcat(id){
-  const val=Number(document.getElementById('sp-'+id)?.value);
-  if(!val||val<1){toast('Preț invalid');return;}
-  try{await api('PATCH','/api/subcats/'+id,{price:val});toast('Preț salvat: '+val+' lei ✓');}
-  catch(e){toast('Eroare: '+e.message);}
+function handleSaveSubcat(btn){
+  saveSubcat(btn.dataset.sid);
 }
+
+async function saveSubcat(id){
+  var input=document.getElementById('sp-'+id);
+  if(!input){toast('Camp negasit');return;}
+  var val=Number(input.value);
+  if(!val||val<1){toast('Pret invalid');return;}
+  try{
+    await api('PATCH','/api/subcats/'+id,{price:val});
+    toast('Pret salvat: '+val+' lei');
+  }catch(e){toast('Eroare: '+e.message);}
+}
+
 
 document.getElementById('mov').addEventListener('click',e=>{if(e.target===document.getElementById('mov'))cm();});
 
