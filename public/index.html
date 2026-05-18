@@ -753,8 +753,7 @@ async function showSubcats(cat) {
     div.innerHTML = '<div style="font-size:11px;font-weight:500;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Alege tipul lucrării (poți selecta mai multe)</div>' +
       '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;" id="subcat-grid">' +
       subs.map(function(s,i){
-        var safeName = s.name.replace(/'/g,"\'").replace(/"/g,'&quot;');
-        return '<div class="subcat-btn" id="sb-'+i+'" onclick="selSubcat('+i+',''+safeName+'','+s.price+',''+cat+'')"' +
+        return '<div class="subcat-btn" id="sb-'+i+'" data-idx="'+i+'" data-name="'+encodeURIComponent(s.name)+'" data-price="'+s.price+'" data-cat="'+encodeURIComponent(cat)+'" onclick="handleSelSubcat(this)"' +
         ' style="background:var(--bg);border:0.5px solid var(--br);border-radius:var(--rs);padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
         '<div style="font-size:13px;color:var(--navy);font-weight:500;">'+s.name+'</div>' +
         '<div style="font-size:13px;font-weight:700;color:var(--blue);white-space:nowrap;">'+s.price+' lei</div>' +
@@ -763,6 +762,14 @@ async function showSubcats(cat) {
     const urgDiv = document.getElementById('fc').querySelector('.urg-row').closest('.fg');
     urgDiv.parentNode.insertBefore(div, urgDiv);
   } catch(e) { console.log('subcats error:', e); }
+}
+
+function handleSelSubcat(btn){
+  var idx=parseInt(btn.dataset.idx);
+  var name=decodeURIComponent(btn.dataset.name);
+  var price=Number(btn.dataset.price);
+  var cat=decodeURIComponent(btn.dataset.cat);
+  selSubcat(idx, name, price, cat);
 }
 
 var selectedSubcats = []; // multiple selection
