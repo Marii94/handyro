@@ -342,7 +342,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
 <div class="page on" id="page-home">
   <div class="hero">
     <div>
-      <div class="htag"><i class="ti ti-map-pin"></i> București & împrejurimi</div>
+      <div class="htag"><i class="ti ti-map-pin"></i> România</div>
       <h1>Meseriași <em>verificați</em>,<br>la tine acasă azi.</h1>
       <p class="hero-sub">Găsești rapid un specialist pentru orice lucrare — trimite poze cu problema, descrie situația, fără număr de telefon.</p>
       <div class="hero-cta">
@@ -363,11 +363,11 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <div class="wp">
         <div class="wp-t"><div class="av">IȘ</div><div><div style="font-weight:500;font-size:14px;color:var(--navy);">Ionuț Șerban</div><div style="font-size:11px;color:var(--mu);">Specialist în toate categoriile</div></div></div>
         <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--navy);" id="hero-pr">100 lei<span style="font-size:11px;font-weight:400;font-family:'DM Sans',sans-serif;color:var(--mu);">/lucrare</span></div>
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:500;color:var(--mu);" id="hero-pr">Alege un serviciu</span></div>
           <div style="font-size:12px;color:var(--mu);">⭐ 5.0 · 214 recenzii</div>
         </div>
       </div>
-      <div class="avb"><span class="avd"></span> Disponibil astăzi în București</div>
+      <div class="avb"><span class="avd"></span> Disponibil astăzi în România</div>
       <button class="btn bt-bl" style="width:100%;justify-content:center;" onclick="gp('services')"><i class="ti ti-calendar"></i> Programează acum</button>
     </div>
   </div>
@@ -988,6 +988,18 @@ async function sendMsg(cid){
 }
 
 // ADMIN
+function switchTab(btn,tab){
+  document.querySelectorAll('.atb button').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  var tabs=['tw','tc','tj','tsubcat','tm'];
+  tabs.forEach(function(t){var el=document.getElementById(t);if(el)el.style.display='none';});
+  var el=document.getElementById(tab);
+  if(el)el.style.display='block';
+  if(tab==='tj')loadAJ();
+  if(tab==='tm')loadAM();
+  if(tab==='tsubcat')loadSubcatPrices();
+}
+
 async function loadAdmin(){
   try{
     const s=await api('GET','/api/admin/stats');
