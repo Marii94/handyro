@@ -609,7 +609,7 @@ function ss(el,cat,ico){
     const list=document.getElementById('workers-list');
     if(!workers.length){list.innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Nu există meseriași disponibili momentan.</div>';return;}
     // Update hero price with first worker
-    if(workers[0]) document.getElementById('hero-pr').innerHTML=workers[0].price_per_job+' lei<span style="font-size:11px;font-weight:400;font-family:\'DM Sans\',sans-serif;color:var(--mu);">/lucrare</span>';
+    // hero price removed
     list.innerHTML=workers.map(w=>`
       <div class="wr" data-wid="${w._id}" style="border-top:0.5px solid var(--br);">
         <div class="wa">${ini(w.name)}</div>
@@ -1399,7 +1399,7 @@ async function loadSubcatPrices(){
     CATS_FULL.forEach(function(cat){
       var subs=all.filter(function(s){return s.category===cat;});
       html+='<div style="margin-bottom:1.5rem;">';
-      html+='<div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--br);">'+cat+'</div>';
+      html+='<div style=",sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--br);">'+cat+'</div>';
       html+='<table style="width:100%;border-collapse:collapse;"><thead><tr>';
       html+='<th style="text-align:left;font-size:11px;color:var(--mu);padding:.5rem .75rem;background:var(--bg);">Serviciu</th>';
       html+='<th style="text-align:left;font-size:11px;color:var(--mu);padding:.5rem .75rem;background:var(--bg);">Pret (lei)</th>';
