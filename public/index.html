@@ -891,7 +891,7 @@ async function loadMConvs(){
     const cs=await api('GET','/api/messages/conversations');
     const w=document.getElementById('m-convs-wrap');w.style.display=cs.length?'block':'none';
     document.getElementById('m-convs').innerHTML=cs.map(c=>`
-      <div class="jc" style="cursor:pointer;" onclick="openChat(${c.id},'${c.client_name}','${ini(c.client_name)}','m-chat')">
+      <div class="jc" style="cursor:pointer;" onclick="openChat('${c.id}','${c.client_name}','${ini(c.client_name)}','m-chat')">
         <div class="ji"><i class="ti ti-message-circle"></i></div>
         <div class="jif"><div class="jt">${c.client_name}</div><div class="jm">${c.last_message||'—'}</div></div>
         <div class="jr">${c.unread>0?`<span class="jb jb-n">${c.unread} nou</span>`:''}</div>
@@ -960,7 +960,7 @@ async function loadCConvs(){
   try{
     const cs=await api('GET','/api/messages/conversations');
     document.getElementById('c-convs').innerHTML=cs.map(c=>`
-      <div class="jc" style="cursor:pointer;" onclick="openChat(${c.id},'${c.worker_name}','IȘ','c-chat')">
+      <div class="jc" style="cursor:pointer;" onclick="openChat('${c.id}','${c.worker_name}','IȘ','c-chat')">
         <div class="ji"><i class="ti ti-message-circle"></i></div>
         <div class="jif"><div class="jt">${c.worker_name||'Meșter'} — ${c.category}</div><div class="jm">${c.last_message||'—'}</div></div>
         <div class="jr">${c.unread>0?`<span class="jb jb-n">${c.unread} nou</span>`:''}</div>
@@ -975,7 +975,7 @@ async function openChat(cid,name,av,container){
   box.innerHTML=`<div class="cw"><div class="ch"><div class="av" style="width:36px;height:36px;font-size:11px;">${av}</div><div><div style="font-weight:500;font-size:13px;color:var(--navy);">${name}</div><div style="font-size:11px;color:var(--gr);">Online acum</div></div></div>
     <div class="cms" id="cms-${cid}">Se încarcă...</div>
     <div style="font-size:11px;color:var(--mu);padding:4px 1.25rem;background:var(--bg);text-align:center;"><i class="ti ti-shield-check" style="font-size:12px;vertical-align:-1px;"></i> Numerele de telefon sunt blocate automat</div>
-    <div class="cir"><input class="ci" id="ci-${cid}" type="text" placeholder="Scrie un mesaj..." onkeydown="if(event.key==='Enter')sendMsg(${cid})"/><button class="btn bt-bl bt-sm" onclick="sendMsg(${cid})"><i class="ti ti-send"></i></button></div>
+    <div class="cir"><input class="ci" id="ci-${cid}" type="text" placeholder="Scrie un mesaj..." onkeydown="if(event.key==='Enter')sendMsg('${cid}')"/><button class="btn bt-bl bt-sm" onclick="sendMsg('${cid}')"><i class="ti ti-send"></i></button></div>
   </div>`;
   box.scrollIntoView({behavior:'smooth',block:'start'});
   loadMsgs(cid);
