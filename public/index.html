@@ -609,9 +609,8 @@ function ss(el,cat,ico){
           <div class="wts"><span class="wt">Verificat</span><span class="wt">Garanție</span><span class="wt">Răspuns &lt;2h</span></div>
         </div>
         <div class="wri">
-          <div class="wpr">${w.price_for_category||'—'} lei<span>/lucrare</span></div>
-          <div style="font-size:12px;color:var(--mu);">⭐ ${w.rating||5.0} · ${w.reviews_count||0}</div>
-          <button class="btn bt-bl bt-sm" onclick="selectWorker('${w._id}',${w.price_for_category||0},'${w.name}')">Alege</button>
+          <div style="font-size:12px;color:var(--mu);">⭐ ${w.rating||5.0} · ${w.reviews_count||0} recenzii</div>
+          <button class="btn bt-bl bt-sm" onclick="selectWorker('${w._id}',0,'${w.name}')">Alege</button>
         </div>
       </div>`).join('');
   }).catch(()=>{});
@@ -1008,7 +1007,7 @@ async function loadAW(){
     var ws=us.filter(function(u){return u.role==='meserias';});
     var cats=['Instalatii sanitare','Instalatii electrice','Renovari & zugraveli','Curatenie profesionala','Tamplarie & mobilier','Mentenanta generala'];
     var catsFull=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
-    var wtbl='<table><thead><tr><th>Meșter</th><th>Specializare</th><th>Prețuri per categorie</th><th>Rating</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
+    var wtbl='<table><thead><tr><th>Meșter</th><th>Specializare</th><th>Rating</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
     ws.forEach(function(w){
       var uid=String(w._id||w.id);
       var wid=String(w.worker_id||'');
@@ -1033,7 +1032,7 @@ async function loadAW(){
       wtbl+='<tr id="wr-'+uid+'">';
       wtbl+='<td><strong>'+w.name+'</strong><br><span style="font-size:11px;color:var(--mu);">'+w.email+'</span></td>';
       wtbl+='<td>'+(w.specialization||'-')+'</td>';
-      wtbl+='<td>'+prHtml+'</td>';
+
       wtbl+='<td>'+String(w.rating||5.0)+' ('+String(w.reviews_count||0)+')</td>';
       wtbl+='<td><span class="sb '+statusCls+'" id="sb-'+uid+'">'+w.status+'</span></td>';
       wtbl+='<td>'+actHtml+'</td>';
