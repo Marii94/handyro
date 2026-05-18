@@ -492,7 +492,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
 <!-- MESERIAS -->
 <div class="page" id="page-meserias">
   <div class="dw">
-    <div class="dt"><div><div class="dti" id="m-hi">Bună, Ionuț! 👋</div><div class="dsi">Joburile și mesajele tale</div></div><div style="display:flex;gap:8px;"><a href="mailto:contact@handyro.ro" class="btn bt-gh" style="font-size:12px;"><i class="ti ti-mail"></i> Contact admin</a><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button></div></div>
+    <div class="dt"><div><div class="dti" id="m-hi">Bună, Ionuț! 👋</div><div class="dsi">Joburile și mesajele tale</div></div><div style="display:flex;gap:8px;"><button class="btn bt-gh" style="font-size:12px;" onclick="gp('contact')"><i class="ti ti-message-circle"></i> Contact admin</button><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button></div></div>
     <div class="dsg">
       <div class="ds"><div class="dsn" id="ms-j">—</div><div class="dsl">Joburi active</div></div>
       <div class="ds"><div class="dsn" id="ms-a">0</div><div class="dsl">Acceptate azi</div></div>
@@ -507,7 +507,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
 <!-- CLIENT -->
 <div class="page" id="page-client">
   <div class="dw">
-    <div class="dt"><div><div class="dti" id="c-hi">Contul meu 👤</div><div class="dsi">Cererile și mesajele tale pe HandyRO</div></div><div style="display:flex;gap:8px;"><a href="mailto:contact@handyro.ro" class="btn bt-gh" style="font-size:12px;"><i class="ti ti-mail"></i> Contact admin</a><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button></div></div>
+    <div class="dt"><div><div class="dti" id="c-hi">Contul meu 👤</div><div class="dsi">Cererile și mesajele tale pe HandyRO</div></div><div style="display:flex;gap:8px;"><button class="btn bt-gh" style="font-size:12px;" onclick="gp('contact')"><i class="ti ti-message-circle"></i> Contact admin</button><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button></div></div>
     <div class="set">Cererile mele</div>
     <div id="c-jobs">Se încarcă...</div>
     <div style="margin-top:1.5rem;"><div class="set">Mesaje</div><div id="c-convs"></div><div id="c-chat"></div></div>
@@ -742,20 +742,24 @@ async function showSubcats(cat) {
   const existing = document.getElementById('subcats-wrap');
   if (existing) existing.remove();
   try {
-    const subs = await api('GET', '/api/subcats?category=' + encodeURIComponent(cat));
+    var url = '/api/subcats?category=' + encodeURIComponent(cat);
+    // If worker selected, get worker-specific prices
+    if (selectedWorkerId) url = '/api/worker-subcats/' + selectedWorkerId + '/' + encodeURIComponent(cat);
+    const subs = await api('GET', url);
     if (!subs.length) return;
     const div = document.createElement('div');
     div.id = 'subcats-wrap';
     div.style.cssText = 'margin-bottom:14px;';
-    div.innerHTML = '<div style="font-size:11px;font-weight:500;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Alege tipul lucrării</div>' +
+    div.innerHTML = '<div style="font-size:11px;font-weight:500;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Alege tipul lucrării (poți selecta mai multe)</div>' +
       '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;" id="subcat-grid">' +
-      subs.map((s,i) =>
-        '<div class="subcat-btn" id="sb-'+i+'" onclick="selSubcat('+i+',\''+s.name.replace(/'/g,"\\'")+'\','+s.price+',\''+cat+'\')' +
-        '" style="background:var(--bg);border:0.5px solid var(--br);border-radius:var(--rs);padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
+      subs.map(function(s,i){
+        var safeName = s.name.replace(/'/g,"\'").replace(/"/g,'&quot;');
+        return '<div class="subcat-btn" id="sb-'+i+'" onclick="selSubcat('+i+',''+safeName+'','+s.price+',''+cat+'')"' +
+        ' style="background:var(--bg);border:0.5px solid var(--br);border-radius:var(--rs);padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
         '<div style="font-size:13px;color:var(--navy);font-weight:500;">'+s.name+'</div>' +
         '<div style="font-size:13px;font-weight:700;color:var(--blue);white-space:nowrap;">'+s.price+' lei</div>' +
-        '</div>'
-      ).join('') + '</div>';
+        '</div>';
+      }).join('') + '</div>';
     const urgDiv = document.getElementById('fc').querySelector('.urg-row').closest('.fg');
     urgDiv.parentNode.insertBefore(div, urgDiv);
   } catch(e) { console.log('subcats error:', e); }
@@ -1204,6 +1208,7 @@ async function loadAW(){
       if(w.status==='pending') actHtml+='<button class="btn bt-gr bt-sm" data-uid="'+uid+'" data-st="active" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-check"></i> Aproba</button>';
       if(w.status!=='blocked') actHtml+='<button class="btn bt-re bt-sm" data-uid="'+uid+'" data-st="blocked" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-ban"></i></button>';
       else actHtml+='<button class="btn bt-gh bt-sm" data-uid="'+uid+'" data-st="active" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-lock-open"></i></button>';
+      actHtml+='<button class="btn bt-bl bt-sm" data-wid="'+wid+'" data-name="'+w.name+'" onclick="openWorkerPrices(this)"><i class="ti ti-currency-leu"></i> Prețuri</button>';
       actHtml+='</div>';
       wtbl+='<tr id="wr-'+uid+'">';
       wtbl+='<td><strong>'+w.name+'</strong><br><span style="font-size:11px;color:var(--mu);">'+w.email+'</span></td>';
@@ -1336,6 +1341,66 @@ async function sSt(uid,st,bid){
   }catch(e){toast(e.message);}
 }
 
+async function openWorkerPrices(btn){
+  var wid=btn.dataset.wid;
+  var name=btn.dataset.name;
+  // Show modal
+  var modal=document.getElementById('worker-prices-modal');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='worker-prices-modal';
+    modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML='<div style="background:var(--card);border-radius:var(--r);padding:1.5rem;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">'
+    +'<div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--navy);">Prețuri — '+name+'</div>'
+    +'<button onclick="document.getElementById('worker-prices-modal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--mu);">✕</button>'
+    +'</div>'
+    +'<div id="wpm-body">Se incarca...</div>'
+    +'</div>';
+  modal.style.display='flex';
+  // Load all subcats with worker prices
+  try{
+    var allSubcats=await api('GET','/api/subcats');
+    var workerPrices=await api('GET','/api/worker-prices/'+wid);
+    var cats=['Instalatii sanitare','Instalatii electrice','Renovari & zugraveli','Curatenie profesionala','Tamplarie & mobilier','Mentenanta generala'];
+    var catsFull=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
+    var html='';
+    catsFull.forEach(function(cat){
+      var subs=allSubcats.filter(function(s){return s.category===cat;});
+      html+='<div style="margin-bottom:1.25rem;">';
+      html+='<div style="font-weight:700;font-size:14px;color:var(--navy);margin-bottom:.5rem;padding-bottom:.4rem;border-bottom:1px solid var(--br);">'+cat+'</div>';
+      subs.forEach(function(s){
+        var sid=String(s._id);
+        var wp=workerPrices.find(function(p){return p.subcat_id&&(String(p.subcat_id._id||p.subcat_id)===sid);});
+        var price=wp?wp.price:s.price;
+        html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
+        html+='<span style="flex:1;font-size:13px;color:var(--navy);">'+s.name+'</span>';
+        html+='<input type="number" id="wsp-'+sid+'" value="'+price+'" min="1" style="width:75px;padding:4px 8px;font-size:12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);"/>';
+        html+=' lei';
+        html+='<button class="btn bt-bl bt-sm" data-wid="'+wid+'" data-sid="'+sid+'" onclick="saveWorkerSubcat(this)"><i class="ti ti-check"></i></button>';
+        html+='</div>';
+      });
+      html+='</div>';
+    });
+    document.getElementById('wpm-body').innerHTML=html;
+  }catch(e){document.getElementById('wpm-body').innerHTML='Eroare: '+e.message;}
+}
+
+async function saveWorkerSubcat(btn){
+  var wid=btn.dataset.wid;
+  var sid=btn.dataset.sid;
+  var input=document.getElementById('wsp-'+sid);
+  if(!input)return;
+  var price=Number(input.value);
+  if(!price||price<1){toast('Pret invalid');return;}
+  try{
+    await api('POST','/api/worker-prices',{worker_id:wid,subcat_id:sid,price:price});
+    toast('Salvat: '+price+' lei ✓');
+  }catch(e){toast('Eroare: '+e.message);}
+}
+
 function handleSst(btn){
   sSt(btn.dataset.uid, btn.dataset.st, btn.dataset.bid);
 }
@@ -1357,10 +1422,10 @@ async function delJ(id){
 async function loadAdminContact(){
   try{
     var msgs=await api('GET','/api/contact');
-    if(!msgs.length){document.getElementById('tcontact').innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Nu există mesaje de contact.</div>';return;}
+    if(!msgs||!msgs.length){document.getElementById('tcontact').innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Nu există mesaje de contact încă.</div>';return;}
     var html='<div style="display:flex;flex-direction:column;gap:1rem;">';
     msgs.forEach(function(m){
-      var mid=String(m._id||m.id);
+      var mid=String(m._id||m.id).replace(/[^a-f0-9]/gi,'').substring(0,24);
       html+='<div style="background:var(--card);border:0.5px solid var(--br);border-radius:var(--r);padding:1rem;">';
       html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">';
       html+='<div style="font-weight:600;color:var(--navy);font-size:14px;">'+(m.sender_name||'Anonim')+'<span style="font-size:11px;font-weight:400;color:var(--mu);margin-left:8px;">'+(m.sender_email||'')+'</span></div>';

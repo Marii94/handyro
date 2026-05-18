@@ -213,4 +213,13 @@ const ContactMsgSchema = new mongoose.Schema({
 
 const ContactMsg = mongoose.model('ContactMsg', ContactMsgSchema);
 
-module.exports = { User, Worker, Price, Job, Conversation, Message, Review, SubcatPrice, ContactMsg, CATEGORIES };
+// Pret per meșter per subcategorie
+const WorkerSubcatPriceSchema = new mongoose.Schema({
+  worker_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Worker', required: true },
+  subcat_id: { type: mongoose.Schema.Types.ObjectId, ref: 'SubcatPrice', required: true },
+  price: { type: Number, required: true },
+});
+WorkerSubcatPriceSchema.index({ worker_id: 1, subcat_id: 1 }, { unique: true });
+const WorkerSubcatPrice = mongoose.model('WorkerSubcatPrice', WorkerSubcatPriceSchema);
+
+module.exports = { User, Worker, Price, Job, Conversation, Message, Review, SubcatPrice, ContactMsg, WorkerSubcatPrice, CATEGORIES };

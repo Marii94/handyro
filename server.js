@@ -71,3 +71,53 @@ app.patch('/api/contact/:id', async (req, res) => {
     res.json({ message: 'Răspuns salvat' });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
+
+// Worker subcat prices - admin only
+const { WorkerSubcatPrice, SubcatPrice: SC } = require('./db');
+const jwt2 = require('jsonwebtoken');
+
+function adminAuth(req, res, next) {
+  try {
+    const token = req.cookies?.token || req.headers?.authorization?.split(' ')[1];
+    const decoded = jwt2.verify(token, process.env.JWT_SECRET || 'handyro_secret_2024');
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+    req.user = decoded;
+    next();
+  } catch(e) { res.status(401).json({ error: 'Unauthorized' }); }
+}
+
+// GET prices for a worker
+app.get('/api/worker-prices/:workerId', adminAuth, async (req, res) => {
+  try {
+    const prices = await WorkerSubcatPrice.find({ worker_id: req.params.workerId }).populate('subcat_id');
+    res.json(prices);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// SET price for worker + subcat
+app.post('/api/worker-prices', adminAuth, async (req, res) => {
+  try {
+    const { worker_id, subcat_id, price } = req.body;
+    const p = Number(price);
+    if (!p || p < 0) return res.status(400).json({ error: 'Pret invalid' });
+    await WorkerSubcatPrice.findOneAndUpdate(
+      { worker_id, subcat_id },
+      { price: p },
+      { upsert: true, new: true }
+    );
+    res.json({ message: 'Salvat', price: p });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET subcats with worker price for display to clients
+app.get('/api/worker-subcats/:workerId/:category', async (req, res) => {
+  try {
+    const subcats = await SC.find({ category: req.params.category }).sort({ order: 1 });
+    const workerPrices = await WorkerSubcatPrice.find({ worker_id: req.params.workerId });
+    const result = subcats.map(s => {
+      const wp = workerPrices.find(p => String(p.subcat_id) === String(s._id));
+      return { _id: s._id, name: s.name, category: s.category, price: wp ? wp.price : s.price };
+    });
+    res.json(result);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
