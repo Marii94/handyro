@@ -866,11 +866,11 @@ async function loadMes(){
       const ph=(j.photos||[]);
       const phHtml=ph.length?`<div class="jph">${ph.map(u=>`<img src="${u}" class="pi2" alt="poza job"/>`).join('')}</div>`:'';
       const urgHtml=j.urgency==='urgent'?`<div class="jurg u-urg"><i class="ti ti-alert-triangle" style="font-size:11px;"></i> Urgent</div>`:`<div class="jurg u-nor">Normal</div>`;
-      return`<div class="jc" id="mj-${j.id}">
+      return`<div class="jc" id="mj-${j._id||j.id}">
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
         <div class="jif"><div class="jt">${j.category}${j.subcat_name?' — '+j.subcat_name:''} — ${j.city||'București'}</div><div class="jm">Client: ${j.client_name} · ${j.time_slot||''}</div>${j.subcat_price?'<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:3px;">Preț: '+j.subcat_price+' lei</div>':''}${urgHtml}${phHtml}</div>
         <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'Nou'}</span>
-        <div style="display:flex;gap:5px;">${j.status!=='accepted'?`<button class="btn bt-bl bt-sm" onclick="accJob(${j.id},this)"><i class="ti ti-check"></i> Acceptă</button>`:''}<button class="btn bt-gh bt-sm" onclick="openConv(${j.id},'${j.client_name}')"><i class="ti ti-message"></i> Chat</button></div></div>
+        <div style="display:flex;gap:5px;">${j.status!=='accepted'?`<button class="btn bt-bl bt-sm" onclick="accJob('${j._id||j.id}',this)"><i class="ti ti-check"></i> Acceptă</button>`:''}<button class="btn bt-gh bt-sm" onclick="openConv('${j._id||j.id}','${j.client_name}')"><i class="ti ti-message"></i> Chat</button></div></div>
       </div>`;
     }).join('');
     loadMConvs();

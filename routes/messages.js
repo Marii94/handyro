@@ -21,7 +21,7 @@ router.get('/conversations', auth, async (req, res) => {
       const msgs = await Message.find({ conversation_id: c._id }).sort({ createdAt: 1 });
       const last = msgs[msgs.length-1];
       const unread = msgs.filter(m => String(m.sender_id) !== String(req.user.id) && !m.is_read).length;
-      return { ...c.toObject(), category: job?.category, client_name: client?.name, worker_name: worker?.name, last_message: last?.content, unread };
+      const cobj = c.toObject(); return { ...cobj, id: String(cobj._id), job_id: String(cobj.job_id), category: job?.category, client_name: client?.name, worker_name: worker?.name, last_message: last?.content, unread };
     }));
     res.json(result);
   } catch(e) { res.status(500).json({ error: e.message }); }

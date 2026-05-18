@@ -29,7 +29,7 @@ router.get('/', auth, async (req, res) => {
       if (j.worker_id) { const w = await Worker.findById(j.worker_id); const wu = w ? await User.findById(w.user_id) : null; workerName = wu?.name; }
       const { Review } = require('../db');
       const review = await Review.findOne({ job_id: j._id });
-      return { ...j.toObject(), client_name: client?.name, worker_name: workerName, review: review||null };
+      const jobj = j.toObject(); return { ...jobj, id: String(jobj._id), client_name: client?.name, worker_name: workerName, review: review||null };
     }));
     result.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.json(result);

@@ -30,7 +30,7 @@ router.get('/me/dashboard', auth, requireRole('meserias'), async (req, res) => {
     const allJobs = await Job.find({ worker_id: worker._id });
     const jobs = await Promise.all(allJobs.map(async j => {
       const client = await User.findById(j.client_id);
-      return { ...j.toObject(), client_name: client?.name };
+      const jobj2 = j.toObject(); return { ...jobj2, id: String(jobj2._id), client_name: client?.name };
     }));
     const convs = await Conversation.find({ worker_id: req.user.id });
     let unread = 0;
