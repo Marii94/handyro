@@ -843,7 +843,8 @@ function loginOk(){
   else{document.getElementById('page-client').classList.add('on');loadClient();}
   window.scrollTo({top:0,behavior:'smooth'});
 }
-async function lo(){
+async async function lo(){
+  stopMsgPolling();
   try{await api('POST','/api/auth/logout');}catch(e){}
   localStorage.removeItem('hro_tk');CU=null;
   document.getElementById('pub-nav').style.display='flex';
