@@ -843,6 +843,66 @@ function loginOk(){
   else{document.getElementById('page-client').classList.add('on');loadClient();}
   window.scrollTo({top:0,behavior:'smooth'});
 }
+// NOTIFICĂRI
+var notifInterval=null;
+var lastMsgCount={};
+var notifGranted=false;
+
+async function requestNotifPermission(){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='granted'){notifGranted=true;return;}
+  if(Notification.permission!=='denied'){
+    var perm=await Notification.requestPermission();
+    notifGranted=(perm==='granted');
+  }
+}
+
+function showNotif(title,body){
+  document.title='🔔 Mesaj nou — HandyRO';
+  setTimeout(function(){document.title='HandyRO — Meseriași verificați în România';},5000);
+  if(notifGranted && document.hidden){
+    try{
+      var n=new Notification(title,{body:body,tag:'handyro-msg',requireInteraction:false});
+      setTimeout(function(){n.close();},6000);
+      n.onclick=function(){window.focus();n.close();};
+    }catch(e){}
+  }
+}
+
+async function checkNewMsgs(){
+  if(!CU)return;
+  try{
+    var convs=await api('GET','/api/messages/conversations');
+    var totalUnread=0;
+    convs.forEach(function(c){
+      var cid=String(c._id||c.id);
+      var unread=Number(c.unread||0);
+      totalUnread+=unread;
+      if(lastMsgCount[cid]!==undefined && unread>lastMsgCount[cid]){
+        var sender=CU.role==='meserias'?(c.client_name||'Client'):(c.worker_name||'Meșter');
+        showNotif('Mesaj nou de la '+sender, c.last_message||'Ai primit un mesaj nou');
+      }
+      lastMsgCount[cid]=unread;
+    });
+    if(totalUnread>0){
+      document.title='('+totalUnread+') HandyRO — Mesaje noi';
+    } else {
+      document.title='HandyRO — Meseriași verificați în România';
+    }
+  }catch(e){}
+}
+
+function startMsgPolling(){
+  if(notifInterval)clearInterval(notifInterval);
+  checkNewMsgs();
+  notifInterval=setInterval(checkNewMsgs,15000);
+}
+
+function stopMsgPolling(){
+  if(notifInterval){clearInterval(notifInterval);notifInterval=null;}
+  lastMsgCount={};
+}
+
 async function lo(){
   stopMsgPolling();
   try{await api('POST','/api/auth/logout');}catch(e){}
