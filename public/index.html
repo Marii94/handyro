@@ -927,7 +927,7 @@ function starWidget(jobId){
   return '<div id="rev-'+jobId+'" style="margin-top:10px;padding:10px;background:var(--bl);border-radius:var(--rs);"><div style="font-size:12px;font-weight:500;color:var(--navy);margin-bottom:6px;">Lasă un review pentru această lucrare:</div><div style="display:flex;gap:6px;">'+stars+'</div><div style="font-size:11px;color:var(--mu);margin-top:4px;">Apasă numărul de stele dorit</div></div>';
 }
 
-async async function openConv(jobId,cname){
+async function openConv(jobId,cname){
   try{
     const cs=await api('GET','/api/messages/conversations');
     const c=cs.find(x=>String(x.job_id)===String(jobId));
