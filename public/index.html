@@ -1351,41 +1351,28 @@ async function sSt(uid,st,bid){
 async function openWorkerPrices(btn){
   var wid=btn.dataset.wid;
   var name=btn.dataset.name;
-  // Show modal
   var modal=document.getElementById('worker-prices-modal');
-  if(!modal){
-    modal=document.createElement('div');
-    modal.id='worker-prices-modal';
-    modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;';
-    document.body.appendChild(modal);
-  }
-  modal.innerHTML='<div style="background:var(--card);border-radius:var(--r);padding:1.5rem;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;">'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">'
-    +'<div style="font-size:18px;font-weight:700;color:var(--navy);">Prețuri — '+name+'</div>'
-    +'<button onclick="document.getElementById('worker-prices-modal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--mu);">✕</button>'
-    +'</div>'
-    +'<div id="wpm-body">Se incarca...</div>'
-    +'</div>';
+  document.getElementById('wpm-title').textContent='Preturi — '+name;
+  document.getElementById('wpm-body').innerHTML='Se incarca...';
   modal.style.display='flex';
-  // Load all subcats with worker prices
   try{
     var allSubcats=await api('GET','/api/subcats');
     var workerPrices=await api('GET','/api/worker-prices/'+wid);
-    var cats=['Instalatii sanitare','Instalatii electrice','Renovari & zugraveli','Curatenie profesionala','Tamplarie & mobilier','Mentenanta generala'];
-    var catsFull=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
+    var catsFull=['Instalatii sanitare','Instalatii electrice','Renovari & zugraveli','Curatenie profesionala','Tamplarie & mobilier','Mentenanta generala'];
+    var catsReal=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
     var html='';
-    catsFull.forEach(function(cat){
+    catsReal.forEach(function(cat){
       var subs=allSubcats.filter(function(s){return s.category===cat;});
       html+='<div style="margin-bottom:1.25rem;">';
       html+='<div style="font-weight:700;font-size:14px;color:var(--navy);margin-bottom:.5rem;padding-bottom:.4rem;border-bottom:1px solid var(--br);">'+cat+'</div>';
       subs.forEach(function(s){
         var sid=String(s._id);
-        var wp=workerPrices.find(function(p){return p.subcat_id&&(String(p.subcat_id._id||p.subcat_id)===sid);});
+        var wp=workerPrices.find(function(p){return String(p.subcat_id&&(p.subcat_id._id||p.subcat_id))===sid;});
         var price=wp?wp.price:s.price;
         html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
         html+='<span style="flex:1;font-size:13px;color:var(--navy);">'+s.name+'</span>';
-        html+='<input type="number" id="wsp-'+sid+'" value="'+price+'" min="1" style="width:75px;padding:4px 8px;font-size:12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);"/>';
-        html+=' lei';
+        html+='<input type="number" id="wsp-'+sid+'" value="'+price+'" min="1" style="width:75px;padding:4px 8px;font-size:12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);" />';
+        html+=' lei ';
         html+='<button class="btn bt-bl bt-sm" data-wid="'+wid+'" data-sid="'+sid+'" onclick="saveWorkerSubcat(this)"><i class="ti ti-check"></i></button>';
         html+='</div>';
       });
@@ -1394,6 +1381,7 @@ async function openWorkerPrices(btn){
     document.getElementById('wpm-body').innerHTML=html;
   }catch(e){document.getElementById('wpm-body').innerHTML='Eroare: '+e.message;}
 }
+
 
 async function saveWorkerSubcat(btn){
   var wid=btn.dataset.wid;
@@ -1541,11 +1529,29 @@ loadSvcGrid();
   }catch(e){localStorage.removeItem('hro_tk');}
 })();
 
+// Modal close
+document.addEventListener('DOMContentLoaded', function(){
+  var closeBtn = document.getElementById('wpm-close');
+  if(closeBtn) closeBtn.addEventListener('click', function(){
+    document.getElementById('worker-prices-modal').style.display='none';
+  });
+});
+
 // PWA Service Worker
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 }
 
 </script>
+<!-- Worker Prices Modal -->
+<div id="worker-prices-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:var(--card);border-radius:var(--r);padding:1.5rem;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <div id="wpm-title" style="font-size:18px;font-weight:700;color:var(--navy);">Prețuri meșter</div>
+      <button id="wpm-close" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--mu);line-height:1;">✕</button>
+    </div>
+    <div id="wpm-body">Se încarcă...</div>
+  </div>
+</div>
 </body>
 </html>
