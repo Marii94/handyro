@@ -202,4 +202,15 @@ async function seedIfEmpty() {
   console.log('✅ Date seed introduse în MongoDB');
 }
 
-module.exports = { User, Worker, Price, Job, Conversation, Message, Review, SubcatPrice, CATEGORIES };
+const ContactMsgSchema = new mongoose.Schema({
+  sender_name: String,
+  sender_email: String,
+  sender_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  content: { type: String, required: true },
+  is_read: { type: Boolean, default: false },
+  reply: String,
+}, { timestamps: true });
+
+const ContactMsg = mongoose.model('ContactMsg', ContactMsgSchema);
+
+module.exports = { User, Worker, Price, Job, Conversation, Message, Review, SubcatPrice, ContactMsg, CATEGORIES };

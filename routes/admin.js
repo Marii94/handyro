@@ -62,3 +62,12 @@ router.delete('/users/:id', async (req, res) => {
 });
 
 module.exports = router;
+
+// Contact messages from users
+router.get('/contact-msgs', async (req, res) => {
+  try {
+    const { ContactMsg } = require('../db');
+    const msgs = await ContactMsg.find({}).sort({ createdAt: -1 });
+    res.json(msgs);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});

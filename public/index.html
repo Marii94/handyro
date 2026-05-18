@@ -472,11 +472,18 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
     <div class="cg">
       <div><div class="sl">Contact</div><div class="st">Hai să vorbim</div><p style="color:var(--mu);font-weight:300;line-height:1.8;margin-top:1rem;font-size:15px;">Ai o întrebare sau vrei să te alături platformei ca meșter?</p><br><p style="font-size:14px;color:var(--mu);">Email: <strong style="color:var(--navy);">contact@handyro.ro</strong></p><p style="font-size:14px;color:var(--mu);margin-top:.5rem;">Program: <strong style="color:var(--navy);">Luni–Sâmbătă, 08:00–20:00</strong></p></div>
       <div class="cf">
-        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--navy);margin-bottom:1.25rem;">Trimite un mesaj</div>
-        <div class="fg-r"><div class="fg"><label>Nume</label><input type="text" placeholder="Numele tău"/></div><div class="fg"><label>Email</label><input type="text" placeholder="email@exemplu.ro"/></div></div>
-        <div class="fg"><label>Mesaj</label><textarea placeholder="Descrie pe scurt ce ai nevoie..." style="min-height:90px;"></textarea></div>
-        <button class="btn bt-bl" style="width:100%;justify-content:center;" onclick="document.getElementById('c-ok').style.display='block'"><i class="ti ti-send"></i> Trimite</button>
-        <div class="ok" id="c-ok"><i class="ti ti-circle-check"></i><h3>Mesaj trimis!</h3><p>Te contactăm în cel mai scurt timp.</p></div>
+        <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--navy);margin-bottom:1.25rem;">Scrie-ne direct</div>
+        <div id="contact-chat-wrap">
+          <div id="contact-chat-box" style="background:var(--bg);border:0.5px solid var(--br);border-radius:var(--rs);min-height:200px;max-height:350px;overflow-y:auto;padding:1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:center;">
+            <div style="text-align:center;color:var(--mu);font-size:13px;"><i class="ti ti-message-circle" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>Scrie primul mesaj și îți răspundem rapid!</div>
+          </div>
+          <div id="contact-login-note" style="display:none;padding:.75rem 1rem;background:var(--bl);border-radius:var(--rs);font-size:13px;color:var(--navy);margin-bottom:.75rem;"><i class="ti ti-info-circle"></i> <a onclick="om('login')" style="cursor:pointer;color:var(--blue);font-weight:500;">Loghează-te</a> pentru a putea scrie. Nu ai cont? <a onclick="om('register')" style="cursor:pointer;color:var(--blue);font-weight:500;">Înregistrează-te gratuit</a>.</div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="contact-msg-input" placeholder="Scrie mesajul tău..." style="flex:1;padding:.75rem 1rem;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);font-family:'DM Sans',sans-serif;font-size:14px;" onkeydown="if(event.key==='Enter')sendContactMsg()"/>
+            <button class="btn bt-bl" onclick="sendContactMsg()"><i class="ti ti-send"></i></button>
+          </div>
+        </div>
+        <div class="ok" id="c-ok" style="display:none;"><i class="ti ti-circle-check"></i><h3>Mesaj trimis!</h3><p>Te contactăm în cel mai scurt timp.</p></div>
       </div>
     </div>
   </div>
@@ -523,12 +530,14 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <button onclick="switchTab(this,'tj')">Joburi</button>
       <button onclick="switchTab(this,'tsubcat')">Prețuri servicii</button>
       <button onclick="switchTab(this,'tm')">Mesaje</button>
+      <button onclick="switchTab(this,'tcontact')">Contact</button>
     </div>
     <div id="tw">Se încarcă...</div>
     <div id="tc" style="display:none"></div>
     <div id="tj" style="display:none"></div>
     <div id="tsubcat" style="display:none"></div>
     <div id="tm" style="display:none"></div>
+    <div id="tcontact" style="display:none"></div>
   </div>
 </div>
 
@@ -580,6 +589,7 @@ function catIco(c){const m={'Instalații sanitare':'ti-droplet','Instalații ele
 function gp(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('page-'+id).classList.add('on');
+  if(id==='contact') loadContactChat();
   document.querySelectorAll('.nav-ul a').forEach(a=>a.classList.remove('on'));
   const nl=document.getElementById('nl-'+id);if(nl)nl.classList.add('on');
   window.scrollTo({top:0,behavior:'smooth'});
@@ -601,7 +611,7 @@ function ss(el,cat,ico){
     // Update hero price with first worker
     if(workers[0]) document.getElementById('hero-pr').innerHTML=workers[0].price_per_job+' lei<span style="font-size:11px;font-weight:400;font-family:\'DM Sans\',sans-serif;color:var(--mu);">/lucrare</span>';
     list.innerHTML=workers.map(w=>`
-      <div class="wr" style="border-top:0.5px solid var(--br);">
+      <div class="wr" data-wid="${w._id}" style="border-top:0.5px solid var(--br);">
         <div class="wa">${ini(w.name)}</div>
         <div class="wi">
           <div class="wn">${w.name}</div>
@@ -751,17 +761,36 @@ async function showSubcats(cat) {
   } catch(e) { console.log('subcats error:', e); }
 }
 
+var selectedSubcats = []; // multiple selection
+
 function selSubcat(idx, name, price, cat) {
-  selectedSubcat = {name, price};
-  document.querySelectorAll('.subcat-btn').forEach(function(b){
-    b.style.background='var(--bg)';b.style.borderColor='var(--br)';
-  });
-  var btn=document.getElementById('sb-'+idx);
-  if(btn){btn.style.background='var(--bl)';btn.style.borderColor='var(--blue)';}
-  var finalPrice=urg==='urgent'?price+70:price;
-  var urgNote=urg==='urgent'?' incl. urgență':'';
-  document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea — '+name+' ('+finalPrice+' lei'+urgNote+')';
-  document.getElementById('sub-btn').disabled=false;
+  var existing = selectedSubcats.findIndex(function(s){return s.name===name;});
+  var btn = document.getElementById('sb-'+idx);
+  if(existing >= 0) {
+    // Deselect
+    selectedSubcats.splice(existing, 1);
+    if(btn){btn.style.background='var(--bg)';btn.style.borderColor='var(--br)';}
+  } else {
+    // Select
+    selectedSubcats.push({name:name, price:price});
+    if(btn){btn.style.background='var(--bl)';btn.style.borderColor='var(--blue)';}
+  }
+  selectedSubcat = selectedSubcats.length > 0 ? selectedSubcats[0] : null;
+  updateSubBtn();
+}
+
+function updateSubBtn() {
+  var btn = document.getElementById('sub-btn');
+  if(!btn) return;
+  if(selectedSubcats.length === 0) {
+    btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea';
+    return;
+  }
+  var totalPrice = selectedSubcats.reduce(function(s,sc){return s+sc.price;}, 0);
+  if(urg==='urgent') totalPrice += 70;
+  var names = selectedSubcats.map(function(s){return s.name;}).join(', ');
+  btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea ('+selectedSubcats.length+' servicii — '+totalPrice+' lei'+(urg==='urgent'?' incl. urgență':'')+')';
+  btn.disabled = false;
 }
 
 let selectedWorkerId = null;
@@ -794,9 +823,10 @@ async function submitJob(){
     const workers=await api('GET','/api/workers');
     const wid=selectedWorkerId||workers[0]?._id||workers[0]?.id;
     const urgentExtra = urg==='urgent' ? 70 : 0;
-    const finalPrice = selectedSubcat ? selectedSubcat.price + urgentExtra : 0;
-    const fullDesc = selectedSubcat ? '[' + selectedSubcat.name + ' — ' + finalPrice + ' lei' + (urg==='urgent'?' (urgent)':'') + '] ' + desc : desc;
-    await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:document.getElementById('slot').value,photos:photoUrls,subcat_name:selectedSubcat?.name,subcat_price:selectedSubcat?.price});
+    const subcatNames = selectedSubcats.length > 0 ? selectedSubcats.map(function(s){return s.name;}).join(', ') : (selectedSubcat ? selectedSubcat.name : '');
+    const subcatPrice = selectedSubcats.reduce(function(s,sc){return s+sc.price;}, 0) + urgentExtra;
+    const fullDesc = subcatNames ? '[' + subcatNames + (urg==='urgent'?' — URGENT':'') + '] ' + desc : desc;
+    await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:document.getElementById('slot').value,photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice||null});
     const ptxt=files.length>0?` cu ${files.length} ${files.length===1?'poză':'poze'}`:'';
     const utxt=urg==='urgent'?' Marcat ca urgent.':'';
     document.getElementById('ok-txt').textContent=`Ionuț Șerban a primit cererea ta${ptxt}.${utxt} Îți va răspunde prin mesageria HandyRO.`;
@@ -843,6 +873,63 @@ function loginOk(){
   else{document.getElementById('page-client').classList.add('on');loadClient();}
   window.scrollTo({top:0,behavior:'smooth'});
 }
+// CONTACT CHAT
+var contactMsgs = [];
+
+async function loadContactChat(){
+  var box = document.getElementById('contact-chat-box');
+  if(!box) return;
+  if(!CU){
+    var note = document.getElementById('contact-login-note');
+    if(note) note.style.display='block';
+    return;
+  }
+  try{
+    var msgs = await api('GET','/api/contact');
+    // show only this user's messages
+    var myMsgs = msgs.filter(function(m){ return String(m.sender_id)===String(CU.id); });
+    if(!myMsgs.length){
+      box.innerHTML='<div style="text-align:center;color:var(--mu);font-size:13px;"><i class="ti ti-message-circle" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>Scrie primul mesaj!</div>';
+      return;
+    }
+    box.innerHTML = myMsgs.map(function(m){
+      return '<div style="margin-bottom:.75rem;">'
+        +'<div style="display:flex;justify-content:flex-end;margin-bottom:4px;">'
+        +'<div style="background:var(--blue);color:#fff;padding:.5rem .85rem;border-radius:12px 12px 2px 12px;font-size:13px;max-width:80%;">'+m.content+'</div></div>'
+        +(m.reply?'<div style="display:flex;justify-content:flex-start;">'
+          +'<div style="background:var(--bg);border:0.5px solid var(--br);padding:.5rem .85rem;border-radius:12px 12px 12px 2px;font-size:13px;max-width:80%;color:var(--navy);">'+m.reply+'</div></div>':'')
+        +'</div>';
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+  }catch(e){}
+}
+
+async function sendContactMsg(){
+  var input = document.getElementById('contact-msg-input');
+  if(!input) return;
+  var txt = input.value.trim();
+  if(!txt) return;
+  if(!CU){
+    var note = document.getElementById('contact-login-note');
+    if(note) note.style.display='block';
+    toast('Trebuie să fii logat pentru a trimite mesaje!');
+    return;
+  }
+  input.value='';
+  var box = document.getElementById('contact-chat-box');
+  // Optimistic update
+  var div = document.createElement('div');
+  div.style.cssText='margin-bottom:.75rem;';
+  div.innerHTML='<div style="display:flex;justify-content:flex-end;"><div style="background:var(--blue);color:#fff;padding:.5rem .85rem;border-radius:12px 12px 2px 12px;font-size:13px;max-width:80%;">'+txt+'</div></div>';
+  if(box.querySelector('.ti-message-circle')) box.innerHTML='';
+  box.appendChild(div);
+  box.scrollTop=box.scrollHeight;
+  try{
+    await api('POST','/api/contact',{content:txt});
+    toast('Mesaj trimis! Îți răspundem în curând.');
+  }catch(e){toast('Eroare: '+e.message);}
+}
+
 // NOTIFICĂRI
 var notifInterval=null;
 var lastMsgCount={};
@@ -1067,13 +1154,14 @@ async function sendMsg(cid){
 function switchTab(btn,tab){
   document.querySelectorAll('.atb button').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
-  var tabs=['tw','tc','tj','tsubcat','tm'];
+  var tabs=['tw','tc','tj','tsubcat','tm','tcontact'];
   tabs.forEach(function(t){var el=document.getElementById(t);if(el)el.style.display='none';});
   var el=document.getElementById(tab);
   if(el)el.style.display='block';
   if(tab==='tj')loadAJ();
   if(tab==='tm')loadAM();
   if(tab==='tsubcat')loadSubcatPrices();
+  if(tab==='tcontact')loadAdminContact();
 }
 
 async function loadAdmin(){
@@ -1170,15 +1258,43 @@ async function loadAJ(){
 async function loadAM(){
   try{
     var cs=await api('GET','/api/messages/conversations');
-    var tbl='<table><thead><tr><th>Conversatie</th><th>Ultimul mesaj</th><th>Categorie</th></tr></thead><tbody>';
+    var tbl='<table><thead><tr><th>Conversație</th><th>Ultimul mesaj</th><th>Categorie</th><th>Acțiuni</th></tr></thead><tbody>';
     cs.forEach(function(c){
-      tbl+='<tr><td><strong>'+(c.client_name||'-')+' vs '+(c.worker_name||'-')+'</strong></td>';
-      tbl+='<td style="font-size:12px;color:var(--mu);max-width:200px;">'+(c.last_message||'-')+'</td>';
-      tbl+='<td>'+(c.category||'-')+'</td></tr>';
+      var cid=String(c._id||c.id);
+      tbl+='<tr>';
+      tbl+='<td><strong>'+(c.client_name||'-')+' ↔ '+(c.worker_name||'-')+'</strong></td>';
+      tbl+='<td style="font-size:12px;color:var(--mu);max-width:180px;">'+(c.last_message||'-')+'</td>';
+      tbl+='<td>'+(c.category||'-')+'</td>';
+      tbl+='<td><button class="btn bt-gh bt-sm" data-cid="'+cid+'" data-client="'+(c.client_name||'')+'" data-worker="'+(c.worker_name||'')+'" onclick="adminOpenChat(this)"><i class="ti ti-message"></i> Vezi chat</button></td>';
+      tbl+='</tr>';
     });
     tbl+='</tbody></table>';
+    tbl+='<div id="admin-chat-view" style="margin-top:1.5rem;"></div>';
     document.getElementById('tm').innerHTML=tbl;
   }catch(e){toast(e.message);}
+}
+
+async function adminOpenChat(btn){
+  var cid=btn.dataset.cid;
+  var client=btn.dataset.client;
+  var worker=btn.dataset.worker;
+  var view=document.getElementById('admin-chat-view');
+  if(!view)return;
+  view.innerHTML='<div style="font-weight:600;color:var(--navy);margin-bottom:.75rem;font-size:14px;">Conversație: '+client+' ↔ '+worker+'</div><div id="admin-msgs" style="background:var(--bg);border:0.5px solid var(--br);border-radius:var(--rs);padding:1rem;max-height:400px;overflow-y:auto;">Se încarcă...</div>';
+  try{
+    var msgs=await api('GET','/api/messages/'+cid);
+    var el=document.getElementById('admin-msgs');
+    if(!el)return;
+    if(!msgs.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;">Nu există mesaje.</div>';return;}
+    el.innerHTML=msgs.map(function(m){
+      return '<div style="margin-bottom:.75rem;padding:.6rem .85rem;background:var(--card);border-radius:var(--rs);border:0.5px solid var(--br);">'
+        +'<div style="font-size:11px;font-weight:600;color:var(--blue);margin-bottom:3px;">'+(m.sender_name||'—')+'</div>'
+        +'<div style="font-size:13px;color:var(--navy);">'+m.content+'</div>'
+        +'<div style="font-size:10px;color:var(--mu);margin-top:3px;">'+ts(m.createdAt||m.created_at)+'</div>'
+        +'</div>';
+    }).join('');
+    el.scrollTop=el.scrollHeight;
+  }catch(e){toast('Eroare: '+e.message);}
 }
 
 var CATS_FULL=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
@@ -1235,6 +1351,44 @@ async function delJ(id){
     var el=document.getElementById('jr-'+id);
     if(el)el.remove();
     toast('Job sters');
+  }catch(e){toast('Eroare: '+e.message);}
+}
+
+async function loadAdminContact(){
+  try{
+    var msgs=await api('GET','/api/contact');
+    if(!msgs.length){document.getElementById('tcontact').innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Nu există mesaje de contact.</div>';return;}
+    var html='<div style="display:flex;flex-direction:column;gap:1rem;">';
+    msgs.forEach(function(m){
+      var mid=String(m._id||m.id);
+      html+='<div style="background:var(--card);border:0.5px solid var(--br);border-radius:var(--r);padding:1rem;">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">';
+      html+='<div style="font-weight:600;color:var(--navy);font-size:14px;">'+(m.sender_name||'Anonim')+'<span style="font-size:11px;font-weight:400;color:var(--mu);margin-left:8px;">'+(m.sender_email||'')+'</span></div>';
+      html+='<div style="font-size:11px;color:var(--mu);">'+ts(m.createdAt||m.created_at)+'</div></div>';
+      html+='<div style="font-size:13px;color:var(--navy);margin-bottom:.75rem;padding:.5rem .75rem;background:var(--bg);border-radius:var(--rs);">'+m.content+'</div>';
+      if(m.reply){
+        html+='<div style="font-size:12px;color:var(--mu);margin-bottom:.5rem;">Răspunsul tău: <span style="color:var(--navy);">'+m.reply+'</span></div>';
+      }
+      html+='<div style="display:flex;gap:8px;">';
+      html+='<input type="text" id="reply-'+mid+'" placeholder="Scrie răspuns..." value="'+(m.reply||'')+'" style="flex:1;padding:.5rem .75rem;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);font-size:13px;font-family:'DM Sans',sans-serif;"/>';
+      html+='<button class="btn bt-bl bt-sm" data-mid="'+mid+'" onclick="sendContactReply(this)"><i class="ti ti-send"></i> Răspunde</button>';
+      html+='</div></div>';
+    });
+    html+='</div>';
+    document.getElementById('tcontact').innerHTML=html;
+  }catch(e){toast('Eroare: '+e.message);}
+}
+
+async function sendContactReply(btn){
+  var mid=btn.dataset.mid;
+  var input=document.getElementById('reply-'+mid);
+  if(!input)return;
+  var reply=input.value.trim();
+  if(!reply){toast('Scrie un răspuns!');return;}
+  try{
+    await api('PATCH','/api/contact/'+mid,{reply:reply});
+    toast('Răspuns trimis ✓');
+    loadAdminContact();
   }catch(e){toast('Eroare: '+e.message);}
 }
 
