@@ -518,11 +518,11 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <div class="ds"><div class="dsn" id="as-p">—</div><div class="dsl">În așteptare</div></div>
     </div>
     <div class="atb">
-      <button class="on" onclick="at(this,'tw')">Meseriași</button>
-      <button onclick="at(this,'tc')">Clienți</button>
-      <button onclick="at(this,'tj')">Joburi</button>
-      <button onclick="at(this,'tsubcat')">Prețuri servicii</button>
-      <button onclick="at(this,'tm')">Mesaje</button>
+      <button class="on" onclick="switchTab(this,'tw')">Meseriași</button>
+      <button onclick="switchTab(this,'tc')">Clienți</button>
+      <button onclick="switchTab(this,'tj')">Joburi</button>
+      <button onclick="switchTab(this,'tsubcat')">Prețuri servicii</button>
+      <button onclick="switchTab(this,'tm')">Mesaje</button>
     </div>
     <div id="tw">Se încarcă...</div>
     <div id="tc" style="display:none"></div>
