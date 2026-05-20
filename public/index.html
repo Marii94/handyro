@@ -1001,8 +1001,9 @@ function showNotif(title,body){
 }
 
 async function checkNewMsgs(){
-  if(!CU)return;
-  // Admin: check contact messages
+  if(!CU) return;
+
+  // Admin: verifică mesaje de contact necitite
   if(CU.role==='admin'){
     try{
       var cmsgs=await api('GET','/api/contact');
@@ -1013,6 +1014,23 @@ async function checkNewMsgs(){
     }catch(e){}
     return;
   }
+
+  // Client/Meserias: verifică reply-uri noi pe contact
+  if(CU.role==='client'){
+    try{
+      var cmsgs=await api('GET','/api/contact');
+      var myMsgs=cmsgs.filter(function(m){ return String(m.sender_id)===String(CU.id); });
+      var hasNewReply=myMsgs.some(function(m){ return m.reply && !m.reply_read; });
+      if(hasNewReply){
+        showNotif('Răspuns nou de la HandyRO','Adminul ți-a răspuns la mesaj!');
+        toast('💬 Ai un răspuns nou de la Admin HandyRO!');
+        // Actualizează chat-ul dacă e deschis
+        loadContactChat();
+      }
+    }catch(e){}
+  }
+
+  // Verifică mesaje noi în conversații
   try{
     var convs=await api('GET','/api/messages/conversations');
     var totalUnread=0;
@@ -1033,7 +1051,6 @@ async function checkNewMsgs(){
     }
   }catch(e){}
 }
-
 function startMsgPolling(){
   if(notifInterval)clearInterval(notifInterval);
   checkNewMsgs();
