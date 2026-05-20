@@ -10,8 +10,10 @@ function filterPhone(text) {
 router.get('/conversations', auth, async (req, res) => {
   try {
     let convs;
-    if (req.user.role === 'client') convs = await Conversation.find({ client_id: req.user.id });
-    else if (req.user.role === 'meserias') convs = await Conversation.find({ worker_id: req.user.id });
+    const mongoose = require('mongoose');
+    const uid = req.user.id;
+    if (req.user.role === 'client') convs = await Conversation.find({ client_id: uid });
+    else if (req.user.role === 'meserias') convs = await Conversation.find({ worker_id: uid });
     else convs = await Conversation.find({});
     const result = await Promise.all(convs.map(async c => {
       const { Job } = require('../db');

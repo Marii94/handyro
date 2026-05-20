@@ -995,6 +995,17 @@ function showNotif(title,body){
 
 async function checkNewMsgs(){
   if(!CU)return;
+  // Admin: check contact messages
+  if(CU.role==='admin'){
+    try{
+      var cmsgs=await api('GET','/api/contact');
+      var unread=cmsgs.filter(function(m){return !m.is_read;}).length;
+      var ctab=document.getElementById('contact-tab-btn');
+      if(ctab) ctab.innerHTML='Contact'+(unread>0?' <span style="background:#e53935;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:3px;">'+unread+'</span>':'');
+      if(unread>0) showNotif('Mesaj nou pe Contact','Ai '+unread+' mesaj(e) noi de contact');
+    }catch(e){}
+    return;
+  }
   try{
     var convs=await api('GET','/api/messages/conversations');
     var totalUnread=0;
@@ -1223,7 +1234,7 @@ async function loadAW(){
     var wtbl='<table><thead><tr><th>Meșter</th><th>Specializare</th><th>Rating</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
     ws.forEach(function(w){
       var uid=String(w._id||w.id);
-      var wid=String(w.worker_id||'');
+      var wid=String(w.worker_id||w._id||'');
       var statusCls=w.status==='active'?'sb-a':w.status==='pending'?'sb-p':'sb-b';
       var prHtml='<div style="display:flex;flex-direction:column;gap:4px;">';
       catsFull.forEach(function(cat,ci){

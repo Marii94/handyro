@@ -46,7 +46,7 @@ app.post('/api/contact', async (req, res) => {
       const jwt = require('jsonwebtoken');
       const token = req.cookies?.token || req.headers?.authorization?.split(' ')[1];
       if (token) {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'handyro_secret_2024');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'handyro_secret_2026');
         userId = decoded.id;
         userName = decoded.name;
         userEmail = decoded.email;
@@ -79,7 +79,7 @@ const jwt2 = require('jsonwebtoken');
 function adminAuth(req, res, next) {
   try {
     const token = req.cookies?.token || req.headers?.authorization?.split(' ')[1];
-    const decoded = jwt2.verify(token, process.env.JWT_SECRET || 'handyro_secret_2024');
+    const decoded = jwt2.verify(token, process.env.JWT_SECRET || 'handyro_secret_2026');
     if (decoded.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
     req.user = decoded;
     next();
