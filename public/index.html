@@ -611,13 +611,29 @@ function ts(dt){
 function catIco(c){const m={'Instalații sanitare':'ti-droplet','Instalații electrice':'ti-bolt','Renovări & zugrăveală':'ti-brush','Curățenie profesională':'ti-sparkles','Tâmplărie & mobilier':'ti-armchair','Mentenanță generală':'ti-settings'};return m[c]||'ti-tool';}
 
 function gp(id){
+  // Dacă e logat și apasă home, du-l la dashboard-ul lui
+  if(id==='home' && CU){
+    if(CU.role==='admin') id='admin';
+    else if(CU.role==='meserias') id='meserias';
+    else if(CU.role==='client') id='client';
+  }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('page-'+id).classList.add('on');
   if(id==='contact') loadContactChat();
-  document.querySelectorAll('.nav-ul a').forEach(a=>a.classList.remove('on'));
-  const nl=document.getElementById('nl-'+id);if(nl)nl.classList.add('on');
-  window.scrollTo({top:0,behavior:'smooth'});
-}
+  // Reset mesaje necitite admin când intri pe contact
+  if(id==='contact' && CU){
+    var key='hro_last_reply_'+CU.id;
+    api('GET','/api/contact').then(function(cmsgs){
+      var myMsgs=cmsgs.filter(function(m){ return String(m.sender_id)===String(CU.id); });
+      var latestReply='';
+      myMsgs.forEach(function(m){
+        if(m.reply && m.reply.length>0){
+          var t=String(m.updatedAt||m.createdAt||'');
+          if(t>latestReply) latestReply=t;
+        }
+      });
+      if(latestReply) localStorage.setItem(key, latestReply);
+      if(CU.role==='meserias') loadMes
 function sp(el){document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');}
 function ss(el,cat,ico){
   document.querySelectorAll('.sc').forEach(c=>c.classList.remove('on'));el.classList.add('on');
