@@ -628,7 +628,6 @@ function gp(id){
   if(id==='home' && CU){
     if(CU.role==='admin') id='admin';
     else if(CU.role==='meserias') id='meserias';
-    else if(CU.role==='client') id='client';
   }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('page-'+id).classList.add('on');
