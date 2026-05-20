@@ -24,7 +24,22 @@ router.get('/users', async (req, res) => {
     const result = await Promise.all(users.map(async u => {
       const w = await Worker.findOne({ user_id: u._id });
       const prices = w ? await Price.find({ worker_id: w._id }) : [];
-      return { _id: u._id, name: u.name, email: u.email, role: u.role, status: u.status, rating: w?.rating, reviews_count: w?.reviews_count, worker_id: w?._id, specialization: w?.specialization, prices };
+      return {
+        _id: u._id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        status: u.status,
+        rating: w?.rating,
+        reviews_count: w?.reviews_count,
+        worker_id: w?._id,
+        specialization: w?.specialization,
+        categories: w?.categories || [],
+        pfa_name: w?.pfa_name || '',
+        cui: w?.cui || '',
+        iban: w?.iban || '',
+        prices,
+      };
     }));
     res.json(result);
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -62,12 +77,3 @@ router.delete('/users/:id', async (req, res) => {
 });
 
 module.exports = router;
-
-// Contact messages from users
-router.get('/contact-msgs', async (req, res) => {
-  try {
-    const { ContactMsg } = require('../db');
-    const msgs = await ContactMsg.find({}).sort({ createdAt: -1 });
-    res.json(msgs);
-  } catch(e) { res.status(500).json({ error: e.message }); }
-});
