@@ -633,7 +633,14 @@ function gp(id){
         }
       });
       if(latestReply) localStorage.setItem(key, latestReply);
-      if(CU.role==='meserias') loadMes
+      if(CU.role==='meserias') loadMes();
+      if(CU.role==='client') loadClient();
+    }).catch(function(){});
+  }
+  document.querySelectorAll('.nav-ul a').forEach(a=>a.classList.remove('on'));
+  const nl=document.getElementById('nl-'+id);if(nl)nl.classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 function sp(el){document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');}
 function ss(el,cat,ico){
   document.querySelectorAll('.sc').forEach(c=>c.classList.remove('on'));el.classList.add('on');
