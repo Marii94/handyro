@@ -20,10 +20,14 @@ const UserSchema = new mongoose.Schema({
 const WorkerSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   specialization: { type: String, default: 'General' },
+  categories: [{ type: String }],
   rating: { type: Number, default: 5.0 },
   reviews_count: { type: Number, default: 0 },
   city: { type: String, default: 'București' },
   available: { type: Boolean, default: true },
+  pfa_name: { type: String, default: '' },
+  cui: { type: String, default: '' },
+  iban: { type: String, default: '' },
 }, { timestamps: true });
 
 const PriceSchema = new mongoose.Schema({
