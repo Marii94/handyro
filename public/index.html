@@ -1062,15 +1062,19 @@ async function checkNewMsgs(){
           if(t>latestReply) latestReply=t;
         }
       });
+      var banner=document.getElementById('admin-reply-banner');
       if(latestReply && latestReply!==lastSeen){
         showNotif('💬 Răspuns nou de la HandyRO!','Apasă Contact pentru a citi răspunsul.');
-        toast('💬 Ai un răspuns nou de la Admin HandyRO!');
-        localStorage.setItem(key, latestReply);
-        if(document.getElementById('page-contact').classList.contains('on')){
-          loadContactChat();
+        if(!banner){
+          banner=document.createElement('div');
+          banner.id='admin-reply-banner';
+          banner.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:12px 20px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,0.2);';
+          banner.innerHTML='<i class="ti ti-message-circle"></i> Ai un răspuns nou de la Admin HandyRO!';
+          banner.onclick=function(){ gp('contact'); banner.remove(); };
+          document.body.appendChild(banner);
         }
-      } else if(!lastSeen && latestReply){
-        localStorage.setItem(key, latestReply);
+      } else {
+        if(banner) banner.remove();
       }
     }catch(e){}
   }
