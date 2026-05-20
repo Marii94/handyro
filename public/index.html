@@ -1100,7 +1100,22 @@ async function loadMes(){
   try{
     const d=await api('GET','/api/workers/me/dashboard');
     document.getElementById('ms-j').textContent=d.jobs.filter(j=>j.status==='pending'||j.status==='accepted').length;
-    document.getElementById('ms-m').textContent=d.unread_messages;
+    var adminUnread=0;
+try{
+  var cmsgs=await api('GET','/api/contact');
+  var myMsgs=cmsgs.filter(function(m){ return String(m.sender_id)===String(CU.id); });
+  var key='hro_last_reply_'+CU.id;
+  var lastSeen=localStorage.getItem(key)||'';
+  myMsgs.forEach(function(m){
+    if(m.reply && m.reply.length>0){
+      var t=String(m.updatedAt||m.createdAt||'');
+      if(t!==lastSeen) adminUnread++;
+    }
+  });
+}catch(e){}
+var totalUnread=Number(d.unread_messages||0)+adminUnread;
+document.getElementById('ms-m').textContent=totalUnread;
+if(adminUnread>0) document.getElementById('ms-m').style.color='var(--acc)';
     const el=document.getElementById('m-jobs');
     const active=d.jobs.filter(j=>j.status==='pending'||j.status==='accepted');
     if(!active.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;">Nu ai joburi active.</div>';return;}
