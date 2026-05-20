@@ -1026,19 +1026,29 @@ async function checkNewMsgs(){
   }
 
  // Client: verifică reply-uri noi pe contact
-  if(CU.role==='client'){
+  if(CU.role==='client' || CU.role==='meserias'){
     try{
       var cmsgs=await api('GET','/api/contact');
       var myMsgs=cmsgs.filter(function(m){ return String(m.sender_id)===String(CU.id); });
-      var repliedMsgs=myMsgs.filter(function(m){ return m.reply && m.reply.length>0; });
       var key='hro_last_reply_'+CU.id;
-      var lastCount=Number(localStorage.getItem(key)||0);
-      if(repliedMsgs.length > lastCount){
-        showNotif('Răspuns nou de la HandyRO!','Adminul ți-a răspuns la mesaj — apasă să citești.');
+      var lastSeen=localStorage.getItem(key)||'';
+      var latestReply='';
+      myMsgs.forEach(function(m){
+        if(m.reply && m.reply.length>0){
+          var t=String(m.updatedAt||m.createdAt||'');
+          if(t>latestReply) latestReply=t;
+        }
+      });
+      if(latestReply && latestReply!==lastSeen){
+        showNotif('💬 Răspuns nou de la HandyRO!','Apasă Contact pentru a citi răspunsul.');
         toast('💬 Ai un răspuns nou de la Admin HandyRO!');
-        loadContactChat();
+        localStorage.setItem(key, latestReply);
+        if(document.getElementById('page-contact').classList.contains('on')){
+          loadContactChat();
+        }
+      } else if(!lastSeen && latestReply){
+        localStorage.setItem(key, latestReply);
       }
-      localStorage.setItem(key, repliedMsgs.length);
     }catch(e){}
   }
 
