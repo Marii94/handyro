@@ -31,7 +31,19 @@ router.post('/register', async (req, res) => {
     if (role === 'meserias') {
       const spec = req.body.specialization || 'General';
       const city = req.body.city || 'București';
-      await Worker.create({ user_id: user._id, city: city, specialization: spec });
+      const categories = req.body.categories || [];
+      const pfa_name = req.body.pfa_name || '';
+      const cui = req.body.cui || '';
+      const iban = req.body.iban || '';
+      await Worker.create({
+        user_id: user._id,
+        city,
+        specialization: spec,
+        categories,
+        pfa_name,
+        cui,
+        iban,
+      });
       return res.status(201).json({ message: 'Cont creat! Așteaptă aprobarea adminului.' });
     }
     const token = jwt.sign({ id: user._id, name: user.name, email: user.email, role }, JWT_SECRET, { expiresIn: '7d' });
