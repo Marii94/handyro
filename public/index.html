@@ -426,6 +426,20 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
           </div>
         </div>
         <div class="fg">
+          <label>Orașul tău</label>
+          <select id="job-city">
+            <option value="București">București</option>
+            <option value="Ilfov">Ilfov</option>
+            <option value="Ploiești">Ploiești</option>
+            <option value="Brașov">Brașov</option>
+            <option value="Cluj-Napoca">Cluj-Napoca</option>
+            <option value="Timișoara">Timișoara</option>
+            <option value="Constanța">Constanța</option>
+            <option value="Iași">Iași</option>
+            <option value="Craiova">Craiova</option>
+          </select>
+        </div>
+        <div class="fg">
           <label>Interval orar preferat</label>
           <select id="slot">
             <option>Dimineața (08:00–12:00)</option>
@@ -470,7 +484,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
 <div class="page" id="page-contact">
   <div class="sec">
     <div class="cg">
-      <div><div class="sl">Contact</div><div class="st">Hai să vorbim</div><p style="color:var(--mu);font-weight:300;line-height:1.8;margin-top:1rem;font-size:15px;">Ai o întrebare sau vrei să te alături platformei ca meșter?</p><br><p style="font-size:14px;color:var(--mu);">Email: <strong style="color:var(--navy);">contact@handyro.ro</strong></p><p style="font-size:14px;color:var(--mu);margin-top:.5rem;">Program: <strong style="color:var(--navy);">Luni–Sâmbătă, 08:00–20:00</strong></p></div>
+      <div><div class="sl">Contact</div><div class="st">Hai să vorbim</div><p style="color:var(--mu);font-weight:300;line-height:1.8;margin-top:1rem;font-size:15px;">Ai o întrebare sau vrei să te alături platformei ca meșter?</p><br><p style="font-size:14px;color:var(--mu);">Răspundem în cel mai scurt timp posibil.</p><p style="font-size:14px;color:var(--mu);margin-top:.5rem;">Program: <strong style="color:var(--navy);">Luni–Sâmbătă, 08:00–20:00</strong></p></div>
       <div class="cf">
         <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--navy);margin-bottom:1.25rem;">Scrie-ne direct</div>
         <div id="contact-chat-wrap">
@@ -530,7 +544,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <button onclick="switchTab(this,'tj')">Joburi</button>
       <button onclick="switchTab(this,'tsubcat')">Prețuri servicii</button>
       <button onclick="switchTab(this,'tm')">Mesaje</button>
-      <button onclick="switchTab(this,'tcontact')">Contact</button>
+      <button onclick="switchTab(this,'tcontact')" id="contact-tab-btn">Contact</button>
     </div>
     <div id="tw">Se încarcă...</div>
     <div id="tc" style="display:none"></div>
@@ -550,7 +564,9 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
     <div class="fg" id="mng" style="display:none"><label>Nume complet</label><input type="text" id="mn" placeholder="Numele tău"/></div>
     <div class="fg"><label>Email</label><input type="email" id="me" placeholder="email@exemplu.ro"/></div>
     <div class="fg"><label>Parolă</label><input type="password" id="mp" placeholder="••••••••"/></div>
-    <div class="fg" id="mrg" style="display:none"><label>Înregistrare ca</label><select id="mr"><option value="client">Client</option><option value="meserias">Meșter</option></select></div>
+    <div class="fg" id="mrg" style="display:none"><label>Înregistrare ca</label><select id="mr" onchange="toggleMesCat(this.value)"><option value="client">Client</option><option value="meserias">Meșter</option></select></div>
+    <div class="fg" id="mes-cat-wrap" style="display:none"><label>Specialitate</label><select id="mes-cat"><option value="">Alege specialitatea</option><option value="Instalații sanitare">Instalații sanitare</option><option value="Instalații electrice">Instalații electrice</option><option value="Renovări & zugrăveală">Renovări & zugrăveală</option><option value="Curățenie profesională">Curățenie profesională</option><option value="Tâmplărie & mobilier">Tâmplărie & mobilier</option><option value="Mentenanță generală">Mentenanță generală</option><option value="Toate categoriile">Toate categoriile</option></select></div>
+    <div class="fg" id="mes-city-wrap" style="display:none"><label>Orașul unde lucrezi</label><select id="mes-city"><option value="București">București</option><option value="Ilfov">Ilfov</option><option value="Ploiești">Ploiești</option><option value="Brașov">Brașov</option><option value="Cluj-Napoca">Cluj-Napoca</option><option value="Timișoara">Timișoara</option><option value="Constanța">Constanța</option><option value="Iași">Iași</option><option value="Craiova">Craiova</option></select></div>
     <div style="display:flex;gap:8px;margin-top:4px;"><button class="btn bt-gh" style="flex:1" onclick="cm()">Anulează</button><button class="btn bt-nv" style="flex:1" id="msub2" onclick="subm()">Intră în cont</button></div>
     <div class="mtg" id="mtog">Nu ai cont? <a onclick="tm2()">Înregistrează-te gratuit</a></div>
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--br);font-size:11px;color:var(--mu);text-align:center;">Demo: admin@handyro.ro/admin123 · ionut@handyro.ro/ionut123 · maria@handyro.ro/maria123</div>
@@ -583,7 +599,15 @@ async function api(method,path,body){
   return d;
 }
 function ini(n){return(n||'').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';}
-function ts(dt){const d=new Date(dt);return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');}
+function ts(dt){
+  if(!dt)return '';
+  var d=new Date(dt);
+  var now=new Date();
+  var today=now.toDateString()===d.toDateString();
+  var time=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
+  if(today)return time;
+  return d.getDate()+'.'+(d.getMonth()+1)+'.'+d.getFullYear()+' '+time;
+}
 function catIco(c){const m={'Instalații sanitare':'ti-droplet','Instalații electrice':'ti-bolt','Renovări & zugrăveală':'ti-brush','Curățenie profesională':'ti-sparkles','Tâmplărie & mobilier':'ti-armchair','Mentenanță generală':'ti-settings'};return m[c]||'ti-tool';}
 
 function gp(id){
@@ -837,7 +861,8 @@ async function submitJob(){
     const subcatNames = selectedSubcats.length > 0 ? selectedSubcats.map(function(s){return s.name;}).join(', ') : (selectedSubcat ? selectedSubcat.name : '');
     const subcatPrice = selectedSubcats.reduce(function(s,sc){return s+sc.price;}, 0) + urgentExtra;
     const fullDesc = subcatNames ? '[' + subcatNames + (urg==='urgent'?' — URGENT':'') + '] ' + desc : desc;
-    await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:document.getElementById('slot').value,photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice||null});
+    var jobCity=document.getElementById('job-city')?.value||'București';
+    await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:document.getElementById('slot').value,photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice||null,city:jobCity});
     const ptxt=files.length>0?` cu ${files.length} ${files.length===1?'poză':'poze'}`:'';
     const utxt=urg==='urgent'?' Marcat ca urgent.':'';
     document.getElementById('ok-txt').textContent=`Ionuț Șerban a primit cererea ta${ptxt}.${utxt} Îți va răspunde prin mesageria HandyRO.`;
@@ -868,8 +893,9 @@ async function subm(){
     if(mm==='login'){data=await api('POST','/api/auth/login',{email,password:pass});}
     else{const name=document.getElementById('mn').value.trim();const role=document.getElementById('mr').value;
       const specialization=role==='meserias'?(document.getElementById('mes-cat')?.value||'General'):'';
+      const workerCity=role==='meserias'?(document.getElementById('mes-city')?.value||'București'):'';
       if(role==='meserias'&&!specialization){toast('Alege specialitatea ta!');btn.disabled=false;return;}
-      data=await api('POST','/api/auth/register',{name,email,password:pass,role,specialization});if(!data.token){toast(data.message||'Cont creat!');cm();btn.disabled=false;return;}}
+      data=await api('POST','/api/auth/register',{name,email,password:pass,role,specialization,city:workerCity});if(!data.token){toast(data.message||'Cont creat!');cm();btn.disabled=false;return;}}
     localStorage.setItem('hro_tk',data.token);CU=data.user;cm();loginOk();
   }catch(e){const er=document.getElementById('merr');er.textContent=e.message;er.style.display='block';}
   btn.disabled=false;
