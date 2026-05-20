@@ -1123,7 +1123,7 @@ async function loadMes(){
   try{
     const d=await api('GET','/api/workers/me/dashboard');
     document.getElementById('ms-j').textContent=d.jobs.filter(j=>j.status==='pending'||j.status==='accepted').length;
-    var adminUnread=0;
+ var adminUnread=0;
 try{
   var cmsgs=await api('GET','/api/contact');
   var myMsgs=cmsgs.filter(function(m){ return String(m.sender_id)===String(CU.id); });
@@ -1132,7 +1132,7 @@ try{
   myMsgs.forEach(function(m){
     if(m.reply && m.reply.length>0){
       var t=String(m.updatedAt||m.createdAt||'');
-      if(t!==lastSeen) adminUnread++;
+      if(!lastSeen || t>lastSeen) adminUnread++;
     }
   });
 }catch(e){}
