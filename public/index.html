@@ -567,6 +567,20 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
     <div class="fg" id="mrg" style="display:none"><label>Înregistrare ca</label><select id="mr" onchange="toggleMesCat(this.value)"><option value="client">Client</option><option value="meserias">Meșter</option></select></div>
     <div class="fg" id="mes-cat-wrap" style="display:none"><label>Specialitate</label><select id="mes-cat"><option value="">Alege specialitatea</option><option value="Instalații sanitare">Instalații sanitare</option><option value="Instalații electrice">Instalații electrice</option><option value="Renovări & zugrăveală">Renovări & zugrăveală</option><option value="Curățenie profesională">Curățenie profesională</option><option value="Tâmplărie & mobilier">Tâmplărie & mobilier</option><option value="Mentenanță generală">Mentenanță generală</option><option value="Toate categoriile">Toate categoriile</option></select></div>
     <div class="fg" id="mes-city-wrap" style="display:none"><label>Orașul unde lucrezi</label><select id="mes-city"><option value="București">București</option><option value="Ilfov">Ilfov</option><option value="Ploiești">Ploiești</option><option value="Brașov">Brașov</option><option value="Cluj-Napoca">Cluj-Napoca</option><option value="Timișoara">Timișoara</option><option value="Constanța">Constanța</option><option value="Iași">Iași</option><option value="Craiova">Craiova</option></select></div>
+    <div class="fg" id="mes-pfa-wrap" style="display:none"><label>Nume PFA <span style="color:#E24B4A;">*</span></label><input type="text" id="mes-pfa" placeholder="ex: Ionuț Șerban PFA"/></div>
+    <div class="fg" id="mes-cui-wrap" style="display:none"><label>CUI <span style="color:#E24B4A;">*</span></label><input type="text" id="mes-cui" placeholder="ex: RO12345678"/></div>
+    <div class="fg" id="mes-iban-wrap" style="display:none"><label>IBAN <span style="color:#E24B4A;">*</span></label><input type="text" id="mes-iban" placeholder="ex: RO49AAAA1B31007593840000"/></div>
+    <div class="fg" id="mes-cats-wrap" style="display:none">
+      <label>Categorii în care lucrezi <span style="color:#E24B4A;">*</span></label>
+      <div id="mes-cats-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;"><input type="checkbox" value="Instalații sanitare"/> Instalații sanitare</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;"><input type="checkbox" value="Instalații electrice"/> Instalații electrice</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;"><input type="checkbox" value="Renovări & zugrăveală"/> Renovări & zugrăveală</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;"><input type="checkbox" value="Curățenie profesională"/> Curățenie profesională</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;"><input type="checkbox" value="Tâmplărie & mobilier"/> Tâmplărie & mobilier</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;"><input type="checkbox" value="Mentenanță generală"/> Mentenanță generală</label>
+      </div>
+    </div>
     <div style="display:flex;gap:8px;margin-top:4px;"><button class="btn bt-gh" style="flex:1" onclick="cm()">Anulează</button><button class="btn bt-nv" style="flex:1" id="msub2" onclick="subm()">Intră în cont</button></div>
     <div class="mtg" id="mtog">Nu ai cont? <a onclick="tm2()">Înregistrează-te gratuit</a></div>
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--br);font-size:11px;color:var(--mu);text-align:center;">Demo: admin@handyro.ro/admin123 · ionut@handyro.ro/ionut123 · maria@handyro.ro/maria123</div>
@@ -611,7 +625,6 @@ function ts(dt){
 function catIco(c){const m={'Instalații sanitare':'ti-droplet','Instalații electrice':'ti-bolt','Renovări & zugrăveală':'ti-brush','Curățenie profesională':'ti-sparkles','Tâmplărie & mobilier':'ti-armchair','Mentenanță generală':'ti-settings'};return m[c]||'ti-tool';}
 
 function gp(id){
-  // Dacă e logat și apasă home, du-l la dashboard-ul lui
   if(id==='home' && CU){
     if(CU.role==='admin') id='admin';
     else if(CU.role==='meserias') id='meserias';
@@ -620,7 +633,6 @@ function gp(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('page-'+id).classList.add('on');
   if(id==='contact') loadContactChat();
-  // Reset mesaje necitite admin când intri pe contact
   if(id==='contact' && CU){
     var key='hro_last_reply_'+CU.id;
     api('GET','/api/contact').then(function(cmsgs){
@@ -907,6 +919,15 @@ function rm(){
   document.getElementById('mtog').innerHTML=l?'Nu ai cont? <a onclick="tm2()">Înregistrează-te gratuit</a>':'Ai deja cont? <a onclick="tm2()">Intră în cont</a>';
 }
 function tm2(){mm=mm==='login'?'register':'login';document.getElementById('merr').style.display='none';rm();}
+function toggleMesCat(v){
+  var isMes=v==='meserias';
+  document.getElementById('mes-cat-wrap').style.display=isMes?'flex':'none';
+  document.getElementById('mes-city-wrap').style.display=isMes?'flex':'none';
+  document.getElementById('mes-pfa-wrap').style.display=isMes?'flex':'none';
+  document.getElementById('mes-cui-wrap').style.display=isMes?'flex':'none';
+  document.getElementById('mes-iban-wrap').style.display=isMes?'flex':'none';
+  document.getElementById('mes-cats-wrap').style.display=isMes?'flex':'none';
+}
 async function subm(){
   const email=document.getElementById('me').value.trim();
   const pass=document.getElementById('mp').value.trim();
@@ -918,7 +939,13 @@ async function subm(){
       const specialization=role==='meserias'?(document.getElementById('mes-cat')?.value||'General'):'';
       const workerCity=role==='meserias'?(document.getElementById('mes-city')?.value||'București'):'';
       if(role==='meserias'&&!specialization){toast('Alege specialitatea ta!');btn.disabled=false;return;}
-      data=await api('POST','/api/auth/register',{name,email,password:pass,role,specialization,city:workerCity});if(!data.token){toast(data.message||'Cont creat!');cm();btn.disabled=false;return;}}
+      const cats=Array.from(document.querySelectorAll('#mes-cats-grid input:checked')).map(function(c){return c.value;});
+      const pfaName=document.getElementById('mes-pfa')?.value.trim()||'';
+      const cuiVal=document.getElementById('mes-cui')?.value.trim()||'';
+      const ibanVal=document.getElementById('mes-iban')?.value.trim()||'';
+      if(role==='meserias'&&(!pfaName||!cuiVal||!ibanVal)){toast('Completează datele PFA (Nume, CUI, IBAN)!');btn.disabled=false;return;}
+      if(role==='meserias'&&!cats.length){toast('Alege cel puțin o categorie!');btn.disabled=false;return;}
+      data=await api('POST','/api/auth/register',{name,email,password:pass,role,specialization,city:workerCity,categories:cats,pfa_name:pfaName,cui:cuiVal,iban:ibanVal});if(!data.token){toast(data.message||'Cont creat!');cm();btn.disabled=false;return;}}
     localStorage.setItem('hro_tk',data.token);CU=data.user;cm();loginOk();
   }catch(e){const er=document.getElementById('merr');er.textContent=e.message;er.style.display='block';}
   btn.disabled=false;
@@ -932,8 +959,6 @@ function loginOk(){
   else if(CU.role==='meserias'){document.getElementById('page-meserias').classList.add('on');loadMes();}
   else{document.getElementById('page-client').classList.add('on');loadClient();}
   window.scrollTo({top:0,behavior:'smooth'});
-  requestNotifPermission();
-  startMsgPolling();
 }
 // CONTACT CHAT
 var contactMsgs = [];
@@ -948,39 +973,24 @@ async function loadContactChat(){
   }
   try{
     var msgs = await api('GET','/api/contact');
+    // show only this user's messages
     var myMsgs = msgs.filter(function(m){ return String(m.sender_id)===String(CU.id); });
     if(!myMsgs.length){
       box.innerHTML='<div style="text-align:center;color:var(--mu);font-size:13px;"><i class="ti ti-message-circle" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>Scrie primul mesaj!</div>';
       return;
     }
-    box.style.display='flex';
-    box.style.flexDirection='column';
-    box.style.gap='10px';
-    box.style.overflowY='auto';
-    box.style.maxHeight='350px';
-    box.style.padding='1rem';
-    box.style.marginBottom='1rem';
-    // Mesajele sunt sortate cu cel mai vechi sus, cel mai nou jos
-    var sorted = myMsgs.slice().reverse();
-    box.innerHTML = sorted.map(function(m){
-      var timeStr = ts(m.createdAt || m.created_at);
-      return '<div style="display:flex;flex-direction:column;gap:4px;">'
-        + '<div style="display:flex;justify-content:flex-end;">'
-        + '<div style="background:var(--blue);color:#fff;padding:.5rem .85rem;border-radius:12px 12px 2px 12px;font-size:13px;max-width:80%;">'+m.content+'</div></div>'
-        + '<div style="text-align:right;font-size:10px;color:var(--mu);padding-right:4px;">'+timeStr+'</div>'
-        + (m.reply
-          ? '<div style="display:flex;flex-direction:column;gap:2px;">'
-            + '<div style="display:flex;justify-content:flex-start;">'
-            + '<div style="background:var(--card);border:0.5px solid var(--br);padding:.5rem .85rem;border-radius:12px 12px 12px 2px;font-size:13px;max-width:80%;color:var(--navy);">'+m.reply+'</div></div>'
-            + '<div style="text-align:left;font-size:10px;color:var(--mu);padding-left:4px;">Admin HandyRO</div>'
-            + '</div>'
-          : '')
-        + '</div>';
+    box.innerHTML = myMsgs.map(function(m){
+      return '<div style="margin-bottom:.75rem;">'
+        +'<div style="display:flex;justify-content:flex-end;margin-bottom:4px;">'
+        +'<div style="background:var(--blue);color:#fff;padding:.5rem .85rem;border-radius:12px 12px 2px 12px;font-size:13px;max-width:80%;">'+m.content+'</div></div>'
+        +(m.reply?'<div style="display:flex;justify-content:flex-start;">'
+          +'<div style="background:var(--bg);border:0.5px solid var(--br);padding:.5rem .85rem;border-radius:12px 12px 12px 2px;font-size:13px;max-width:80%;color:var(--navy);">'+m.reply+'</div></div>':'')
+        +'</div>';
     }).join('');
-    // Scroll la final — mesajul cel mai nou
-    setTimeout(function(){ box.scrollTop = box.scrollHeight; }, 50);
+    box.scrollTop = box.scrollHeight;
   }catch(e){}
 }
+
 async function sendContactMsg(){
   var input = document.getElementById('contact-msg-input');
   if(!input) return;
@@ -1034,9 +1044,8 @@ function showNotif(title,body){
 }
 
 async function checkNewMsgs(){
-  if(!CU) return;
-
-  // Admin: verifică mesaje de contact necitite
+  if(!CU)return;
+  // Admin: check contact messages
   if(CU.role==='admin'){
     try{
       var cmsgs=await api('GET','/api/contact');
@@ -1047,39 +1056,6 @@ async function checkNewMsgs(){
     }catch(e){}
     return;
   }
-
- // Client: verifică reply-uri noi pe contact
-  if(CU.role==='client' || CU.role==='meserias'){
-    try{
-      var cmsgs=await api('GET','/api/contact');
-      var myMsgs=cmsgs.filter(function(m){ return String(m.sender_id)===String(CU.id); });
-      var key='hro_last_reply_'+CU.id;
-      var lastSeen=localStorage.getItem(key)||'';
-      var latestReply='';
-      myMsgs.forEach(function(m){
-        if(m.reply && m.reply.length>0){
-          var t=String(m.updatedAt||m.createdAt||'');
-          if(t>latestReply) latestReply=t;
-        }
-      });
-      var banner=document.getElementById('admin-reply-banner');
-      if(latestReply && latestReply!==lastSeen){
-        showNotif('💬 Răspuns nou de la HandyRO!','Apasă Contact pentru a citi răspunsul.');
-        if(!banner){
-          banner=document.createElement('div');
-          banner.id='admin-reply-banner';
-          banner.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:12px 20px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,0.2);';
-          banner.innerHTML='<i class="ti ti-message-circle"></i> Ai un răspuns nou de la Admin HandyRO!';
-          banner.onclick=function(){ gp('contact'); banner.remove(); };
-          document.body.appendChild(banner);
-        }
-      } else {
-        if(banner) banner.remove();
-      }
-    }catch(e){}
-  }
-
-  // Verifică mesaje noi în conversații
   try{
     var convs=await api('GET','/api/messages/conversations');
     var totalUnread=0;
@@ -1100,6 +1076,7 @@ async function checkNewMsgs(){
     }
   }catch(e){}
 }
+
 function startMsgPolling(){
   if(notifInterval)clearInterval(notifInterval);
   checkNewMsgs();
@@ -1127,22 +1104,7 @@ async function loadMes(){
   try{
     const d=await api('GET','/api/workers/me/dashboard');
     document.getElementById('ms-j').textContent=d.jobs.filter(j=>j.status==='pending'||j.status==='accepted').length;
- var adminUnread=0;
-try{
-  var cmsgs=await api('GET','/api/contact');
-  var myMsgs=cmsgs.filter(function(m){ return String(m.sender_id)===String(CU.id); });
-  var key='hro_last_reply_'+CU.id;
-  var lastSeen=localStorage.getItem(key)||'';
-  myMsgs.forEach(function(m){
-    if(m.reply && m.reply.length>0){
-      var t=String(m.updatedAt||m.createdAt||'');
-      if(!lastSeen || t>lastSeen) adminUnread++;
-    }
-  });
-}catch(e){}
-var totalUnread=Number(d.unread_messages||0)+adminUnread;
-document.getElementById('ms-m').textContent=totalUnread;
-if(adminUnread>0) document.getElementById('ms-m').style.color='var(--acc)';
+    document.getElementById('ms-m').textContent=d.unread_messages;
     const el=document.getElementById('m-jobs');
     const active=d.jobs.filter(j=>j.status==='pending'||j.status==='accepted');
     if(!active.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;">Nu ai joburi active.</div>';return;}
@@ -1319,7 +1281,7 @@ async function loadAW(){
     var ws=us.filter(function(u){return u.role==='meserias';});
     var cats=['Instalatii sanitare','Instalatii electrice','Renovari & zugraveli','Curatenie profesionala','Tamplarie & mobilier','Mentenanta generala'];
     var catsFull=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
-    var wtbl='<table><thead><tr><th>Meșter</th><th>Specializare</th><th>Rating</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
+    var wtbl='<table><thead><tr><th>Meșter</th><th>PFA / CUI</th><th>Categorii</th><th>Rating</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
     ws.forEach(function(w){
       var uid=String(w._id||w.id);
       var wid=String(w.worker_id||w._id||'');
@@ -1344,7 +1306,8 @@ async function loadAW(){
       actHtml+='</div>';
       wtbl+='<tr id="wr-'+uid+'">';
       wtbl+='<td><strong>'+w.name+'</strong><br><span style="font-size:11px;color:var(--mu);">'+w.email+'</span></td>';
-      wtbl+='<td>'+(w.specialization||'-')+'</td>';
+      wtbl+='<td><span style="font-size:12px;font-weight:600;color:var(--navy);">'+(w.pfa_name||'-')+'</span><br><span style="font-size:11px;color:var(--mu);">CUI: '+(w.cui||'-')+'</span><br><span style="font-size:11px;color:var(--mu);">IBAN: '+(w.iban||'-')+'</span></td>';
+      wtbl+='<td style="font-size:11px;color:var(--navy);">'+(w.categories&&w.categories.length?w.categories.join('<br>'):w.specialization||'-')+'</td>';
 
       wtbl+='<td>'+String(w.rating||5.0)+' ('+String(w.reviews_count||0)+')</td>';
       wtbl+='<td><span class="sb '+statusCls+'" id="sb-'+uid+'">'+w.status+'</span></td>';
@@ -1545,7 +1508,7 @@ async function loadAdminContact(){
     if(!msgs||!msgs.length){document.getElementById('tcontact').innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Nu există mesaje de contact încă.</div>';return;}
     var html='<div style="display:flex;flex-direction:column;gap:1rem;">';
     msgs.forEach(function(m){
-      var mid=String(m._id||m.id).replace(/[^a-f0-9]/gi,'').substring(0,24);
+      var mid=String(m._id||m.id);
       html+='<div style="background:var(--card);border:0.5px solid var(--br);border-radius:var(--r);padding:1rem;">';
       html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">';
       html+='<div style="font-weight:600;color:var(--navy);font-size:14px;">'+(m.sender_name||'Anonim')+'<span style="font-size:11px;font-weight:400;color:var(--mu);margin-left:8px;">'+(m.sender_email||'')+'</span></div>';
