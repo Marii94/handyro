@@ -445,7 +445,6 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
             <option>Dimineața (08:00–12:00)</option>
             <option>Prânz (12:00–15:00)</option>
             <option>După-amiaza (15:00–18:00)</option>
-            <option>Seara (18:00–20:00)</option>
             <option>Orice interval disponibil</option>
           </select>
         </div>
@@ -692,7 +691,7 @@ function su(u){
   // Update price display if subcat selected
   if(selectedSubcat){
     const basePrice=selectedSubcat.price;
-    const finalPrice=u==='urgent'?basePrice+70:basePrice;
+    const finalPrice=u==='urgent'?basePrice+140:basePrice;
     document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea — '+selectedSubcat.name+' ('+finalPrice+' lei'+(u==='urgent'?' incl. urgență)':')');
   }
 }
@@ -856,7 +855,7 @@ function updateSubBtn() {
     return;
   }
   var totalPrice = selectedSubcats.reduce(function(s,sc){return s+sc.price;}, 0);
-  if(urg==='urgent') totalPrice += 70;
+  if(urg==='urgent') totalPrice += 140;
   var names = selectedSubcats.map(function(s){return s.name;}).join(', ');
   btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea ('+selectedSubcats.length+' servicii — '+totalPrice+' lei'+(urg==='urgent'?' incl. urgență':'')+')';
   btn.disabled = false;
@@ -891,7 +890,7 @@ async function submitJob(){
     }
     const workers=await api('GET','/api/workers');
     const wid=selectedWorkerId||workers[0]?._id||workers[0]?.id;
-    const urgentExtra = urg==='urgent' ? 70 : 0;
+    const urgentExtra = urg==='urgent' ? 140 : 0;
     const subcatNames = selectedSubcats.length > 0 ? selectedSubcats.map(function(s){return s.name;}).join(', ') : (selectedSubcat ? selectedSubcat.name : '');
     const subcatPrice = selectedSubcats.reduce(function(s,sc){return s+sc.price;}, 0) + urgentExtra;
     const fullDesc = subcatNames ? '[' + subcatNames + (urg==='urgent'?' — URGENT':'') + '] ' + desc : desc;
