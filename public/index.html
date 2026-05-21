@@ -890,7 +890,15 @@ async function submitJob(){
     }
     const workers=await api('GET','/api/workers');
     const wid=selectedWorkerId||workers[0]?._id||workers[0]?.id;
-    const urgentExtra = urg==='urgent' ? 140 : 0;
+    // Auto-urgență după 18:00
+const currentHour = new Date().getHours();
+if(currentHour >= 18 && urg !== 'urgent'){
+  urg = 'urgent';
+  document.getElementById('u-n').classList.remove('on');
+  document.getElementById('u-u').classList.add('on');
+  toast('Programul normal s-a terminat. Cererea ta e marcată ca urgentă (+140 lei).');
+}
+const urgentExtra = urg==='urgent' ? 140 : 0;
     const subcatNames = selectedSubcats.length > 0 ? selectedSubcats.map(function(s){return s.name;}).join(', ') : (selectedSubcat ? selectedSubcat.name : '');
     const subcatPrice = selectedSubcats.reduce(function(s,sc){return s+sc.price;}, 0) + urgentExtra;
     const fullDesc = subcatNames ? '[' + subcatNames + (urg==='urgent'?' — URGENT':'') + '] ' + desc : desc;
