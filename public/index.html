@@ -603,6 +603,12 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
 const API='';
 let CU=null,mm='login',urg='normal',files=[],accT=0,convId=null,curCat='',curIco='';
   function togglePass(){
+    function checkSlotUrgency(val){
+  if(val && val.indexOf('18:00')!==-1){
+    su('urgent');
+    toast('Intervalul de seară e taxat ca urgență (+140 lei).');
+  }
+}
   var i=document.getElementById('mp');
   var e=document.getElementById('pass-eye');
   if(i.type==='password'){i.type='text';e.className='ti ti-eye-off';}
