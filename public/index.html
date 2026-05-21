@@ -441,7 +441,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
         </div>
         <div class="fg">
           <label>Interval orar preferat</label>
-          <select id="slot">
+          <select id="slot" onchange="checkSlotUrgency(this.value)">
             <option>Dimineața (08:00–12:00)</option>
             <option>Prânz (12:00–15:00)</option>
             <option>După-amiaza (15:00–18:00)</option>
