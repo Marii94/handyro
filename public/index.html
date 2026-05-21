@@ -602,6 +602,12 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
 <script>/* HandyRO v6.21 */
 const API='';
 let CU=null,mm='login',urg='normal',files=[],accT=0,convId=null,curCat='',curIco='';
+  function togglePass(){
+  var i=document.getElementById('mp');
+  var e=document.getElementById('pass-eye');
+  if(i.type==='password'){i.type='text';e.className='ti ti-eye-off';}
+  else{i.type='password';e.className='ti ti-eye';}
+}
 
 function toast(m,d=3000){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),d);}
 async function api(method,path,body){
