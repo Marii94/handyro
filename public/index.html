@@ -1268,7 +1268,32 @@ function switchTab(btn,tab){
   if(tab==='tcontact')loadAdminContact();
 }
 
-async function loadAdmin(){
+async function loadGrafice(containerId){
+  try{
+    var d=await api('GET','/api/stats/grafice');
+    var el=document.getElementById(containerId);
+    if(!el)return;
+    var maxI=Math.max(...d.intrariCurente,...d.intrariTrecute,1);
+    var maxIn=Math.max(...d.incasariCurente,...d.incasariTrecute,1);
+    var zile=d.zile;
+    el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.75rem;">'
+    +'<div style="background:var(--card);border:1px solid var(--br);border-radius:var(--r);padding:1.25rem;">'
+    +'<div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:1rem;">📊 Intrări pe săptămână</div>'
+    +'<div style="display:flex;align-items:flex-end;gap:6px;height:120px;">'
+    +zile.map(function(z,i){return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;"><div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><div style="width:100%;height:'+Math.round(d.intrariTrecute[i]/maxI*100)+'%;background:var(--br);border-radius:3px 3px 0 0;min-height:2px;"></div><div style="width:100%;height:'+Math.round(d.intrariCurente[i]/maxI*100)+'%;background:var(--blue);border-radius:3px 3px 0 0;min-height:2px;"></div></div><div style="font-size:10px;color:var(--mu);">'+z+'</div></div>';}).join('')
+    +'</div>'
+    +'<div style="display:flex;gap:1rem;margin-top:.75rem;"><div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);"><div style="width:10px;height:10px;border-radius:2px;background:var(--blue);"></div> Curentă</div><div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);"><div style="width:10px;height:10px;border-radius:2px;background:var(--br);border:1px solid #ccc;"></div> Trecută</div></div>'
+    +'</div>'
+    +'<div style="background:var(--card);border:1px solid var(--br);border-radius:var(--r);padding:1.25rem;">'
+    +'<div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:1rem;">💰 Încasări zilnice (lei)</div>'
+    +'<div style="display:flex;align-items:flex-end;gap:6px;height:120px;">'
+    +zile.map(function(z,i){return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;"><div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><div style="width:100%;height:'+Math.round(d.incasariTrecute[i]/maxIn*100)+'%;background:var(--br);border-radius:3px 3px 0 0;min-height:2px;"></div><div style="width:100%;height:'+Math.round(d.incasariCurente[i]/maxIn*100)+'%;background:var(--gr);border-radius:3px 3px 0 0;min-height:2px;"></div></div><div style="font-size:10px;color:var(--mu);">'+z+'</div></div>';}).join('')
+    +'</div>'
+    +'<div style="display:flex;gap:1rem;margin-top:.75rem;"><div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);"><div style="width:10px;height:10px;border-radius:2px;background:var(--gr);"></div> Curentă</div><div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);"><div style="width:10px;height:10px;border-radius:2px;background:var(--br);border:1px solid #ccc;"></div> Trecută</div></div>'
+    +'</div></div>';
+  }catch(e){console.log('grafice:',e);}
+}
+  async function loadAdmin(){
   try{
     const s=await api('GET','/api/admin/stats');
     document.getElementById('as-u').textContent=s.total_users;
@@ -1281,7 +1306,7 @@ async function loadAdmin(){
     await loadAW();
   }catch(e){toast('Eroare admin: '+e.message);console.error(e);}
 }
-async function loadAW(){
+async function loadAW(){ loadGrafice('admin-grafice');
   try{
     var us=await api('GET','/api/admin/users');
     var ws=us.filter(function(u){return u.role==='meserias';});
