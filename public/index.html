@@ -1128,6 +1128,7 @@ async function loadMes(){
       </div>`;
     }).join('');
     loadMConvs();
+    loadGrafice('mes-grafice');
   }catch(e){toast('Eroare: '+e.message);}
 }
 async function accJob(id,btn){
