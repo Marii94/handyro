@@ -29,6 +29,45 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/subcats', require('./routes/subcats'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', version: '6.0.0', db: 'MongoDB Atlas' }));
+// Stats grafice
+app.get('/api/stats/grafice', async (req, res) => {
+  try {
+    const jwt3 = require('jsonwebtoken');
+    const token = req.cookies?.token || req.headers?.authorization?.split(' ')[1];
+    const decoded = jwt3.verify(token, process.env.JWT_SECRET || 'handyro_secret_2026');
+    const { Job: JobModel, Worker: WorkerModel } = require('./db');
+    const azi = new Date();
+    const startSaptCurenta = new Date(azi);
+    startSaptCurenta.setDate(azi.getDate() - azi.getDay());
+    startSaptCurenta.setHours(0,0,0,0);
+    const startSaptTrecuta = new Date(startSaptCurenta);
+    startSaptTrecuta.setDate(startSaptTrecuta.getDate() - 7);
+    const endSaptTrecuta = new Date(startSaptCurenta);
+    let filter = {};
+    if(decoded.role === 'meserias') {
+      const w = await WorkerModel.findOne({ user_id: decoded.id });
+      if(w) filter.worker_id = w._id;
+    }
+    const jobsCurente = await JobModel.find({ ...filter, createdAt: { $gte: startSaptCurenta } });
+    const jobsTrecute = await JobModel.find({ ...filter, createdAt: { $gte: startSaptTrecuta, $lt: endSaptTrecuta } });
+    const zile = ['Dum','Lun','Mar','Mie','Joi','Vin','Sâm'];
+    const intrariCurente = Array(7).fill(0);
+    const intrariTrecute = Array(7).fill(0);
+    const incasariCurente = Array(7).fill(0);
+    const incasariTrecute = Array(7).fill(0);
+    jobsCurente.forEach(j => {
+      const zi = new Date(j.createdAt).getDay();
+      intrariCurente[zi]++;
+      if(j.subcat_price) incasariCurente[zi] += j.subcat_price;
+    });
+    jobsTrecute.forEach(j => {
+      const zi = new Date(j.createdAt).getDay();
+      intrariTrecute[zi]++;
+      if(j.subcat_price) incasariTrecute[zi] += j.subcat_price;
+    });
+    res.json({ zile, intrariCurente, intrariTrecute, incasariCurente, incasariTrecute });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
 
 // ── Contact messages ──────────────────────────────────────────────────────────
 // IMPORTANT: aceste rute trebuie să fie ÎNAINTE de app.get('*', ...)
