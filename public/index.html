@@ -974,7 +974,7 @@ function loginOk(){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   if(CU.role==='admin'){document.getElementById('page-admin').classList.add('on');loadAdmin();}
   else if(CU.role==='meserias'){document.getElementById('page-meserias').classList.add('on');loadMes();}
-  else{document.getElementById('page-home').classList.add('on');}
+  else{document.getElementById('page-client').classList.add('on');loadClient();}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 // CONTACT CHAT
