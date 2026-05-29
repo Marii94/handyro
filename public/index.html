@@ -945,26 +945,34 @@ async function subm(){
   const btn=document.getElementById('msub2');btn.disabled=true;
   try{
     let data;
-    if(mm==='login'){
-      data=await api('POST','/api/auth/login',{email,password:pass});
-    } else {
-      const name=document.getElementById('mn').value.trim();
-      const role=document.getElementById('mr').value;
+    if(mm==='login'){data=await api('POST','/api/auth/login',{email,password:pass});}
+    else{const name=document.getElementById('mn').value.trim();const role=document.getElementById('mr').value;
       const specialization=role==='meserias'?(document.getElementById('mes-cat')?.value||'General'):'';
       const workerCity=role==='meserias'?(document.getElementById('mes-city')?.value||'București'):'';
-      if(role==='meserias'&&!specialization){toast('Alege specialitatea ta!');btn.disabled=false;return;}
+if(role==='meserias'&&!phone){toast('Adaugă numărul de telefon!');btn.disabled=false;return;}
+         if(role==='meserias'&&!specialization){toast('Alege specialitatea ta!');btn.disabled=false;return;}
       const cats=Array.from(document.querySelectorAll('#mes-cats-grid input:checked')).map(function(c){return c.value;});
+      const pfaName=document.getElementById('mes-pfa')?.value.trim()||'';
+      const cuiVal=document.getElementById('mes-cui')?.value.trim()||'';
+      const ibanVal=document.getElementById('mes-iban')?.value.trim()||'';
+      if(role==='meserias'&&(!pfaName||!cuiVal||!ibanVal)){toast('Completează datele PFA (Nume, CUI, IBAN)!');btn.disabled=false;return;}
       if(role==='meserias'&&!cats.length){toast('Alege cel puțin o categorie!');btn.disabled=false;return;}
-      const phone=role==='meserias'?(document.getElementById('mes-phone')?.value.trim()||''):'';
-      if(role==='meserias'&&!phone){toast('Adaugă numărul de telefon!');btn.disabled=false;return;}
-      data=await api('POST','/api/auth/register',{name,email,password:pass,role,specialization,city:workerCity,categories:cats,phone});
-      if(!data.token){toast(data.message||'Cont creat!');cm();btn.disabled=false;return;}
-    }
+     const phone=role==='meserias'?(document.getElementById('mes-phone')?.value.trim()||''):'';
+if(role==='meserias'&&!phone){toast('Adaugă numărul de telefon!');btn.disabled=false;return;}
+data=await api('POST','/api/auth/register',{name,email,password:pass,role,specialization,city:workerCity,categories:cats,phone});
     localStorage.setItem('hro_tk',data.token);CU=data.user;cm();loginOk();
-  }catch(e){
-    const er=document.getElementById('merr');er.textContent=e.message;er.style.display='block';
-  }
+  }catch(e){const er=document.getElementById('merr');er.textContent=e.message;er.style.display='block';}
   btn.disabled=false;
+}
+function loginOk(){
+  document.getElementById('pub-nav').style.display='none';
+  document.getElementById('ft').style.display='none';
+  document.getElementById('nav-act').innerHTML=`<span style="font-size:13px;color:var(--mu);">${CU.name}</span><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>`;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  if(CU.role==='admin'){document.getElementById('page-admin').classList.add('on');loadAdmin();}
+  else if(CU.role==='meserias'){document.getElementById('page-meserias').classList.add('on');loadMes();}
+  else{document.getElementById('page-home').classList.add('on');}
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 // CONTACT CHAT
 var contactMsgs = [];
