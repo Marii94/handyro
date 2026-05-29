@@ -956,7 +956,7 @@ async function subm(){
 if(role==='meserias'&&!phone){toast('Adaugă numărul de telefon!');btn.disabled=false;return;}
 data=await api('POST','/api/auth/register',{name,email,password:pass,role,specialization,city:workerCity,categories:cats,phone});
     localStorage.setItem('hro_tk',data.token);CU=data.user;cm();loginOk();}}
-  }catch(e){const er=document.getElementById('merr');er.textContent=e.message;er.style.display='block';}
+  catch(e){const er=document.getElementById('merr');er.textContent=e.message;er.style.display='block';}
   btn.disabled=false;
 }
 function loginOk(){
