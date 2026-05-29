@@ -968,7 +968,6 @@ async function subm(){
   btn.disabled=false;
 }
 function loginOk(){
-  document.getElementById('pub-nav').style.display='none';
   document.getElementById('ft').style.display='none';
   document.getElementById('nav-act').innerHTML=`<span style="font-size:13px;color:var(--mu);">${CU.name}</span><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>`;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
