@@ -15,6 +15,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ['client','meserias','admin'], required: true },
   status: { type: String, enum: ['active','pending','blocked'], default: 'active' },
+phone: { type: String, default: '' },
 }, { timestamps: true });
 
 const WorkerSchema = new mongoose.Schema({
