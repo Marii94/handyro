@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User, Worker } = require('../db');
+const { auth } = require('../middleware/auth');
 const { JWT_SECRET } = require('../middleware/auth');
 
 router.post('/login', async (req, res) => {
@@ -52,6 +53,13 @@ const user = await User.create({ name: name.trim(), email: email.toLowerCase().t
     const token = jwt.sign({ id: user._id, name: user.name, email: user.email, role }, JWT_SECRET, { expiresIn: '7d' });
     res.cookie('token', token, { httpOnly: true, maxAge: 7*24*60*60*1000, sameSite: 'lax' });
     res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role } });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User negăsit' });
+    res.json({ id: user._id, name: user.name, email: user.email, role: user.role, assigned_worker: user.assigned_worker, horeca_name: user.horeca_name, horeca_type: user.horeca_type });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
