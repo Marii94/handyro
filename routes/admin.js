@@ -75,5 +75,13 @@ router.delete('/users/:id', async (req, res) => {
     res.json({ message: 'Utilizator șters' });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
+router.patch('/users/:id/assign-worker', async (req, res) => {
+  try {
+    const { worker_id } = req.body;
+    if (!worker_id) return res.status(400).json({ error: 'Worker ID lipsă' });
+    await User.findByIdAndUpdate(req.params.id, { assigned_worker: worker_id });
+    res.json({ message: 'Meșter atribuit cu succes!' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
 
 module.exports = router;
