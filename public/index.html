@@ -1137,11 +1137,21 @@ async function submitHoreca(){
   if(!desc){toast('Descrie problema!');return;}
   if(!hCat){toast('Alege o categorie!');return;}
   try{
+    let photoUrls=[];
+    if(hFiles.length>0){
+      const fd=new FormData();
+      hFiles.forEach(f=>fd.append('photos',f));
+      const tk=localStorage.getItem('hro_tk');
+      const r=await fetch('/api/upload/photos',{method:'POST',headers:{Authorization:'Bearer '+tk},body:fd,credentials:'include'});
+      const d=await r.json();
+      if(r.ok)photoUrls=d.urls;
+    }
     const workers=await api('GET','/api/workers');
     const wid=workers[0]?._id||workers[0]?.id;
-    await api('POST','/api/jobs',{category:hCat,description:desc,worker_id:wid,urgency:hUrg});
+    await api('POST','/api/jobs',{category:hCat,description:desc,worker_id:wid,urgency:hUrg,photos:photoUrls});
     document.getElementById('h-ok').style.display='block';
     document.getElementById('h-desc').value='';
+    hFiles=[];hrp();
     toast('Cerere trimisă!');
     loadHoreca();
   }catch(e){toast(e.message);}
