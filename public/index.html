@@ -785,6 +785,7 @@ function ss(el,cat,ico){
   document.getElementById('fc-i').className='ti '+ico;
   if(document.getElementById('ww-t'))document.getElementById('ww-t').textContent='Meșter disponibil — '+cat;
   document.getElementById('fc').style.display='block';
+setTimeout(function(){renderCalendar();},50);
   if(document.getElementById('job-ok'))document.getElementById('job-ok').style.display='none';
   if(document.getElementById('sub-btn')){document.getElementById('sub-btn').disabled=false;document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea';}
   api('GET','/api/workers?category='+encodeURIComponent(cat)+'&time_slot='+encodeURIComponent(document.getElementById('slot').value)).then(workers=>{
@@ -808,7 +809,6 @@ function ss(el,cat,ico){
   }).catch(()=>{});
   document.getElementById('fc').scrollIntoView({behavior:'smooth',block:'start'});
 showSubcats(cat);
-renderCalendar();
 }
 function su(u){
   urg=u;
