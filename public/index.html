@@ -440,17 +440,31 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
             <option value="Craiova">Craiova</option>
           </select>
         </div>
-        <div class="fg">
+        <div class="fg" id="calendar-wrap" style="display:none;">
+  <label>Alege data</label>
+  <div id="cal-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+    <button class="btn bt-gh bt-sm" onclick="calNav(-1)"><i class="ti ti-chevron-left"></i></button>
+    <div id="cal-month" style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--navy);"></div>
+    <button class="btn bt-gh bt-sm" onclick="calNav(1)"><i class="ti ti-chevron-right"></i></button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;">
+    <div style="text-align:center;font-size:11px;font-weight:600;color:var(--mu);">Lun</div>
+    <div style="text-align:center;font-size:11px;font-weight:600;color:var(--mu);">Mar</div>
+    <div style="text-align:center;font-size:11px;font-weight:600;color:var(--mu);">Mie</div>
+    <div style="text-align:center;font-size:11px;font-weight:600;color:var(--mu);">Joi</div>
+    <div style="text-align:center;font-size:11px;font-weight:600;color:var(--mu);">Vin</div>
+    <div style="text-align:center;font-size:11px;font-weight:600;color:var(--mu);color:#E24B4A;">Sâm</div>
+    <div style="text-align:center;font-size:11px;font-weight:600;color:#E24B4A;">Dum</div>
+  </div>
+  <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+</div>
+<div class="fg" id="slots-wrap" style="display:none;">
+  <label>Interval orar — <span id="selected-date-label" style="color:var(--blue);"></span></label>
+  <div id="slots-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;"></div>
+</div>
+<div class="fg" id="slot-wrap-old" style="display:none;">
           <label>Interval orar preferat</label>
           <select id="slot" onchange="if(this.value.indexOf('18:00')!==-1){su('urgent');toast('Interval de seară — tarif urgență +140 lei!');}else{su('normal');updateSubBtn();}if(curCat)ss(document.querySelector('.sc.on'),curCat,curIco);">
-           <option>08:00–10:00</option>
-<option>10:00–12:00</option>
-<option>12:00–14:00</option>
-<option>14:00–16:00</option>
-<option>16:00–18:00</option>
-<option value="18:00–20:00 — tarif urgență">18:00–20:00 — tarif urgență</option>
-          </select>
-        </div>
         <div class="ww" style="margin-bottom:14px;">
           <div class="wh"><div class="wht" id="ww-t">Meseriași disponibili</div><div class="avb"><span class="avd"></span>Disponibili acum</div></div>
           <div id="workers-list">Se încarcă...</div>
