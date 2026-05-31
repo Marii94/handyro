@@ -1158,6 +1158,9 @@ async function submitHoreca(){
 }
 function loginOk(){
   document.getElementById('nav-act').innerHTML=`<span style="font-size:13px;color:var(--mu);">${CU.name}</span><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>`;
+  if(CU.role==='horeca'){
+  document.getElementById('pub-nav').innerHTML=`<li><a onclick="gp('horeca')">Acasă</a></li><li><a onclick="gp('contact')">Contact</a></li>`;
+}
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   if(CU.role==='admin'){document.getElementById('page-admin').classList.add('on');loadAdmin();}
 else if(CU.role==='meserias'){document.getElementById('page-meserias').classList.add('on');loadMes();}
