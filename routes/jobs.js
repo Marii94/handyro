@@ -5,10 +5,10 @@ const { auth, requireRole } = require('../middleware/auth');
 
 router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
   try {
-    const { category, description, worker_id, urgency, time_slot, photos, subcat_name, subcat_price } = req.body;
+    const { category, description, worker_id, urgency, time_slot, photos, subcat_name, subcat_price, job_date } = req.body;
     if (!category) return res.status(400).json({ error: 'Categoria este obligatorie' });
     if (!description?.trim()) return res.status(400).json({ error: 'Descrierea este obligatorie' });
-    const job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name, subcat_price, city: 'București' });
+    const job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name, subcat_price, city: 'București', job_date: job_date?new Date(job_date):new Date() });
     if (worker_id) {
       const w = await Worker.findById(worker_id);
       if (w) await Conversation.create({ job_id: job._id, client_id: req.user.id, worker_id: w.user_id });
