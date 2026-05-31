@@ -1144,9 +1144,10 @@ async function submitHoreca(){
       const d=await r.json();
       if(r.ok)photoUrls=d.urls;
     }
-    const workers=await api('GET','/api/workers');
-    const wid=workers[0]?._id||workers[0]?.id;
-    await api('POST','/api/jobs',{category:hCat,description:desc,worker_id:wid,urgency:hUrg,photos:photoUrls});
+    const me=await api('GET','/api/auth/me');
+const wid=me.assigned_worker;
+if(!wid){toast('Nu ai un meșter atribuit încă. Contactează adminul!');return;}
+await api('POST','/api/jobs',{category:hCat,description:desc,worker_id:wid,urgency:hUrg,photos:photoUrls});
     document.getElementById('h-ok').style.display='block';
     document.getElementById('h-desc').value='';
     hFiles=[];hrp();
