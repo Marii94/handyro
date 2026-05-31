@@ -30,7 +30,7 @@ router.post('/register', async (req, res) => {
 const horeca_name = req.body.horeca_name || '';
 const horeca_type = req.body.horeca_type || '';
    const phone = req.body.phone || '';
-const user = await User.create({ name: name.trim(), email: email.toLowerCase().trim(), password: bcrypt.hashSync(password, 10), role, status, phone });
+const user = await User.create({ name: name.trim(), email: email.toLowerCase().trim(), password: bcrypt.hashSync(password, 10), role, status, phone, horeca_name, horeca_type });
     if (role === 'meserias') {
       const spec = req.body.specialization || 'General';
       const city = req.body.city || 'București';
