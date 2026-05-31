@@ -774,7 +774,7 @@ function ss(el,cat,ico){
   document.getElementById('job-ok').style.display='none';
   document.getElementById('sub-btn').disabled=false;
   document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea';
-  api('GET','/api/workers?category='+encodeURIComponent(cat)).then(workers=>{
+  api('GET','/api/workers?category='+encodeURIComponent(cat)+'&time_slot='+encodeURIComponent(document.getElementById('slot').value)).then(workers=>{
     const list=document.getElementById('workers-list');
     if(!workers.length){list.innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Nu există meseriași disponibili momentan.</div>';return;}
     // Update hero price with first worker
@@ -789,7 +789,7 @@ function ss(el,cat,ico){
         </div>
         <div class="wri">
           <div style="font-size:12px;color:var(--mu);">⭐ ${w.rating||5.0} · ${w.reviews_count||0} recenzii</div>
-          <button class="btn bt-bl bt-sm" onclick="selectWorker('${w._id}',0,'${w.name}')">Alege</button>
+          ${w.available ? `<button class="btn bt-bl bt-sm" onclick="selectWorker('${w._id}',0,'${w.name}')">Alege</button>` : `<span style="font-size:11px;color:var(--re);font-weight:500;">Ocupat în acest interval</span>`}
         </div>
       </div>`).join('');
   }).catch(()=>{});
