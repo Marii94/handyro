@@ -794,7 +794,8 @@ function ss(el,cat,ico){
       </div>`).join('');
   }).catch(()=>{});
   document.getElementById('fc').scrollIntoView({behavior:'smooth',block:'start'});
-  showSubcats(cat);
+showSubcats(cat);
+renderCalendar();
 }
 function su(u){
   urg=u;
