@@ -557,6 +557,48 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
     <div id="tcontact" style="display:none"></div>
   </div>
 </div>
+  <!-- HORECA -->
+<div class="page" id="page-horeca">
+  <div class="dw">
+    <div class="dt">
+      <div><div class="dti" id="h-hi">Bună! 👋</div><div class="dsi">Cererile și mesajele restaurantului tău</div></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn bt-gh" style="font-size:12px;" onclick="gp('contact')"><i class="ti ti-message-circle"></i> Contact admin</button>
+        <button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>
+      </div>
+    </div>
+    <div class="set">Solicită un meșter</div>
+    <div class="sg" style="margin-bottom:1.75rem;">
+      <div class="sc" onclick="hs(this,'Instalații sanitare','ti-droplet')"><div class="si"><i class="ti ti-droplet"></i></div><div class="sn">Instalații sanitare</div><div class="sd">Robineți, țevi, boilere</div></div>
+      <div class="sc" onclick="hs(this,'Instalații electrice','ti-bolt')"><div class="si"><i class="ti ti-bolt"></i></div><div class="sn">Instalații electrice</div><div class="sd">Prize, tablouri, cablaje</div></div>
+      <div class="sc" onclick="hs(this,'Renovări & zugrăveală','ti-brush')"><div class="si"><i class="ti ti-brush"></i></div><div class="sn">Renovări & zugrăveală</div><div class="sd">Vopsit, gresie, faianță</div></div>
+      <div class="sc" onclick="hs(this,'Curățenie profesională','ti-sparkles')"><div class="si"><i class="ti ti-sparkles"></i></div><div class="sn">Curățenie profesională</div><div class="sd">Spații comerciale</div></div>
+      <div class="sc" onclick="hs(this,'Tâmplărie & mobilier','ti-armchair')"><div class="si"><i class="ti ti-armchair"></i></div><div class="sn">Tâmplărie & mobilier</div><div class="sd">Montaj, reparații</div></div>
+      <div class="sc" onclick="hs(this,'Mentenanță generală','ti-settings')"><div class="si"><i class="ti ti-settings"></i></div><div class="sn">Mentenanță generală</div><div class="sd">Intervenții rapide</div></div>
+    </div>
+    <div id="h-form" style="display:none;">
+      <div class="fc">
+        <div class="fc-h">
+          <div class="fc-ico"><i id="h-ico" class="ti ti-tool"></i></div>
+          <div><div class="fc-cat" id="h-cat">Categorie</div><div class="fc-sub">Descrie problema</div></div>
+        </div>
+        <div class="fc-b">
+          <div class="fg"><label>Descrie problema <span style="color:#E24B4A;">*</span></label><textarea id="h-desc" placeholder="Descrie situația..." maxlength="500"></textarea></div>
+          <div class="fg"><label>Urgența</label>
+            <div class="urg-row">
+              <div class="uo on" id="h-u-n" onclick="hu('normal')"><div class="ud" style="background:#1A56DB;"></div><div><div class="ul">Normal</div><div class="us">În câteva zile</div></div></div>
+              <div class="uo" id="h-u-u" onclick="hu('urgent')"><div class="ud" style="background:#E24B4A;"></div><div><div class="ul">Urgent</div><div class="us">Cât mai curând</div></div></div>
+            </div>
+          </div>
+          <button class="btn bt-bl" style="width:100%;justify-content:center;padding:11px;" onclick="submitHoreca()"><i class="ti ti-send"></i> Trimite cererea</button>
+          <div class="ok" id="h-ok" style="display:none;"><i class="ti ti-circle-check"></i><h3>Cerere trimisă!</h3><p>Meșterul tău a primit cererea și îți va răspunde prin chat.</p></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:1.5rem;"><div class="set">Cererile mele</div><div id="h-jobs">Se încarcă...</div></div>
+    <div style="margin-top:1.5rem;"><div class="set">Mesaje</div><div id="h-convs"></div><div id="h-chat"></div></div>
+  </div>
+</div>
 <!-- TERMENI -->
 <div class="page" id="page-termeni">
   <div class="sec" style="max-width:800px;">
