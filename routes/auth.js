@@ -23,7 +23,7 @@ router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
     if (!name || !email || !password) return res.status(400).json({ error: 'Câmpuri lipsă' });
-    if (!['client','meserias'].includes(role)) return res.status(400).json({ error: 'Rol invalid' });
+    if(!['client','meserias','admin','horeca'].includes(role)) return res.status(400).json({ error: 'Rol invalid' });
     const existing = await User.findOne({ email: email.toLowerCase().trim() });
     if (existing) return res.status(409).json({ error: 'Email-ul este deja înregistrat' });
     const status = role === 'meserias' ? 'pending' : 'active';
