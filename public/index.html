@@ -783,7 +783,7 @@ function ss(el,cat,ico){
   curCat=cat;curIco=ico;
   document.getElementById('fc-cat').textContent=cat;
   document.getElementById('fc-i').className='ti '+ico;
-  document.getElementById('ww-t').textContent='Meșter disponibil — '+cat;
+  if(document.getElementById('ww-t'))document.getElementById('ww-t').textContent='Meșter disponibil — '+cat;
   document.getElementById('fc').style.display='block';
   document.getElementById('job-ok').style.display='none';
   document.getElementById('sub-btn').disabled=false;
