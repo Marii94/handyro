@@ -1734,6 +1734,45 @@ async function delJ(id){
     toast('Job sters');
   }catch(e){toast('Eroare: '+e.message);}
 }
+  async function loadAdminHoreca(){
+  try{
+    const users=await api('GET','/api/admin/users');
+    const workers=await api('GET','/api/workers');
+    const horcas=users.filter(u=>u.role==='horeca');
+    if(!horcas.length){document.getElementById('th').innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Nu există conturi HoReCa încă.</div>';return;}
+    var html='<table><thead><tr><th>Restaurant</th><th>Tip</th><th>Oraș</th><th>Meșter atribuit</th><th>Acțiuni</th></tr></thead><tbody>';
+    horcas.forEach(function(h){
+      var hid=String(h._id||h.id);
+      var workerSelect='<select id="hw-'+hid+'" style="padding:4px 8px;font-size:12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);">';
+      workerSelect+='<option value="">Neatribuit</option>';
+      workers.forEach(function(w){
+        var selected=String(h.assigned_worker)===String(w._id||w.id)?'selected':'';
+        workerSelect+='<option value="'+(w._id||w.id)+'" '+selected+'>'+w.name+'</option>';
+      });
+      workerSelect+='</select>';
+      html+='<tr>';
+      html+='<td><strong>'+(h.horeca_name||h.name)+'</strong><br><span style="font-size:11px;color:var(--mu);">'+h.email+'</span></td>';
+      html+='<td style="font-size:12px;">'+(h.horeca_type||'-')+'</td>';
+      html+='<td style="font-size:12px;">'+(h.city||'București')+'</td>';
+      html+='<td>'+workerSelect+'</td>';
+      html+='<td><button class="btn bt-bl bt-sm" data-hid="'+hid+'" onclick="assignWorker(this)"><i class="ti ti-check"></i> Atribuie</button></td>';
+      html+='</tr>';
+    });
+    html+='</tbody></table>';
+    document.getElementById('th').innerHTML=html;
+  }catch(e){toast('Eroare: '+e.message);}
+}
+
+async function assignWorker(btn){
+  var hid=btn.dataset.hid;
+  var wid=document.getElementById('hw-'+hid).value;
+  if(!wid){toast('Alege un meșter!');return;}
+  try{
+    await api('PATCH','/api/admin/users/'+hid+'/assign-worker',{worker_id:wid});
+    toast('Meșter atribuit cu succes!');
+    loadAdminHoreca();
+  }catch(e){toast('Eroare: '+e.message);}
+}
 
 async function loadAdminContact(){
   try{
