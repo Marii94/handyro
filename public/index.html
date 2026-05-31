@@ -1462,7 +1462,7 @@ async function sendMsg(cid){
 function switchTab(btn,tab){
   document.querySelectorAll('.atb button').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
-  var tabs=['tw','tc','tj','tsubcat','tm','tcontact'];
+  var tabs=['tw','tc','th','tj','tsubcat','tm','tcontact'];
   tabs.forEach(function(t){var el=document.getElementById(t);if(el)el.style.display='none';});
   var el=document.getElementById(tab);
   if(el)el.style.display='block';
