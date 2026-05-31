@@ -584,6 +584,16 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
         </div>
         <div class="fc-b">
           <div class="fg"><label>Descrie problema <span style="color:#E24B4A;">*</span></label><textarea id="h-desc" placeholder="Descrie situația..." maxlength="500"></textarea></div>
+          <div class="fg">
+  <label>Adaugă poze <span style="color:var(--mu);font-size:10px;">(opțional, max 3)</span></label>
+  <div class="uz" id="h-uz" ondragover="dov(event,1)" ondragleave="dov(event,0)" ondrop="hdr(event)">
+    <input type="file" accept="image/*" multiple id="h-fi" onchange="honf(this.files)"/>
+    <i class="ti ti-camera-plus"></i>
+    <div class="uz-t">Apasă sau trage pozele aici</div>
+    <div class="uz-h">JPG, PNG — max 10MB per poză</div>
+  </div>
+  <div class="prev-grid" id="h-pg" style="display:none"></div>
+</div>
           <div class="fg"><label>Urgența</label>
             <div class="urg-row">
               <div class="uo on" id="h-u-n" onclick="hu('normal')"><div class="ud" style="background:#1A56DB;"></div><div><div class="ul">Normal</div><div class="us">În câteva zile</div></div></div>
