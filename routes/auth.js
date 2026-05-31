@@ -27,6 +27,8 @@ router.post('/register', async (req, res) => {
     const existing = await User.findOne({ email: email.toLowerCase().trim() });
     if (existing) return res.status(409).json({ error: 'Email-ul este deja înregistrat' });
     const status = role === 'meserias' ? 'pending' : 'active';
+const horeca_name = req.body.horeca_name || '';
+const horeca_type = req.body.horeca_type || '';
    const phone = req.body.phone || '';
 const user = await User.create({ name: name.trim(), email: email.toLowerCase().trim(), password: bcrypt.hashSync(password, 10), role, status, phone });
     if (role === 'meserias') {
