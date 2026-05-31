@@ -53,6 +53,7 @@ const JobSchema = new mongoose.Schema({
   subcat_name: String,
   subcat_price: Number,
   completed_at: Date,
+  job_date: Date,
 }, { timestamps: true });
 
 const ConversationSchema = new mongoose.Schema({
