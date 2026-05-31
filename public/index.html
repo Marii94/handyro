@@ -1060,6 +1060,61 @@ data=await api('POST','/api/auth/register',{name,email,password:pass,role,specia
   }catch(e){const er=document.getElementById('merr');er.textContent=e.message;er.style.display='block';}
   btn.disabled=false;
 }
+  let hUrg='normal';
+let hCat='';
+function hs(el,cat,ico){
+  document.querySelectorAll('.sc').forEach(c=>c.classList.remove('on'));el.classList.add('on');
+  hCat=cat;
+  document.getElementById('h-cat').textContent=cat;
+  document.getElementById('h-ico').className='ti '+ico;
+  document.getElementById('h-form').style.display='block';
+  document.getElementById('h-ok').style.display='none';
+}
+function hu(u){
+  hUrg=u;
+  document.getElementById('h-u-n').classList.toggle('on',u==='normal');
+  document.getElementById('h-u-u').classList.toggle('on',u==='urgent');
+}
+async function loadHoreca(){
+  document.getElementById('h-hi').textContent='Bună, '+CU.name+'! 👋';
+  try{
+    const jobs=await api('GET','/api/jobs');
+    const el=document.getElementById('h-jobs');
+    if(!jobs.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;">Nu ai cereri încă.</div>';return;}
+    el.innerHTML=jobs.map(j=>`<div class="jc">
+      <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
+      <div class="jif"><div class="jt">${j.category}</div><div class="jm">Meșter: ${j.worker_name||'În așteptare'}</div><div class="jm" style="font-style:italic;">${j.description||''}</div></div>
+      <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'În așteptare'}</span></div>
+    </div>`).join('');
+    loadHConvs();
+  }catch(e){toast('Eroare: '+e.message);}
+}
+async function loadHConvs(){
+  try{
+    const cs=await api('GET','/api/messages/conversations');
+    document.getElementById('h-convs').innerHTML=cs.map(c=>`
+      <div class="jc" style="cursor:pointer;" onclick="openChat('${c.id}','${c.worker_name}','IȘ','h-chat')">
+        <div class="ji"><i class="ti ti-message-circle"></i></div>
+        <div class="jif"><div class="jt">${c.worker_name||'Meșter'} — ${c.category}</div><div class="jm">${c.last_message||'—'}</div></div>
+        <div class="jr">${c.unread>0?`<span class="jb jb-n">${c.unread} nou</span>`:''}</div>
+      </div>`).join('');
+  }catch(e){}
+}
+async function submitHoreca(){
+  if(!CU){toast('Trebuie să fii autentificat');return;}
+  const desc=document.getElementById('h-desc').value.trim();
+  if(!desc){toast('Descrie problema!');return;}
+  if(!hCat){toast('Alege o categorie!');return;}
+  try{
+    const workers=await api('GET','/api/workers');
+    const wid=workers[0]?._id||workers[0]?.id;
+    await api('POST','/api/jobs',{category:hCat,description:desc,worker_id:wid,urgency:hUrg});
+    document.getElementById('h-ok').style.display='block';
+    document.getElementById('h-desc').value='';
+    toast('Cerere trimisă!');
+    loadHoreca();
+  }catch(e){toast(e.message);}
+}
 function loginOk(){
   document.getElementById('nav-act').innerHTML=`<span style="font-size:13px;color:var(--mu);">${CU.name}</span><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>`;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
