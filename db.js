@@ -16,6 +16,7 @@ const UserSchema = new mongoose.Schema({
   role: { type: String, enum: ['client','meserias','admin','horeca'], required: true },
 horeca_name: { type: String, default: '' },
 horeca_type: { type: String, default: '' },
+  assigned_worker: { type: mongoose.Schema.Types.ObjectId, ref: 'Worker', default: null },
   status: { type: String, enum: ['active','pending','blocked'], default: 'active' },
 phone: { type: String, default: '' },
 }, { timestamps: true });
