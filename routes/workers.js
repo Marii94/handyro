@@ -52,5 +52,22 @@ router.get('/me/dashboard', auth, requireRole('meserias'), async (req, res) => {
     res.json({ worker, jobs, prices, unread_messages: unread });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
+router.get('/availability', async (req, res) => {
+  try {
+    const { worker_id, date } = req.query;
+    if (!worker_id || !date) return res.status(400).json({ error: 'Parametri lipsă' });
+    const { Job } = require('../db');
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    const jobs = await Job.find({
+      worker_id: worker_id,
+      status: { $in: ['pending', 'accepted'] },
+      job_date: { $gte: startOfDay, $lte: endOfDay }
+    });
+    res.json(jobs.map(j => ({ time_slot: j.time_slot })));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
 
 module.exports = router;
