@@ -16,7 +16,18 @@ router.get('/', async (req, res) => {
         if (!priceDoc) return null;
         price = priceDoc.price;
       }
-      return { _id: w._id, name: u.name, specialization: w.specialization, rating: w.rating, reviews_count: w.reviews_count, city: w.city, price_for_category: price };
+      const { Job } = require('../db');
+const { time_slot } = req.query;
+let available = true;
+if(time_slot && time_slot !== '18:00–20:00 — tarif urgență'){
+  const busyJob = await Job.findOne({
+    worker_id: w._id,
+    time_slot: time_slot,
+    status: { $in: ['pending','accepted'] }
+  });
+  if(busyJob) available = false;
+}
+return { _id: w._id, name: u.name, specialization: w.specialization, rating: w.rating, reviews_count: w.reviews_count, city: w.city, price_for_category: price, available };
     }));
     res.json(result.filter(Boolean));
   } catch(e) { res.status(500).json({ error: e.message }); }
