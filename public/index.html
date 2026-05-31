@@ -301,7 +301,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   .jr{flex-direction:row;align-items:center;gap:8px;width:100%;justify-content:space-between;}
   .nav-in{padding:0 1rem;}
   .logo{font-size:17px;}
-  .about-dark{display:none;}
+  .about-dark{display:block;}
   .fc-b{padding:1rem;}
   .urg-row{grid-template-columns:1fr;}
   .workers-list .wr{padding:.85rem 1rem;}
@@ -462,12 +462,23 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   <label>Interval orar — <span id="selected-date-label" style="color:var(--blue);"></span></label>
   <div id="slots-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;"></div>
 </div>
-<div class="ww" style="margin-bottom:14px;">
-  <div class="wh"><div class="wht" id="ww-t">Meseriași disponibili</div><div class="avb"><span class="avd"></span>Disponibili acum</div></div>
-  <div id="workers-list">Se încarcă...</div>
-</div>
-<button class="btn bt-bl" id="sub-btn" style="width:100%;justify-content:center;padding:11px;" onclick="submitJob()"><i class="ti ti-send"></i> Trimite cererea</button>
-<div class="ok" id="job-ok" style="display:none;"><i class="ti ti-circle-check"></i><h3>Cerere trimisă cu succes!</h3><p id="ok-txt">Meșterul a primit cererea ta și îți va răspunde prin mesageria HandyRO.</p></div>
+<div class="fg" id="slot-wrap-old">
+          <label>Interval orar preferat</label>
+          <select id="slot" onchange="if(this.value.indexOf('18:00')!==-1){su('urgent');toast('Interval de seară — tarif urgență +140 lei!');}else{su('normal');updateSubBtn();}if(curCat)ss(document.querySelector('.sc.on'),curCat,curIco);">
+            <option>08:00–10:00</option>
+<option>10:00–12:00</option>
+<option>12:00–14:00</option>
+<option>14:00–16:00</option>
+<option>16:00–18:00</option>
+<option value="18:00–20:00 — tarif urgență">18:00–20:00 — tarif urgență</option>
+</select>
+        <div class="ww" style="margin-bottom:14px;">
+          <div class="wh"><div class="wht" id="ww-t">Meseriași disponibili</div><div class="avb"><span class="avd"></span>Disponibili acum</div></div>
+          <div id="workers-list">Se încarcă...</div>
+        </div>
+        <button class="btn bt-bl" id="sub-btn" style="width:100%;justify-content:center;padding:11px;" onclick="submitJob()"><i class="ti ti-send"></i> Trimite cererea</button>
+        <div class="ok" id="job-ok"><i class="ti ti-circle-check"></i><h3>Cerere trimisă cu succes!</h3><p id="ok-txt">Ionuț Șerban a primit cererea ta și îți va răspunde prin mesageria HandyRO.</p></div>
+      </div>
     </div>
   </div>
 </div>
@@ -477,7 +488,6 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   <div class="sec">
     <div class="ag">
       <div class="adk">
-        
         <div class="ast"><div class="asn">6</div><div class="asl">Categorii de servicii</div></div>
         <div class="ast"><div class="asn">&lt;2h</div><div class="asl">Timp de răspuns garantat</div></div>
       </div>
@@ -485,7 +495,8 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
         <div class="sl">Despre noi</div>
         <h2>Platforma care conectează <em>oameni</em> cu meseriași de încredere</h2>
         <p>Totul a început dintr-o problemă simplă — aveam nevoie de un meșter și nu știam unde să caut. Am întrebat vecini, am căutat pe Google, am sunat numere la întâmplare. Ore pierdute, oameni nepotriviți, frustrare.</p>
-        <p>Mi-am dat seama că nu sunt singurul. Toată lumea se lovește de aceeași problemă — nu că nu există meseriași buni în București, ci că nu știi unde să îi găsești rapid și în cine să ai încredere.</p><p>
+        <p>Mi-am dat seama că nu sunt singurul. Toată lumea se lovește de aceeași problemă — nu că nu există meseriași buni în București, ci că nu știi unde să îi găsești rapid și în cine să ai încredere.</p>
+        <p>Așa s-a născut HandyRo. Un loc unde găsești imediat un meșter verificat, descrii problema, trimiți o poză — și în mai puțin de 2 ore cineva e la ușa ta.</p>
       </div>
     </div>
   </div>
@@ -781,10 +792,10 @@ function ss(el,cat,ico){
   document.getElementById('fc-i').className='ti '+ico;
   if(document.getElementById('ww-t'))document.getElementById('ww-t').textContent='Meșter disponibil — '+cat;
   document.getElementById('fc').style.display='block';
-setTimeout(function(){renderCalendar();},50);
-  if(document.getElementById('job-ok'))document.getElementById('job-ok').style.display='none';
-  if(document.getElementById('sub-btn')){document.getElementById('sub-btn').disabled=false;document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea';}
-  api('GET','/api/workers?category='+encodeURIComponent(cat)).then(workers=>{
+  document.getElementById('job-ok').style.display='none';
+  document.getElementById('sub-btn').disabled=false;
+  document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea';
+  api('GET','/api/workers?category='+encodeURIComponent(cat)+'&time_slot='+encodeURIComponent(document.getElementById('slot').value)).then(workers=>{
     const list=document.getElementById('workers-list');
     if(!workers.length){list.innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Nu există meseriași disponibili momentan.</div>';return;}
     // Update hero price with first worker
@@ -805,6 +816,7 @@ setTimeout(function(){renderCalendar();},50);
   }).catch(()=>{});
   document.getElementById('fc').scrollIntoView({behavior:'smooth',block:'start'});
 showSubcats(cat);
+renderCalendar();
 }
 function su(u){
   urg=u;
@@ -979,7 +991,7 @@ async function selectCalDate(date,isWeekend){
   slotsGrid.innerHTML='Se încarcă...';
   try{
     const dateStr=date.toISOString().split('T')[0];
-    const busy=selectedWorkerId?await api('GET','/api/workers/availability?worker_id='+selectedWorkerId+'&date='+dateStr):[];
+    const busy=await api('GET','/api/workers/availability?worker_id='+selectedWorkerId+'&date='+dateStr);
     const busySlots=busy.map(b=>b.time_slot);
     slotsGrid.innerHTML=SLOTS.map(s=>{
       const isBusy=busySlots.includes(s);
