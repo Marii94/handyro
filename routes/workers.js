@@ -61,8 +61,9 @@ router.get('/availability', async (req, res) => {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
-    const jobs = await Job.find({
-      worker_id: worker_id,
+    if(!worker_id || worker_id==='null') return res.json([]);
+const jobs = await Job.find({
+  worker_id: worker_id,
       status: { $in: ['pending', 'accepted'] },
       job_date: { $gte: startOfDay, $lte: endOfDay }
     });
