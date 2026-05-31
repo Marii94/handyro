@@ -984,10 +984,12 @@ function rm(){
 function tm2(){mm=mm==='login'?'register':'login';document.getElementById('merr').style.display='none';rm();}
 function toggleMesCat(v){
   var isMes=v==='meserias';
+  var isHoreca=v==='horeca';
   document.getElementById('mes-cat-wrap').style.display=isMes?'flex':'none';
-  document.getElementById('mes-city-wrap').style.display=isMes?'flex':'none';
-  
+  document.getElementById('mes-city-wrap').style.display=(isMes||isHoreca)?'flex':'none';
   document.getElementById('mes-cats-wrap').style.display=isMes?'flex':'none';
+  document.getElementById('horeca-name-wrap').style.display=isHoreca?'flex':'none';
+  document.getElementById('horeca-type-wrap').style.display=isHoreca?'flex':'none';
 }
 async function subm(){
   const email=document.getElementById('me').value.trim();
