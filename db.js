@@ -13,7 +13,9 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['client','meserias','admin'], required: true },
+  role: { type: String, enum: ['client','meserias','admin','horeca'], required: true },
+horeca_name: { type: String, default: '' },
+horeca_type: { type: String, default: '' },
   status: { type: String, enum: ['active','pending','blocked'], default: 'active' },
 phone: { type: String, default: '' },
 }, { timestamps: true });
