@@ -443,11 +443,12 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
         <div class="fg">
           <label>Interval orar preferat</label>
           <select id="slot" onchange="if(this.value.indexOf('18:00')!==-1){su('urgent');toast('Interval de seară — tarif urgență +140 lei!');}else{su('normal');updateSubBtn();}">
-            <option>Dimineața (08:00–12:00)</option>
-            <option>Prânz (12:00–15:00)</option>
-            <option>După-amiaza (15:00–18:00)</option>
-            <option>Orice interval disponibil</option>
-<option value="Seara (18:00–20:00) — tarif urgență">Seara (18:00–20:00) — tarif urgență</option>
+           <option>08:00–10:00</option>
+<option>10:00–12:00</option>
+<option>12:00–14:00</option>
+<option>14:00–16:00</option>
+<option>16:00–18:00</option>
+<option value="18:00–20:00 — tarif urgență">18:00–20:00 — tarif urgență</option>
           </select>
         </div>
         <div class="ww" style="margin-bottom:14px;">
