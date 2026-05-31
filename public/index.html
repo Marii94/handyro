@@ -1022,8 +1022,9 @@ function loginOk(){
   document.getElementById('nav-act').innerHTML=`<span style="font-size:13px;color:var(--mu);">${CU.name}</span><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>`;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   if(CU.role==='admin'){document.getElementById('page-admin').classList.add('on');loadAdmin();}
-  else if(CU.role==='meserias'){document.getElementById('page-meserias').classList.add('on');loadMes();}
-  else{document.getElementById('page-home').classList.add('on');}
+else if(CU.role==='meserias'){document.getElementById('page-meserias').classList.add('on');loadMes();}
+else if(CU.role==='horeca'){document.getElementById('page-horeca').classList.add('on');loadHoreca();}
+else{document.getElementById('page-home').classList.add('on');}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 // CONTACT CHAT
