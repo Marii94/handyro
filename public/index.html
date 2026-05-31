@@ -1072,6 +1072,27 @@ data=await api('POST','/api/auth/register',{name,email,password:pass,role,specia
 }
   let hUrg='normal';
 let hCat='';
+let hFiles=[];
+function honf(fls){
+  Array.from(fls).filter(f=>f.type.startsWith('image/')).slice(0,3-hFiles.length).forEach(f=>{hFiles.push(f);});
+  hrp();
+}
+function hdr(e){e.preventDefault();document.getElementById('h-uz').classList.remove('dov');honf(e.dataTransfer.files);}
+function hrp(){
+  const pg=document.getElementById('h-pg');
+  if(!hFiles.length){pg.style.display='none';document.getElementById('h-uz').style.display='block';return;}
+  pg.style.display='grid';
+  if(hFiles.length>=3)document.getElementById('h-uz').style.display='none';
+  pg.innerHTML='';
+  hFiles.forEach((f,i)=>{
+    const u=URL.createObjectURL(f);
+    const d=document.createElement('div');d.className='pi';
+    d.innerHTML=`<img src="${u}" alt="Poza ${i+1}"/><button class="pi-rm" onclick="hrf(${i})">&times;</button>`;
+    pg.appendChild(d);
+  });
+  if(hFiles.length<3){const a=document.createElement('div');a.className='pa';a.innerHTML=`<i class="ti ti-plus"></i><span>Adaugă</span><input type="file" accept="image/*" onchange="honf(this.files)"/>`;pg.appendChild(a);}
+}
+function hrf(i){hFiles.splice(i,1);document.getElementById('h-uz').style.display='block';hrp();}
 function hs(el,cat,ico){
   document.querySelectorAll('.sc').forEach(c=>c.classList.remove('on'));el.classList.add('on');
   hCat=cat;
