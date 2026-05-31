@@ -919,6 +919,92 @@ const SUBCATS = {
     {name:'Reparat urgențe diverse',price:180},
   ],
 };
+  let calYear=new Date().getFullYear();
+let calMonth=new Date().getMonth();
+let selectedDate=null;
+const SLOTS=['08:00–10:00','10:00–12:00','12:00–14:00','14:00–16:00','16:00–18:00','18:00–20:00'];
+const MONTHS=['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
+
+function calNav(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+
+async function renderCalendar(){
+  document.getElementById('calendar-wrap').style.display='block';
+  document.getElementById('slots-wrap').style.display='none';
+  document.getElementById('cal-month').textContent=MONTHS[calMonth]+' '+calYear;
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML='';
+  const today=new Date();today.setHours(0,0,0,0);
+  const maxDate=new Date(today);maxDate.setDate(today.getDate()+30);
+  const firstDay=new Date(calYear,calMonth,1);
+  let startDow=firstDay.getDay()-1;
+  if(startDow<0)startDow=6;
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  for(let i=0;i<startDow;i++){
+    const empty=document.createElement('div');
+    grid.appendChild(empty);
+  }
+  for(let d=1;d<=daysInMonth;d++){
+    const date=new Date(calYear,calMonth,d);
+    const dow=date.getDay();
+    const isWeekend=dow===0||dow===6;
+    const isPast=date<today;
+    const isFuture=date>maxDate;
+    const btn=document.createElement('div');
+    btn.style.cssText='text-align:center;padding:8px 4px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;';
+    if(isPast||isFuture){
+      btn.style.cssText+='color:var(--br);cursor:not-allowed;background:transparent;';
+    } else if(isWeekend){
+      btn.style.cssText+='background:#FEF2F2;color:#E24B4A;border:1px solid #FECACA;';
+      btn.title='Tarif urgență +140 lei';
+      btn.onclick=()=>selectCalDate(date,true);
+    } else {
+      btn.style.cssText+='background:var(--bl);color:var(--blue);border:1px solid transparent;';
+      btn.onmouseover=()=>btn.style.borderColor='var(--blue)';
+      btn.onmouseout=()=>btn.style.borderColor='transparent';
+      btn.onclick=()=>selectCalDate(date,false);
+    }
+    btn.textContent=d;
+    grid.appendChild(btn);
+  }
+}
+
+async function selectCalDate(date,isWeekend){
+  selectedDate=date;
+  const label=date.getDate()+'/'+(date.getMonth()+1)+'/'+date.getFullYear();
+  document.getElementById('selected-date-label').textContent=label;
+  document.getElementById('slots-wrap').style.display='block';
+  if(isWeekend){su('urgent');toast('Weekend — tarif urgență +140 lei!');}
+  else su('normal');
+  const slotsGrid=document.getElementById('slots-grid');
+  slotsGrid.innerHTML='Se încarcă...';
+  try{
+    const dateStr=date.toISOString().split('T')[0];
+    const busy=await api('GET','/api/workers/availability?worker_id='+selectedWorkerId+'&date='+dateStr);
+    const busySlots=busy.map(b=>b.time_slot);
+    slotsGrid.innerHTML=SLOTS.map(s=>{
+      const isBusy=busySlots.includes(s);
+      const isUrgent=s==='18:00–20:00';
+      if(isBusy) return `<div style="padding:10px;border-radius:var(--rs);background:var(--bg);border:1px solid var(--br);text-align:center;font-size:12px;color:var(--mu);cursor:not-allowed;">🚫 ${s}<br><span style="font-size:10px;">Ocupat</span></div>`;
+      if(isUrgent) return `<div onclick="selectSlot('${s}',true)" style="padding:10px;border-radius:var(--rs);background:#FEF2F2;border:1px solid #FECACA;text-align:center;font-size:12px;color:#E24B4A;cursor:pointer;font-weight:500;">${s}<br><span style="font-size:10px;">+140 lei urgență</span></div>`;
+      return `<div onclick="selectSlot('${s}',false)" style="padding:10px;border-radius:var(--rs);background:var(--bl);border:1px solid transparent;text-align:center;font-size:12px;color:var(--blue);cursor:pointer;font-weight:500;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='transparent'">${s}</div>`;
+    }).join('');
+  }catch(e){slotsGrid.innerHTML=SLOTS.map(s=>`<div onclick="selectSlot('${s}',false)" style="padding:10px;border-radius:var(--rs);background:var(--bl);border:1px solid transparent;text-align:center;font-size:12px;color:var(--blue);cursor:pointer;font-weight:500;">${s}</div>`).join('');}
+}
+
+function selectSlot(slot,isUrgent){
+  document.querySelectorAll('#slots-grid div').forEach(d=>d.style.background=d.style.background.includes('FEF2F2')?'#FEF2F2':'var(--bl)');
+  event.target.closest('div').style.background=isUrgent?'#FECACA':'var(--blue)';
+  event.target.closest('div').style.color=isUrgent?'#991B1B':'#fff';
+  if(document.getElementById('slot')) document.getElementById('slot').value=slot;
+  if(isUrgent){su('urgent');}else{su('normal');}
+  updateSubBtn();
+  toast('Interval selectat: '+slot);
+}
 
 let selectedSubcat = null;
 
