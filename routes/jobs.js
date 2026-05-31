@@ -3,7 +3,7 @@ const router = express.Router();
 const { User, Worker, Job, Conversation } = require('../db');
 const { auth, requireRole } = require('../middleware/auth');
 
-router.post('/', auth, requireRole('client'), async (req, res) => {
+router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
   try {
     const { category, description, worker_id, urgency, time_slot, photos, subcat_name, subcat_price } = req.body;
     if (!category) return res.status(400).json({ error: 'Categoria este obligatorie' });
