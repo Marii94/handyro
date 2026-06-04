@@ -1145,8 +1145,8 @@ await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid
 }
 
 // AUTH
-function om(m){mm=m;document.getElementById('mov').classList.add('on');document.getElementById('merr').style.display='none';rm();}
-function cm(){document.getElementById('mov').classList.remove('on');}
+function om(m){mm=m;document.getElementById('mov').classList.add('on');document.getElementById('merr').style.display='none';document.body.style.overflow='hidden';rm();}
+function cm(){document.getElementById('mov').classList.remove('on');document.body.style.overflow='';}
 function rm(){
   const l=mm==='login';
   document.getElementById('msub').textContent=l?'Intră în contul tău':'Creează cont gratuit';
