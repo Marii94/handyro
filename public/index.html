@@ -270,7 +270,8 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   .hero-sub{font-size:14px;}
   .hero-cta{flex-direction:column;}
   .hero-cta .btn{width:100%;justify-content:center;}
-  .nav-ul{display:flex;flex-wrap:wrap;gap:.75rem;}
+  .nav-ul{display:none;}
+.hamburger{display:flex!important;}
 .nav-ul a{font-size:11px;}
   .nav-act{gap:6px;}
   .nav-act .btn{padding:6px 12px;font-size:12px;}
@@ -339,6 +340,12 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
     </div>
   </div>
 </nav>
+<div id="mobile-menu" style="display:none;position:fixed;top:62px;left:0;right:0;bottom:0;background:rgba(247,245,240,0.98);z-index:49;padding:2rem;flex-direction:column;gap:1.5rem;">
+  <a style="font-size:18px;font-weight:500;color:var(--navy);cursor:pointer;" onclick="gp('home');toggleMenu()">Acasă</a>
+  <a style="font-size:18px;font-weight:500;color:var(--navy);cursor:pointer;" onclick="gp('services');toggleMenu()">Servicii</a>
+  <a style="font-size:18px;font-weight:500;color:var(--navy);cursor:pointer;" onclick="gp('about');toggleMenu()">Despre noi</a>
+  <a style="font-size:18px;font-weight:500;color:var(--navy);cursor:pointer;" onclick="gp('contact');toggleMenu()">Contact</a>
+</div>
 
 <!-- HOME -->
 <div class="page on" id="page-home">
