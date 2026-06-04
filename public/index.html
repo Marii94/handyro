@@ -1161,9 +1161,6 @@ async function subm(){
       const workerCity=role==='meserias'?(document.getElementById('mes-city')?.value||'București'):'';
       if(role==='meserias'&&!specialization){toast('Alege specialitatea ta!');btn.disabled=false;return;}
       const cats=Array.from(document.querySelectorAll('#mes-cats-grid input:checked')).map(function(c){return c.value;});
-      const pfaName=document.getElementById('mes-pfa')?.value.trim()||'';
-      const cuiVal=document.getElementById('mes-cui')?.value.trim()||'';
-      const ibanVal=document.getElementById('mes-iban')?.value.trim()||'';
       if(role==='meserias'&&!cats.length){toast('Alege cel puțin o categorie!');btn.disabled=false;return;}
       const horecaname=role==='horeca'?(document.getElementById('horeca-name')?.value.trim()||''):'';
 const horecatype=role==='horeca'?(document.getElementById('horeca-type')?.value||'restaurant'):'';
