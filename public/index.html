@@ -808,7 +808,7 @@ function ss(el,cat,ico){
           <div class="wts"><span class="wt">Verificat</span><span class="wt">Garanție</span><span class="wt">Răspuns &lt;2h</span></div>
         </div>
         <div class="wri">
-          <div style="font-size:12px;color:var(--mu);">⭐ ${w.rating||5.0} · ${w.reviews_count||0} recenzii</div>
+          <div style="font-size:12px;color:var(--mu);">${w.reviews_count>0?'⭐ '+w.rating+' · '+w.reviews_count+' recenzii':'Fără recenzii încă'}</div>
           ${w.available ? `<button class="btn bt-bl bt-sm" onclick="selectWorker('${w._id}',0,'${w.name}')">Alege</button>` : `<span style="font-size:11px;color:var(--re);font-weight:500;">Ocupat în acest interval</span>`}
         </div>
       </div>`).join('');
