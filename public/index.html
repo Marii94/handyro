@@ -998,7 +998,12 @@ async function selectCalDate(date,isWeekend){
     const dateStr=date.toISOString().split('T')[0];
     const busy=await api('GET','/api/workers/availability?worker_id='+selectedWorkerId+'&date='+dateStr);
     const busySlots=busy.map(b=>b.time_slot);
-    slotsGrid.innerHTML=SLOTS.map(s=>{
+    const now=new Date();
+const isToday=date.toDateString()===now.toDateString();
+const currentHour=now.getHours()*100+now.getMinutes();
+slotsGrid.innerHTML=SLOTS.map(s=>{
+  const slotHour=parseInt(s.split('–')[0].replace(':',''));
+  if(isToday && slotHour<=currentHour) return `<div style="padding:10px;border-radius:var(--rs);background:var(--bg);border:1px solid var(--br);text-align:center;font-size:12px;color:var(--mu);cursor:not-allowed;">⏰ ${s}<br><span style="font-size:10px;">Trecut</span></div>`;
       const isBusy=busySlots.includes(s);
       const isUrgent=s==='18:00–20:00';
       if(isBusy) return `<div style="padding:10px;border-radius:var(--rs);background:var(--bg);border:1px solid var(--br);text-align:center;font-size:12px;color:var(--mu);cursor:not-allowed;">🚫 ${s}<br><span style="font-size:10px;">Ocupat</span></div>`;
