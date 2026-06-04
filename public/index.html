@@ -1164,7 +1164,6 @@ async function subm(){
       const pfaName=document.getElementById('mes-pfa')?.value.trim()||'';
       const cuiVal=document.getElementById('mes-cui')?.value.trim()||'';
       const ibanVal=document.getElementById('mes-iban')?.value.trim()||'';
-      if(role==='meserias'&&(!pfaName||!cuiVal||!ibanVal)){toast('Completează datele PFA (Nume, CUI, IBAN)!');btn.disabled=false;return;}
       if(role==='meserias'&&!cats.length){toast('Alege cel puțin o categorie!');btn.disabled=false;return;}
       const horecaname=role==='horeca'?(document.getElementById('horeca-name')?.value.trim()||''):'';
 const horecatype=role==='horeca'?(document.getElementById('horeca-type')?.value||'restaurant'):'';
