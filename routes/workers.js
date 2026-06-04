@@ -12,10 +12,9 @@ router.get('/', async (req, res) => {
       if (!u || u.status !== 'active') return null;
       let price = null;
       if (category) {
-        const priceDoc = await Price.findOne({ worker_id: w._id, category });
-        if (!priceDoc) return null;
-        price = priceDoc.price;
-      }
+  const priceDoc = await Price.findOne({ worker_id: w._id, category });
+  price = priceDoc ? priceDoc.price : null;
+}
       const { Job } = require('../db');
 const { time_slot } = req.query;
 let available = true;
