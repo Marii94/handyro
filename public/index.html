@@ -1174,11 +1174,12 @@ async function subm(){
       const workerCity=role==='meserias'?(document.getElementById('mes-city')?.value||'București'):'';
       if(role==='meserias'&&!specialization){toast('Alege specialitatea ta!');btn.disabled=false;return;}
       const cats=Array.from(document.querySelectorAll('#mes-cats-grid input:checked')).map(function(c){return c.value;});
+         const mesPhone=role==='meserias'?(document.getElementById('mes-phone')?.value.trim()||''):'';
       if(role==='meserias'&&!cats.length){toast('Alege cel puțin o categorie!');btn.disabled=false;return;}
       const horecaname=role==='horeca'?(document.getElementById('horeca-name')?.value.trim()||''):'';
 const horecatype=role==='horeca'?(document.getElementById('horeca-type')?.value||'restaurant'):'';
 const regCity=document.getElementById('mes-city')?.value||'București';
-data=await api('POST','/api/auth/register',{name,email,password:pass,role,specialization,city:regCity,categories:cats,horeca_name:horecaname,horeca_type:horecatype});if(!data.token){toast(data.message||'Cont creat!');cm();btn.disabled=false;return;}}
+data=await api('POST','/api/auth/register',{name,email,password:pass,role,specialization,city:regCity,categories:cats,phone:mesPhone,horeca_name:horecaname,horeca_type:horecatype});if(!data.token){toast(data.message||'Cont creat!');cm();btn.disabled=false;return;}}
     localStorage.setItem('hro_tk',data.token);CU=data.user;cm();loginOk();
   }catch(e){const er=document.getElementById('merr');er.textContent=e.message;er.style.display='block';}
   btn.disabled=false;
