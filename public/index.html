@@ -1630,8 +1630,8 @@ async function loadAW(){ loadGrafice('admin-grafice');
     var us=await api('GET','/api/admin/users');
     var ws=us.filter(function(u){return u.role==='meserias';});
     var cats=['Instalatii sanitare','Instalatii electrice','Renovari & zugraveli','Curatenie profesionala','Tamplarie & mobilier','Mentenanta generala'];
-    var catsFull=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
-    <th>Telefon</th>
+   var catsFull=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
+    var wtbl='<table><thead><tr><th>Meșter</th><th>Telefon</th><th>Categorii</th><th>Rating</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
     ws.forEach(function(w){
       var uid=String(w._id||w.id);
       var wid=String(w.worker_id||w._id||'');
@@ -1655,7 +1655,7 @@ async function loadAW(){ loadGrafice('admin-grafice');
       actHtml+='<button class="btn bt-bl bt-sm" data-wid="'+wid+'" data-name="'+w.name+'" onclick="openWorkerPrices(this)"><i class="ti ti-currency-leu"></i> Prețuri</button>';
       actHtml+='</div>';
       wtbl+='<tr id="wr-'+uid+'">';
-      wtbl+='<td><strong>'+w.name+'</strong><br><span style="font-size:11px;color:var(--mu);">'+w.email+'</span><br><span style="font-size:11px;color:var(--mu);">📞 '+(w.phone||'-')+'</span></td>';
+      wtbl+='<td><strong>'+w.name+'</strong><br><span style="font-size:11px;color:var(--mu);">'+w.email+'</span></td>';
       wtbl+='<td style="font-size:11px;color:var(--mu);">📞 '+(w.phone||'-')+'</td>';
       wtbl+='<td style="font-size:11px;color:var(--navy);">'+(w.categories&&w.categories.length?w.categories.join('<br>'):w.specialization||'-')+'</td>';
 
