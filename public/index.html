@@ -795,7 +795,7 @@ function ss(el,cat,ico){
   document.getElementById('job-ok').style.display='none';
   document.getElementById('sub-btn').disabled=false;
   document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea';
-  api('GET','/api/workers?category='+encodeURIComponent(cat)+'&time_slot='+encodeURIComponent(document.getElementById('slot').value)).then(workers=>{
+  api('GET','/api/workers?category='+encodeURIComponent(cat)).then(workers=>{
     const list=document.getElementById('workers-list');
     if(!workers.length){list.innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Nu există meseriași disponibili momentan.</div>';return;}
     // Update hero price with first worker
