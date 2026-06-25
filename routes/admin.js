@@ -30,14 +30,12 @@ router.get('/users', async (req, res) => {
         email: u.email,
         role: u.role,
         status: u.status,
+        phone: u.phone || '',
         rating: w?.rating,
         reviews_count: w?.reviews_count,
         worker_id: w?._id,
         specialization: w?.specialization,
         categories: w?.categories || [],
-        pfa_name: w?.pfa_name || '',
-        cui: w?.cui || '',
-        iban: w?.iban || '',
         prices,
       };
     }));
