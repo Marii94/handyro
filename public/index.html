@@ -1003,7 +1003,7 @@ slotsGrid.innerHTML=SLOTS.map(s=>{
       const isBusy=busySlots.includes(s);
       const isUrgent=s==='18:00–20:00';
       if(isBusy) return `<div style="padding:10px;border-radius:var(--rs);background:var(--bg);border:1px solid var(--br);text-align:center;font-size:12px;color:var(--mu);cursor:not-allowed;">🚫 ${s}<br><span style="font-size:10px;">Ocupat</span></div>`;
-      if(isUrgent) return `<div onclick="selectSlot('${s}',true)" style="padding:10px;border-radius:var(--rs);background:#FEF2F2;border:1px solid #FECACA;text-align:center;font-size:12px;color:#E24B4A;cursor:pointer;font-weight:500;">${s}<br><span style="font-size:10px;">+140 lei urgență</span></div>`;
+      if(isUrgent || isWeekend) return `<div onclick="selectSlot('${s}',true)" style="padding:10px;border-radius:var(--rs);background:#FEF2F2;border:1px solid #FECACA;text-align:center;font-size:12px;color:#E24B4A;cursor:pointer;font-weight:500;">${s}<br><span style="font-size:10px;">+140 lei urgență</span></div>`;
       return `<div onclick="selectSlot('${s}',false)" style="padding:10px;border-radius:var(--rs);background:var(--bl);border:1px solid transparent;text-align:center;font-size:12px;color:var(--blue);cursor:pointer;font-weight:500;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='transparent'">${s}</div>`;
     }).join('');
   }catch(e){slotsGrid.innerHTML=SLOTS.map(s=>`<div onclick="selectSlot('${s}',false)" style="padding:10px;border-radius:var(--rs);background:var(--bl);border:1px solid transparent;text-align:center;font-size:12px;color:var(--blue);cursor:pointer;font-weight:500;">${s}</div>`).join('');}
