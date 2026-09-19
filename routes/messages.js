@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { User, Conversation, Message } = require('../db');
 const { auth } = require('../middleware/auth');
+const { notifyAdmin } = require('../services/notify');
 
 function filterPhone(text) {
   return text.replace(/(\+4|0)(7\d{8}|\d{8,9})/g,'[număr blocat]').replace(/\b07\d{2}[\s.-]?\d{3}[\s.-]?\d{3}\b/g,'[număr blocat]');
@@ -56,6 +57,14 @@ router.post('/:convId', auth, async (req, res) => {
     const safe = filterPhone(content.trim());
     const msg = await Message.create({ conversation_id: req.params.convId, sender_id: req.user.id, content: safe });
     const u = await User.findById(req.user.id);
+
+    // Notificare admin — fire-and-forget, nu blocăm răspunsul către utilizator.
+    notifyAdmin(
+      `💬 Mesaj nou în chat`,
+      `De la: ${u?.name || 'Utilizator necunoscut'}\n` +
+      `Mesaj: ${safe}`
+    ).catch(() => {});
+
     res.status(201).json({ ...msg.toObject(), sender_name: u?.name, was_filtered: safe !== content.trim() });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
