@@ -759,6 +759,8 @@ function gp(id){
   if(id==='home' && CU){
     if(CU.role==='admin') id='admin';
     else if(CU.role==='meserias') id='meserias';
+    else if(CU.role==='client') id='client';
+    else if(CU.role==='horeca') id='horeca';
   }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('page-'+id).classList.add('on');
@@ -1315,7 +1317,11 @@ await api('POST','/api/jobs',{category:hCat,description:desc,worker_id:wid,urgen
   }catch(e){toast(e.message);}
 }
 function loginOk(){
-  document.getElementById('nav-act').innerHTML=`<span style="font-size:13px;color:var(--mu);">${esc(CU.name)}</span><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>`;
+  if(CU.role==='client'){
+    document.getElementById('nav-act').innerHTML=`<button class="btn bt-gh" onclick="gp('client')"><i class="ti ti-user"></i> Contul meu</button><span style="font-size:13px;color:var(--mu);">${esc(CU.name)}</span><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>`;
+  } else {
+    document.getElementById('nav-act').innerHTML=`<span style="font-size:13px;color:var(--mu);">${esc(CU.name)}</span><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>`;
+  }
   if(CU.role==='horeca'){
   document.getElementById('pub-nav').innerHTML=`<li><a onclick="gp('horeca')">Acasă</a></li><li><a onclick="gp('contact')">Contact</a></li>`;
 }
@@ -1323,6 +1329,7 @@ function loginOk(){
   if(CU.role==='admin'){document.getElementById('page-admin').classList.add('on');loadAdmin();}
 else if(CU.role==='meserias'){document.getElementById('page-meserias').classList.add('on');loadMes();}
 else if(CU.role==='horeca'){document.getElementById('page-horeca').classList.add('on');loadHoreca();}
+else if(CU.role==='client'){document.getElementById('page-client').classList.add('on');loadClient();}
 else{document.getElementById('page-home').classList.add('on');}
   window.scrollTo({top:0,behavior:'smooth'});
 }
