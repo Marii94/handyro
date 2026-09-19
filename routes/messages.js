@@ -58,10 +58,18 @@ router.post('/:convId', auth, async (req, res) => {
     const msg = await Message.create({ conversation_id: req.params.convId, sender_id: req.user.id, content: safe });
     const u = await User.findById(req.user.id);
 
-    // Notificare admin — fire-and-forget, nu blocăm răspunsul către utilizator.
+    // Notificare admin — arătăm clar cine a trimis mesajul și către cine,
+    // ca admin să nu mai trebuiască să deducă asta din context.
+    const isSenderClient = String(conv.client_id) === String(req.user.id);
+    const recipientId = isSenderClient ? conv.worker_id : conv.client_id;
+    const recipient = await User.findById(recipientId);
+    const senderLabel = isSenderClient ? 'client' : 'meșter';
+    const recipientLabel = isSenderClient ? 'meșter' : 'client';
+
     notifyAdmin(
       `💬 Mesaj nou în chat`,
-      `De la: ${u?.name || 'Utilizator necunoscut'}\n` +
+      `De la: ${u?.name || 'Utilizator necunoscut'} (${senderLabel})\n` +
+      `Către: ${recipient?.name || 'Utilizator necunoscut'} (${recipientLabel})\n` +
       `Mesaj: ${safe}`
     ).catch(() => {});
 
