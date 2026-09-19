@@ -717,19 +717,17 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
 <script>/* HandyRO v6.21 */
 const API='';
 let CU=null,mm='login',urg='normal',files=[],accT=0,convId=null,curCat='',curIco='';
-  function togglePass(){
-    function checkSlotUrgency(val){
+function esc(s){
+  return String(s??'').replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function checkSlotUrgency(val){
   if(val && val.indexOf('18:00')!==-1){
     su('urgent');
     toast('Intervalul de seară e taxat ca urgență (+140 lei).');
   }
 }
-  var i=document.getElementById('mp');
-  var e=document.getElementById('pass-eye');
-  if(i.type==='password'){i.type='text';e.className='ti ti-eye-off';}
-  else{i.type='password';e.className='ti ti-eye';}
-}
-
   function toggleMenu(){
   var m=document.getElementById('mobile-menu');
   m.style.display=m.style.display==='flex'?'none':'flex';
@@ -789,6 +787,7 @@ function sp(el){document.querySelectorAll('.pill').forEach(p=>p.classList.remove
 function ss(el,cat,ico){
   document.querySelectorAll('.sc').forEach(c=>c.classList.remove('on'));el.classList.add('on');
   curCat=cat;curIco=ico;
+  selectedWorkerId=null;
   document.getElementById('fc-cat').textContent=cat;
   document.getElementById('fc-i').className='ti '+ico;
   if(document.getElementById('ww-t'))document.getElementById('ww-t').textContent='Meșter disponibil — '+cat;
@@ -802,19 +801,21 @@ function ss(el,cat,ico){
     // Update hero price with first worker
     // hero price removed
     list.innerHTML=workers.map(w=>`
-      <div class="wr" data-wid="${w._id}" style="border-top:0.5px solid var(--br);">
-        <div class="wa">${ini(w.name)}</div>
+      <div class="wr" data-wid="${esc(w._id)}" style="border-top:0.5px solid var(--br);">
+        <div class="wa">${esc(ini(w.name))}</div>
         <div class="wi">
-          <div class="wn">${w.name}</div>
-          <div class="wsp">${w.specialization||'Specialist'} · ${w.city||'București'}</div>
+          <div class="wn">${esc(w.name)}</div>
+          <div class="wsp">${esc(w.specialization||'Specialist')} · ${esc(w.city||'București')}</div>
           <div class="wts"><span class="wt">Verificat</span><span class="wt">Garanție</span><span class="wt">Răspuns &lt;2h</span></div>
         </div>
         <div class="wri">
-          <div style="font-size:12px;color:var(--mu);">${w.reviews_count>0?'⭐ '+w.rating+' · '+w.reviews_count+' recenzii':'Fără recenzii încă'}</div>
-          ${w.available ? `<button class="btn bt-bl bt-sm" onclick="selectWorker('${w._id}',0,'${w.name}')">Alege</button>` : `<span style="font-size:11px;color:var(--re);font-weight:500;">Ocupat în acest interval</span>`}
+          <div style="font-size:12px;color:var(--mu);">${w.reviews_count>0?'⭐ '+esc(w.rating)+' · '+esc(w.reviews_count)+' recenzii':'Fără recenzii încă'}</div>
+          ${w.available ? `<button class="btn bt-bl bt-sm" onclick="selectWorker('${esc(w._id)}',0,'${esc(w.name)}')">Alege</button>` : `<span style="font-size:11px;color:var(--re);font-weight:500;">Ocupat în acest interval</span>`}
         </div>
       </div>`).join('');
-  }).catch(()=>{});
+  }).catch(()=>{
+    document.getElementById('workers-list').innerHTML='<div style="padding:1rem;color:var(--re);font-size:13px;">Nu am putut încărca meseriașii disponibili. Verifică conexiunea și încearcă din nou.</div>';
+  });
   document.getElementById('fc').scrollIntoView({behavior:'smooth',block:'start'});
 showSubcats(cat);
 renderCalendar();
@@ -832,8 +833,13 @@ function su(u){
 }
 function dov(e,v){e.preventDefault();document.getElementById('uz').classList.toggle('dov',v);}
 function ddr(e){e.preventDefault();document.getElementById('uz').classList.remove('dov');onf(e.dataTransfer.files);}
+const MAX_PHOTO_MB=10;
 function onf(fls){
-  Array.from(fls).filter(f=>f.type.startsWith('image/')).slice(0,3-files.length).forEach(f=>{files.push(f);});
+  Array.from(fls).filter(f=>{
+    if(!f.type.startsWith('image/'))return false;
+    if(f.size>MAX_PHOTO_MB*1024*1024){toast('Poza "'+f.name+'" depășește '+MAX_PHOTO_MB+'MB și a fost ignorată.');return false;}
+    return true;
+  }).slice(0,3-files.length).forEach(f=>{files.push(f);});
   rp();
 }
 function rp(){
@@ -1003,16 +1009,30 @@ slotsGrid.innerHTML=SLOTS.map(s=>{
       const isBusy=busySlots.includes(s);
       const isUrgent=s==='18:00–20:00';
       if(isBusy) return `<div style="padding:10px;border-radius:var(--rs);background:var(--bg);border:1px solid var(--br);text-align:center;font-size:12px;color:var(--mu);cursor:not-allowed;">🚫 ${s}<br><span style="font-size:10px;">Ocupat</span></div>`;
-      if(isUrgent || isWeekend) return `<div onclick="selectSlot('${s}',true)" style="padding:10px;border-radius:var(--rs);background:#FEF2F2;border:1px solid #FECACA;text-align:center;font-size:12px;color:#E24B4A;cursor:pointer;font-weight:500;">${s}<br><span style="font-size:10px;">+140 lei urgență</span></div>`;
-      return `<div onclick="selectSlot('${s}',false)" style="padding:10px;border-radius:var(--rs);background:var(--bl);border:1px solid transparent;text-align:center;font-size:12px;color:var(--blue);cursor:pointer;font-weight:500;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='transparent'">${s}</div>`;
+      if(isUrgent || isWeekend) return `<div onclick="selectSlot('${s}',true,event)" style="padding:10px;border-radius:var(--rs);background:#FEF2F2;border:1px solid #FECACA;text-align:center;font-size:12px;color:#E24B4A;cursor:pointer;font-weight:500;">${s}<br><span style="font-size:10px;">+140 lei urgență</span></div>`;
+      return `<div onclick="selectSlot('${s}',false,event)" style="padding:10px;border-radius:var(--rs);background:var(--bl);border:1px solid transparent;text-align:center;font-size:12px;color:var(--blue);cursor:pointer;font-weight:500;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='transparent'">${s}</div>`;
     }).join('');
-  }catch(e){slotsGrid.innerHTML=SLOTS.map(s=>`<div onclick="selectSlot('${s}',false)" style="padding:10px;border-radius:var(--rs);background:var(--bl);border:1px solid transparent;text-align:center;font-size:12px;color:var(--blue);cursor:pointer;font-weight:500;">${s}</div>`).join('');}
+  }catch(e){
+    const now=new Date();
+    const isToday=date.toDateString()===now.toDateString();
+    const currentHour=now.getHours()*100+now.getMinutes();
+    slotsGrid.innerHTML=SLOTS.map(s=>{
+      const slotHour=parseInt(s.split('–')[0].replace(':',''));
+      if(isToday && slotHour<=currentHour) return `<div style="padding:10px;border-radius:var(--rs);background:var(--bg);border:1px solid var(--br);text-align:center;font-size:12px;color:var(--mu);cursor:not-allowed;">⏰ ${s}<br><span style="font-size:10px;">Trecut</span></div>`;
+      const isUrgentSlot=s==='18:00–20:00';
+      if(isUrgentSlot||isWeekend) return `<div onclick="selectSlot('${s}',true,event)" style="padding:10px;border-radius:var(--rs);background:#FEF2F2;border:1px solid #FECACA;text-align:center;font-size:12px;color:#E24B4A;cursor:pointer;font-weight:500;">${s}<br><span style="font-size:10px;">+140 lei urgență</span></div>`;
+      return `<div onclick="selectSlot('${s}',false,event)" style="padding:10px;border-radius:var(--rs);background:var(--bl);border:1px solid transparent;text-align:center;font-size:12px;color:var(--blue);cursor:pointer;font-weight:500;">${s}</div>`;
+    }).join('');
+  }
 }
 
-function selectSlot(slot,isUrgent){
+function selectSlot(slot,isUrgent,evt){
+  evt=evt||window.event;
   document.querySelectorAll('#slots-grid div').forEach(d=>d.style.background=d.style.background.includes('FEF2F2')?'#FEF2F2':'var(--bl)');
-  event.target.closest('div').style.background=isUrgent?'#FECACA':'var(--blue)';
-  event.target.closest('div').style.color=isUrgent?'#991B1B':'#fff';
+  if(evt&&evt.target){
+    evt.target.closest('div').style.background=isUrgent?'#FECACA':'var(--blue)';
+    evt.target.closest('div').style.color=isUrgent?'#991B1B':'#fff';
+  }
   if(document.getElementById('slot')) document.getElementById('slot').value=slot;
   if(isUrgent){su('urgent');}else{su('normal');}
   updateSubBtn();
@@ -1021,14 +1041,9 @@ function selectSlot(slot,isUrgent){
 
 let selectedSubcat = null;
 
-async function showSubcats(cat) {
-  const existing = document.getElementById('subcats-wrap');
-  if (existing) existing.remove();
-  try {
-    var url = '/api/subcats?category=' + encodeURIComponent(cat);
-    // If worker selected, get worker-specific prices
-    if (selectedWorkerId) url = '/api/worker-subcats/' + selectedWorkerId + '/' + encodeURIComponent(cat);
-    const subs = await api('GET', url);
+function renderSubcatsList(cat, subs) {
+    const existing = document.getElementById('subcats-wrap');
+    if (existing) existing.remove();
     if (!subs.length) return;
     const div = document.createElement('div');
     div.id = 'subcats-wrap';
@@ -1038,13 +1053,28 @@ async function showSubcats(cat) {
       subs.map(function(s,i){
         return '<div class="subcat-btn" id="sb-'+i+'" data-idx="'+i+'" data-name="'+encodeURIComponent(s.name)+'" data-price="'+s.price+'" data-cat="'+encodeURIComponent(cat)+'" onclick="handleSelSubcat(this)"' +
         ' style="background:var(--bg);border:0.5px solid var(--br);border-radius:var(--rs);padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:space-between;gap:8px;">' +
-        '<div style="font-size:13px;color:var(--navy);font-weight:500;">'+s.name+'</div>' +
-        '<div style="font-size:13px;font-weight:700;color:var(--blue);white-space:nowrap;">'+s.price+' lei</div>' +
+        '<div style="font-size:13px;color:var(--navy);font-weight:500;">'+esc(s.name)+'</div>' +
+        '<div style="font-size:13px;font-weight:700;color:var(--blue);white-space:nowrap;">'+esc(s.price)+' lei</div>' +
         '</div>';
       }).join('') + '</div>';
     const urgDiv = document.getElementById('fc').querySelector('.urg-row').closest('.fg');
     urgDiv.parentNode.insertBefore(div, urgDiv);
-  } catch(e) { console.log('subcats error:', e); }
+}
+
+async function showSubcats(cat) {
+  try {
+    var url = '/api/subcats?category=' + encodeURIComponent(cat);
+    // If worker selected, get worker-specific prices
+    if (selectedWorkerId) url = '/api/worker-subcats/' + selectedWorkerId + '/' + encodeURIComponent(cat);
+    const subs = await api('GET', url);
+    renderSubcatsList(cat, subs);
+  } catch(e) {
+    console.log('subcats error, folosesc lista locală de rezervă:', e);
+    // Fallback la prețurile hardcodate local, ca subcategoriile să rămână vizibile
+    // chiar dacă backend-ul e temporar indisponibil.
+    const fallback = SUBCATS[cat] || [];
+    renderSubcatsList(cat, fallback);
+  }
 }
 
 function handleSelSubcat(btn){
@@ -1076,8 +1106,14 @@ function selSubcat(idx, name, price, cat) {
 function updateSubBtn() {
   var btn = document.getElementById('sub-btn');
   if(!btn) return;
+  if(!selectedWorkerId){
+    btn.innerHTML='<i class="ti ti-send"></i> Alege un meșter mai întâi';
+    btn.disabled=true;
+    return;
+  }
   if(selectedSubcats.length === 0) {
     btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea';
+    btn.disabled=false;
     return;
   }
   var totalPrice = selectedSubcats.reduce(function(s,sc){return s+sc.price;}, 0);
@@ -1092,14 +1128,16 @@ function selectWorker(wid, price, name){
   selectedWorkerId = wid;
   // Highlight selected
   document.querySelectorAll('.wr').forEach(r=>r.style.background='');
-  document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea către '+name;
+  document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea către '+esc(name);
   document.getElementById('sub-btn').disabled=false;
+  updateSubBtn();
   toast('Meșter selectat: '+name+' — '+price+' lei/lucrare');
 }
 
 async function submitJob(){
   if(!CU){toast('Trebuie să fii autentificat');om('login');return;}
   if(CU.role!=='client'){toast('Doar clienții pot trimite cereri');return;}
+  if(!selectedWorkerId){toast('Alege un meșter mai întâi!');return;}
   const desc=document.getElementById('prob-desc').value.trim();
   if(!desc){document.getElementById('prob-desc').focus();document.getElementById('prob-desc').style.borderColor='#E24B4A';setTimeout(()=>document.getElementById('prob-desc').style.borderColor='',2000);return;}
   const btn=document.getElementById('sub-btn');
@@ -1114,8 +1152,7 @@ async function submitJob(){
       const d=await r.json();
       if(r.ok)photoUrls=d.urls;
     }
-    const workers=await api('GET','/api/workers');
-    const wid=selectedWorkerId||workers[0]?._id||workers[0]?.id;
+    const wid=selectedWorkerId;
     // Auto-urgență după 18:00
 const currentHour = new Date().getHours();
 if(currentHour >= 18 && urg !== 'urgent'){
@@ -1133,7 +1170,7 @@ const urgentExtra = urg==='urgent' ? 140 : 0;
 await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:document.getElementById('slot')?document.getElementById('slot').value:'',photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice||null,city:jobCity,job_date:jobDate});
     const ptxt=files.length>0?` cu ${files.length} ${files.length===1?'poză':'poze'}`:'';
     const utxt=urg==='urgent'?' Marcat ca urgent.':'';
-    document.getElementById('ok-txt').textContent=`Ionuț Șerban a primit cererea ta${ptxt}.${utxt} Îți va răspunde prin mesageria HandyRO.`;
+    document.getElementById('ok-txt').textContent=`Cererea ta a fost trimisă${ptxt}.${utxt} Meșterul îți va răspunde prin mesageria HandyRO.`;
     document.getElementById('job-ok').style.display='block';
     document.getElementById('job-ok').scrollIntoView({behavior:'smooth',block:'nearest'});
     btn.innerHTML='<i class="ti ti-check"></i> Trimis!';
@@ -1188,7 +1225,11 @@ data=await api('POST','/api/auth/register',{name,email,password:pass,role,specia
 let hCat='';
 let hFiles=[];
 function honf(fls){
-  Array.from(fls).filter(f=>f.type.startsWith('image/')).slice(0,3-hFiles.length).forEach(f=>{hFiles.push(f);});
+  Array.from(fls).filter(f=>{
+    if(!f.type.startsWith('image/'))return false;
+    if(f.size>MAX_PHOTO_MB*1024*1024){toast('Poza "'+f.name+'" depășește '+MAX_PHOTO_MB+'MB și a fost ignorată.');return false;}
+    return true;
+  }).slice(0,3-hFiles.length).forEach(f=>{hFiles.push(f);});
   hrp();
 }
 function hdr(e){e.preventDefault();document.getElementById('h-uz').classList.remove('dov');honf(e.dataTransfer.files);}
@@ -1221,14 +1262,14 @@ function hu(u){
   document.getElementById('h-u-u').classList.toggle('on',u==='urgent');
 }
 async function loadHoreca(){
-  document.getElementById('h-hi').textContent='Bună, '+CU.name+'! 👋';
+  document.getElementById('h-hi').textContent='Bună, '+esc(CU.name)+'! 👋';
   try{
     const jobs=await api('GET','/api/jobs');
     const el=document.getElementById('h-jobs');
     if(!jobs.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;">Nu ai cereri încă.</div>';return;}
     el.innerHTML=jobs.map(j=>`<div class="jc">
       <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
-      <div class="jif"><div class="jt">${j.category}</div><div class="jm">Meșter: ${j.worker_name||'În așteptare'}</div><div class="jm" style="font-style:italic;">${j.description||''}</div></div>
+      <div class="jif"><div class="jt">${esc(j.category)}</div><div class="jm">Meșter: ${esc(j.worker_name||'În așteptare')}</div><div class="jm" style="font-style:italic;">${esc(j.description||'')}</div></div>
       <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'În așteptare'}</span></div>
     </div>`).join('');
     loadHConvs();
@@ -1238,10 +1279,10 @@ async function loadHConvs(){
   try{
     const cs=await api('GET','/api/messages/conversations');
     document.getElementById('h-convs').innerHTML=cs.map(c=>`
-      <div class="jc" style="cursor:pointer;" onclick="openChat('${c.id}','${c.worker_name}','IȘ','h-chat')">
+      <div class="jc" style="cursor:pointer;" onclick="openChat('${esc(c.id)}','${esc(c.worker_name)}','IȘ','h-chat')">
         <div class="ji"><i class="ti ti-message-circle"></i></div>
-        <div class="jif"><div class="jt">${c.worker_name||'Meșter'} — ${c.category}</div><div class="jm">${c.last_message||'—'}</div></div>
-        <div class="jr">${c.unread>0?`<span class="jb jb-n">${c.unread} nou</span>`:''}</div>
+        <div class="jif"><div class="jt">${esc(c.worker_name||'Meșter')} — ${esc(c.category)}</div><div class="jm">${esc(c.last_message||'—')}</div></div>
+        <div class="jr">${c.unread>0?`<span class="jb jb-n">${esc(c.unread)} nou</span>`:''}</div>
       </div>`).join('');
   }catch(e){}
 }
@@ -1272,7 +1313,7 @@ await api('POST','/api/jobs',{category:hCat,description:desc,worker_id:wid,urgen
   }catch(e){toast(e.message);}
 }
 function loginOk(){
-  document.getElementById('nav-act').innerHTML=`<span style="font-size:13px;color:var(--mu);">${CU.name}</span><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>`;
+  document.getElementById('nav-act').innerHTML=`<span style="font-size:13px;color:var(--mu);">${esc(CU.name)}</span><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>`;
   if(CU.role==='horeca'){
   document.getElementById('pub-nav').innerHTML=`<li><a onclick="gp('horeca')">Acasă</a></li><li><a onclick="gp('contact')">Contact</a></li>`;
 }
@@ -1305,9 +1346,9 @@ async function loadContactChat(){
     box.innerHTML = myMsgs.map(function(m){
       return '<div style="margin-bottom:.75rem;">'
         +'<div style="display:flex;justify-content:flex-end;margin-bottom:4px;">'
-        +'<div style="background:var(--blue);color:#fff;padding:.5rem .85rem;border-radius:12px 12px 2px 12px;font-size:13px;max-width:80%;">'+m.content+'</div></div>'
+        +'<div style="background:var(--blue);color:#fff;padding:.5rem .85rem;border-radius:12px 12px 2px 12px;font-size:13px;max-width:80%;">'+esc(m.content)+'</div></div>'
         +(m.reply?'<div style="display:flex;justify-content:flex-start;">'
-          +'<div style="background:var(--bg);border:0.5px solid var(--br);padding:.5rem .85rem;border-radius:12px 12px 12px 2px;font-size:13px;max-width:80%;color:var(--navy);">'+m.reply+'</div></div>':'')
+          +'<div style="background:var(--bg);border:0.5px solid var(--br);padding:.5rem .85rem;border-radius:12px 12px 12px 2px;font-size:13px;max-width:80%;color:var(--navy);">'+esc(m.reply)+'</div></div>':'')
         +'</div>';
     }).join('');
     box.scrollTop = box.scrollHeight;
@@ -1330,7 +1371,7 @@ async function sendContactMsg(){
   // Optimistic update
   var div = document.createElement('div');
   div.style.cssText='margin-bottom:.75rem;';
-  div.innerHTML='<div style="display:flex;justify-content:flex-end;"><div style="background:var(--blue);color:#fff;padding:.5rem .85rem;border-radius:12px 12px 2px 12px;font-size:13px;max-width:80%;">'+txt+'</div></div>';
+  div.innerHTML='<div style="display:flex;justify-content:flex-end;"><div style="background:var(--blue);color:#fff;padding:.5rem .85rem;border-radius:12px 12px 2px 12px;font-size:13px;max-width:80%;">'+esc(txt)+'</div></div>';
   if(box.querySelector('.ti-message-circle')) box.innerHTML='';
   box.appendChild(div);
   box.scrollTop=box.scrollHeight;
@@ -1423,7 +1464,7 @@ async function lo(){
 
 // MESERIAS
 async function loadMes(){
-  document.getElementById('m-hi').textContent='Bună, '+CU.name+'! 👋';
+  document.getElementById('m-hi').textContent='Bună, '+esc(CU.name)+'! 👋';
   try{
     const d=await api('GET','/api/workers/me/dashboard');
     document.getElementById('ms-j').textContent=d.jobs.filter(j=>j.status==='pending'||j.status==='accepted').length;
@@ -1437,9 +1478,9 @@ async function loadMes(){
       const urgHtml=j.urgency==='urgent'?`<div class="jurg u-urg"><i class="ti ti-alert-triangle" style="font-size:11px;"></i> Urgent</div>`:`<div class="jurg u-nor">Normal</div>`;
       return`<div class="jc" id="mj-${j._id||j.id}">
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
-        <div class="jif"><div class="jt">${j.category}${j.subcat_name?' — '+j.subcat_name:''} — ${j.city||'București'}</div><div class="jm">Client: ${j.client_name} · ${j.time_slot||''}</div>${j.subcat_price?'<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:3px;">Preț: '+j.subcat_price+' lei</div>':''}${urgHtml}${phHtml}</div>
+        <div class="jif"><div class="jt">${esc(j.category)}${j.subcat_name?' — '+esc(j.subcat_name):''} — ${esc(j.city||'București')}</div><div class="jm">Client: ${esc(j.client_name)} · ${esc(j.time_slot||'')}</div>${j.subcat_price?'<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:3px;">Preț: '+esc(j.subcat_price)+' lei</div>':''}${urgHtml}${phHtml}</div>
         <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'Nou'}</span>
-        <div style="display:flex;gap:5px;">${j.status!=='accepted'?`<button class="btn bt-bl bt-sm" onclick="accJob('${j._id||j.id}',this)"><i class="ti ti-check"></i> Acceptă</button>`:''}<button class="btn bt-gh bt-sm" onclick="openConv('${j._id||j.id}','${j.client_name}')"><i class="ti ti-message"></i> Chat</button></div></div>
+        <div style="display:flex;gap:5px;">${j.status!=='accepted'?`<button class="btn bt-bl bt-sm" onclick="accJob('${j._id||j.id}',this)"><i class="ti ti-check"></i> Acceptă</button>`:''}<button class="btn bt-gh bt-sm" onclick="openConv('${j._id||j.id}','${esc(j.client_name)}')"><i class="ti ti-message"></i> Chat</button></div></div>
       </div>`;
     }).join('');
     loadMConvs();
@@ -1461,10 +1502,10 @@ async function loadMConvs(){
     const cs=await api('GET','/api/messages/conversations');
     const w=document.getElementById('m-convs-wrap');w.style.display=cs.length?'block':'none';
     document.getElementById('m-convs').innerHTML=cs.map(c=>`
-      <div class="jc" style="cursor:pointer;" onclick="openChat('${c.id}','${c.client_name}','${ini(c.client_name)}','m-chat')">
+      <div class="jc" style="cursor:pointer;" onclick="openChat('${esc(c.id)}','${esc(c.client_name)}','${esc(ini(c.client_name))}','m-chat')">
         <div class="ji"><i class="ti ti-message-circle"></i></div>
-        <div class="jif"><div class="jt">${c.client_name}</div><div class="jm">${c.last_message||'—'}</div></div>
-        <div class="jr">${c.unread>0?`<span class="jb jb-n">${c.unread} nou</span>`:''}</div>
+        <div class="jif"><div class="jt">${esc(c.client_name)}</div><div class="jm">${esc(c.last_message||'—')}</div></div>
+        <div class="jr">${c.unread>0?`<span class="jb jb-n">${esc(c.unread)} nou</span>`:''}</div>
       </div>`).join('');
   }catch(e){}
 }
@@ -1508,7 +1549,7 @@ async function openConv(jobId,cname){
 
 // CLIENT
 async function loadClient(){
-  document.getElementById('c-hi').textContent='Bună, '+CU.name+'! 👤';
+  document.getElementById('c-hi').textContent='Bună, '+esc(CU.name)+'! 👤';
   try{
     const jobs=await api('GET','/api/jobs');
     const el=document.getElementById('c-jobs');
@@ -1519,7 +1560,7 @@ async function loadClient(){
       const urgHtml=j.urgency==='urgent'?`<div class="jurg u-urg"><i class="ti ti-alert-triangle" style="font-size:11px;"></i> Urgent</div>`:'';
       return`<div class="jc">
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
-        <div class="jif"><div class="jt">${j.category}</div><div class="jm">Meșter: ${j.worker_name||'În așteptare'} · ${j.time_slot||''}</div>${urgHtml}<div class="jm" style="margin-top:4px;font-style:italic;">${j.description||''}</div>${phHtml}</div>
+        <div class="jif"><div class="jt">${esc(j.category)}</div><div class="jm">Meșter: ${esc(j.worker_name||'În așteptare')} · ${esc(j.time_slot||'')}</div>${urgHtml}<div class="jm" style="margin-top:4px;font-style:italic;">${esc(j.description||'')}</div>${phHtml}</div>
         <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'În așteptare'}</span></div>
       </div>`;
     }).join('');
@@ -1530,10 +1571,10 @@ async function loadCConvs(){
   try{
     const cs=await api('GET','/api/messages/conversations');
     document.getElementById('c-convs').innerHTML=cs.map(c=>`
-      <div class="jc" style="cursor:pointer;" onclick="openChat('${c.id}','${c.worker_name}','IȘ','c-chat')">
+      <div class="jc" style="cursor:pointer;" onclick="openChat('${esc(c.id)}','${esc(c.worker_name)}','IȘ','c-chat')">
         <div class="ji"><i class="ti ti-message-circle"></i></div>
-        <div class="jif"><div class="jt">${c.worker_name||'Meșter'} — ${c.category}</div><div class="jm">${c.last_message||'—'}</div></div>
-        <div class="jr">${c.unread>0?`<span class="jb jb-n">${c.unread} nou</span>`:''}</div>
+        <div class="jif"><div class="jt">${esc(c.worker_name||'Meșter')} — ${esc(c.category)}</div><div class="jm">${esc(c.last_message||'—')}</div></div>
+        <div class="jr">${c.unread>0?`<span class="jb jb-n">${esc(c.unread)} nou</span>`:''}</div>
       </div>`).join('');
   }catch(e){}
 }
@@ -1542,7 +1583,7 @@ async function loadCConvs(){
 async function openChat(cid,name,av,container){
   convId=cid;
   const box=document.getElementById(container);
-  box.innerHTML=`<div class="cw"><div class="ch"><div class="av" style="width:36px;height:36px;font-size:11px;">${av}</div><div><div style="font-weight:500;font-size:13px;color:var(--navy);">${name}</div><div style="font-size:11px;color:var(--gr);">Online acum</div></div></div>
+  box.innerHTML=`<div class="cw"><div class="ch"><div class="av" style="width:36px;height:36px;font-size:11px;">${esc(av)}</div><div><div style="font-weight:500;font-size:13px;color:var(--navy);">${esc(name)}</div><div style="font-size:11px;color:var(--gr);">Online acum</div></div></div>
     <div class="cms" id="cms-${cid}">Se încarcă...</div>
     <div style="font-size:11px;color:var(--mu);padding:4px 1.25rem;background:var(--bg);text-align:center;"><i class="ti ti-shield-check" style="font-size:12px;vertical-align:-1px;"></i> Numerele de telefon sunt blocate automat</div>
     <div class="cir"><input class="ci" id="ci-${cid}" type="text" placeholder="Scrie un mesaj..." onkeydown="if(event.key==='Enter')sendMsg('${cid}')"/><button class="btn bt-bl bt-sm" onclick="sendMsg('${cid}')"><i class="ti ti-send"></i></button></div>
@@ -1555,7 +1596,7 @@ async function loadMsgs(cid){
     const msgs=await api('GET','/api/messages/'+cid);
     const el=document.getElementById('cms-'+cid);
     if(!el)return;
-    el.innerHTML=msgs.map(m=>`<div class="msg ${m.sender_id===CU?.id?'me':'them'}"><div class="mb">${m.content}</div><div class="mt">${ts(m.created_at)}</div></div>`).join('');
+    el.innerHTML=msgs.map(m=>`<div class="msg ${m.sender_id===CU?.id?'me':'them'}"><div class="mb">${esc(m.content)}</div><div class="mt">${esc(ts(m.created_at))}</div></div>`).join('');
     el.scrollTop=el.scrollHeight;
   }catch(e){}
 }
@@ -1566,7 +1607,7 @@ async function sendMsg(cid){
     const msg=await api('POST','/api/messages/'+cid,{content:txt});
     const el=document.getElementById('cms-'+cid);
     const d=document.createElement('div');d.className='msg me';
-    d.innerHTML=`<div class="mb">${msg.content}</div><div class="mt">${ts(msg.created_at)}</div>`;
+    d.innerHTML=`<div class="mb">${esc(msg.content)}</div><div class="mt">${esc(ts(msg.created_at))}</div>`;
     el.appendChild(d);el.scrollTop=el.scrollHeight;
     if(msg.was_filtered)toast('Numărul de telefon a fost blocat din mesaj.');
   }catch(e){toast(e.message);}
@@ -1599,14 +1640,14 @@ async function loadGrafice(containerId){
     +'<div style="background:var(--card);border:1px solid var(--br);border-radius:var(--r);padding:1.25rem;">'
     +'<div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:1rem;">📊 Intrări pe săptămână</div>'
     +'<div style="display:flex;align-items:flex-end;gap:6px;height:120px;">'
-    +zile.map(function(z,i){return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;"><div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><div style="width:100%;height:'+Math.round(d.intrariTrecute[i]/maxI*100)+'%;background:var(--br);border-radius:3px 3px 0 0;min-height:2px;"></div><div style="width:100%;height:'+Math.round(d.intrariCurente[i]/maxI*100)+'%;background:var(--blue);border-radius:3px 3px 0 0;min-height:2px;"></div></div><div style="font-size:10px;color:var(--mu);">'+z+'</div></div>';}).join('')
+    +zile.map(function(z,i){return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;"><div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><div style="width:100%;height:'+Math.round(d.intrariTrecute[i]/maxI*100)+'%;background:var(--br);border-radius:3px 3px 0 0;min-height:2px;"></div><div style="width:100%;height:'+Math.round(d.intrariCurente[i]/maxI*100)+'%;background:var(--blue);border-radius:3px 3px 0 0;min-height:2px;"></div></div><div style="font-size:10px;color:var(--mu);">'+esc(z)+'</div></div>';}).join('')
     +'</div>'
     +'<div style="display:flex;gap:1rem;margin-top:.75rem;"><div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);"><div style="width:10px;height:10px;border-radius:2px;background:var(--blue);"></div> Curentă</div><div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);"><div style="width:10px;height:10px;border-radius:2px;background:var(--br);border:1px solid #ccc;"></div> Trecută</div></div>'
     +'</div>'
     +'<div style="background:var(--card);border:1px solid var(--br);border-radius:var(--r);padding:1.25rem;">'
     +'<div style="font-family:\'Syne\',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:1rem;">💰 Încasări zilnice (lei)</div>'
     +'<div style="display:flex;align-items:flex-end;gap:6px;height:120px;">'
-    +zile.map(function(z,i){return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;"><div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><div style="width:100%;height:'+Math.round(d.incasariTrecute[i]/maxIn*100)+'%;background:var(--br);border-radius:3px 3px 0 0;min-height:2px;"></div><div style="width:100%;height:'+Math.round(d.incasariCurente[i]/maxIn*100)+'%;background:var(--gr);border-radius:3px 3px 0 0;min-height:2px;"></div></div><div style="font-size:10px;color:var(--mu);">'+z+'</div></div>';}).join('')
+    +zile.map(function(z,i){return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;"><div style="flex:1;width:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;"><div style="width:100%;height:'+Math.round(d.incasariTrecute[i]/maxIn*100)+'%;background:var(--br);border-radius:3px 3px 0 0;min-height:2px;"></div><div style="width:100%;height:'+Math.round(d.incasariCurente[i]/maxIn*100)+'%;background:var(--gr);border-radius:3px 3px 0 0;min-height:2px;"></div></div><div style="font-size:10px;color:var(--mu);">'+esc(z)+'</div></div>';}).join('')
     +'</div>'
     +'<div style="display:flex;gap:1rem;margin-top:.75rem;"><div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);"><div style="width:10px;height:10px;border-radius:2px;background:var(--gr);"></div> Curentă</div><div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--mu);"><div style="width:10px;height:10px;border-radius:2px;background:var(--br);border:1px solid #ccc;"></div> Trecută</div></div>'
     +'</div></div>';
@@ -1642,8 +1683,8 @@ async function loadAW(){ loadGrafice('admin-grafice');
         var catKey=cats[ci];
         var inputId='pr-'+wid+'-'+ci;
         prHtml+='<div style="display:flex;align-items:center;gap:4px;font-size:11px;">';
-        prHtml+='<span style="min-width:90px;color:var(--mu);">'+cat.split(' ').slice(0,2).join(' ')+':</span>';
-        prHtml+='<input type="number" id="'+inputId+'" value="'+(pr?pr.price:'')+'" placeholder="—" min="1" style="width:58px;padding:3px 5px;font-size:11px;border:0.5px solid var(--br);border-radius:6px;background:var(--bg);color:var(--navy);" />';
+        prHtml+='<span style="min-width:90px;color:var(--mu);">'+esc(cat.split(' ').slice(0,2).join(' '))+':</span>';
+        prHtml+='<input type="number" id="'+inputId+'" value="'+(pr?esc(pr.price):'')+'" placeholder="—" min="1" style="width:58px;padding:3px 5px;font-size:11px;border:0.5px solid var(--br);border-radius:6px;background:var(--bg);color:var(--navy);" />';
         prHtml+=' lei <button class="btn bt-bl" style="padding:2px 6px;font-size:10px;" data-wid="'+wid+'" data-ci="'+ci+'" data-inp="'+inputId+'" onclick="handleSavePr2(this)">OK</button>';
         prHtml+='</div>';
       });
@@ -1652,15 +1693,15 @@ async function loadAW(){ loadGrafice('admin-grafice');
       if(w.status==='pending') actHtml+='<button class="btn bt-gr bt-sm" data-uid="'+uid+'" data-st="active" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-check"></i> Aproba</button>';
       if(w.status!=='blocked') actHtml+='<button class="btn bt-re bt-sm" data-uid="'+uid+'" data-st="blocked" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-ban"></i></button>';
       else actHtml+='<button class="btn bt-gh bt-sm" data-uid="'+uid+'" data-st="active" data-bid="sb-'+uid+'" onclick="handleSst(this)"><i class="ti ti-lock-open"></i></button>';
-      actHtml+='<button class="btn bt-bl bt-sm" data-wid="'+wid+'" data-name="'+w.name+'" onclick="openWorkerPrices(this)"><i class="ti ti-currency-leu"></i> Prețuri</button>';
+      actHtml+='<button class="btn bt-bl bt-sm" data-wid="'+wid+'" data-name="'+esc(w.name)+'" onclick="openWorkerPrices(this)"><i class="ti ti-currency-leu"></i> Prețuri</button>';
       actHtml+='</div>';
       wtbl+='<tr id="wr-'+uid+'">';
-      wtbl+='<td><strong>'+w.name+'</strong><br><span style="font-size:11px;color:var(--mu);">'+w.email+'</span></td>';
-      wtbl+='<td style="font-size:11px;color:var(--mu);">📞 '+(w.phone||'-')+'</td>';
-      wtbl+='<td style="font-size:11px;color:var(--navy);">'+(w.categories&&w.categories.length?w.categories.join('<br>'):w.specialization||'-')+'</td>';
+      wtbl+='<td><strong>'+esc(w.name)+'</strong><br><span style="font-size:11px;color:var(--mu);">'+esc(w.email)+'</span></td>';
+      wtbl+='<td style="font-size:11px;color:var(--mu);">📞 '+esc(w.phone||'-')+'</td>';
+      wtbl+='<td style="font-size:11px;color:var(--navy);">'+(w.categories&&w.categories.length?w.categories.map(esc).join('<br>'):esc(w.specialization||'-'))+'</td>';
 
-      wtbl+='<td>'+String(w.rating||5.0)+' ('+String(w.reviews_count||0)+')</td>';
-      wtbl+='<td><span class="sb '+statusCls+'" id="sb-'+uid+'">'+w.status+'</span></td>';
+      wtbl+='<td>'+esc(String(w.rating||5.0))+' ('+esc(String(w.reviews_count||0))+')</td>';
+      wtbl+='<td><span class="sb '+statusCls+'" id="sb-'+uid+'">'+esc(w.status)+'</span></td>';
       wtbl+='<td>'+actHtml+'</td>';
       wtbl+='</tr>';
     });
@@ -1674,8 +1715,8 @@ async function loadAW(){ loadGrafice('admin-grafice');
       var actHtml=c.status!=='blocked'
         ?'<button class="btn bt-re bt-sm" data-uid="'+cid+'" data-st="blocked" data-bid="sb-'+cid+'" onclick="handleSst(this)"><i class="ti ti-ban"></i> Blocheaza</button>'
         :'<button class="btn bt-gh bt-sm" data-uid="'+cid+'" data-st="active" data-bid="sb-'+cid+'" onclick="handleSst(this)"><i class="ti ti-lock-open"></i> Activeaza</button>';
-      ctbl+='<tr><td><strong>'+c.name+'</strong></td><td>'+c.email+'</td>';
-      ctbl+='<td><span class="sb '+statusCls+'" id="sb-'+cid+'">'+c.status+'</span></td>';
+      ctbl+='<tr><td><strong>'+esc(c.name)+'</strong></td><td>'+esc(c.email)+'</td>';
+      ctbl+='<td><span class="sb '+statusCls+'" id="sb-'+cid+'">'+esc(c.status)+'</span></td>';
       ctbl+='<td>'+actHtml+'</td></tr>';
     });
     ctbl+='</tbody></table>';
@@ -1692,11 +1733,11 @@ async function loadAJ(){
       var statusCls=(j.status==='accepted'||j.status==='completed')?'sb-a':'sb-p';
       var urgHtml=j.urgency==='urgent'?'<span style="color:#e53935;font-size:11px;font-weight:600;">Urgent</span>':'Normal';
       tbl+='<tr id="jr-'+jid+'">';
-      tbl+='<td><strong>'+j.category+'</strong><br><span style="font-size:11px;color:var(--mu);">'+(j.description||'').substring(0,50)+'</span></td>';
-      tbl+='<td>'+(j.client_name||'-')+'</td>';
-      tbl+='<td style="font-size:12px;color:var(--blue);">'+(j.subcat_name?j.subcat_name+' - '+(j.subcat_price||'')+' lei':'-')+'</td>';
+      tbl+='<td><strong>'+esc(j.category)+'</strong><br><span style="font-size:11px;color:var(--mu);">'+esc((j.description||'').substring(0,50))+'</span></td>';
+      tbl+='<td>'+esc(j.client_name||'-')+'</td>';
+      tbl+='<td style="font-size:12px;color:var(--blue);">'+(j.subcat_name?esc(j.subcat_name)+' - '+esc(j.subcat_price||'')+' lei':'-')+'</td>';
       tbl+='<td>'+urgHtml+'</td>';
-      tbl+='<td><span class="sb '+statusCls+'">'+j.status+'</span></td>';
+      tbl+='<td><span class="sb '+statusCls+'">'+esc(j.status)+'</span></td>';
       tbl+='<td><button class="btn bt-re bt-sm" data-jid="'+jid+'" onclick="handleDelJ(this)"><i class="ti ti-trash"></i></button></td>';
       tbl+='</tr>';
     });
@@ -1712,10 +1753,10 @@ async function loadAM(){
     cs.forEach(function(c){
       var cid=String(c._id||c.id);
       tbl+='<tr>';
-      tbl+='<td><strong>'+(c.client_name||'-')+' ↔ '+(c.worker_name||'-')+'</strong></td>';
-      tbl+='<td style="font-size:12px;color:var(--mu);max-width:180px;">'+(c.last_message||'-')+'</td>';
-      tbl+='<td>'+(c.category||'-')+'</td>';
-      tbl+='<td><button class="btn bt-gh bt-sm" data-cid="'+cid+'" data-client="'+(c.client_name||'')+'" data-worker="'+(c.worker_name||'')+'" onclick="adminOpenChat(this)"><i class="ti ti-message"></i> Vezi chat</button></td>';
+      tbl+='<td><strong>'+esc(c.client_name||'-')+' ↔ '+esc(c.worker_name||'-')+'</strong></td>';
+      tbl+='<td style="font-size:12px;color:var(--mu);max-width:180px;">'+esc(c.last_message||'-')+'</td>';
+      tbl+='<td>'+esc(c.category||'-')+'</td>';
+      tbl+='<td><button class="btn bt-gh bt-sm" data-cid="'+cid+'" data-client="'+esc(c.client_name||'')+'" data-worker="'+esc(c.worker_name||'')+'" onclick="adminOpenChat(this)"><i class="ti ti-message"></i> Vezi chat</button></td>';
       tbl+='</tr>';
     });
     tbl+='</tbody></table>';
@@ -1730,7 +1771,7 @@ async function adminOpenChat(btn){
   var worker=btn.dataset.worker;
   var view=document.getElementById('admin-chat-view');
   if(!view)return;
-  view.innerHTML='<div style="font-weight:600;color:var(--navy);margin-bottom:.75rem;font-size:14px;">Conversație: '+client+' ↔ '+worker+'</div><div id="admin-msgs" style="background:var(--bg);border:0.5px solid var(--br);border-radius:var(--rs);padding:1rem;max-height:400px;overflow-y:auto;">Se încarcă...</div>';
+  view.innerHTML='<div style="font-weight:600;color:var(--navy);margin-bottom:.75rem;font-size:14px;">Conversație: '+esc(client)+' ↔ '+esc(worker)+'</div><div id="admin-msgs" style="background:var(--bg);border:0.5px solid var(--br);border-radius:var(--rs);padding:1rem;max-height:400px;overflow-y:auto;">Se încarcă...</div>';
   try{
     var msgs=await api('GET','/api/messages/'+cid);
     var el=document.getElementById('admin-msgs');
@@ -1738,9 +1779,9 @@ async function adminOpenChat(btn){
     if(!msgs.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;">Nu există mesaje.</div>';return;}
     el.innerHTML=msgs.map(function(m){
       return '<div style="margin-bottom:.75rem;padding:.6rem .85rem;background:var(--card);border-radius:var(--rs);border:0.5px solid var(--br);">'
-        +'<div style="font-size:11px;font-weight:600;color:var(--blue);margin-bottom:3px;">'+(m.sender_name||'—')+'</div>'
-        +'<div style="font-size:13px;color:var(--navy);">'+m.content+'</div>'
-        +'<div style="font-size:10px;color:var(--mu);margin-top:3px;">'+ts(m.createdAt||m.created_at)+'</div>'
+        +'<div style="font-size:11px;font-weight:600;color:var(--blue);margin-bottom:3px;">'+esc(m.sender_name||'—')+'</div>'
+        +'<div style="font-size:13px;color:var(--navy);">'+esc(m.content)+'</div>'
+        +'<div style="font-size:10px;color:var(--mu);margin-top:3px;">'+esc(ts(m.createdAt||m.created_at))+'</div>'
         +'</div>';
     }).join('');
     el.scrollTop=el.scrollHeight;
@@ -1802,14 +1843,14 @@ async function openWorkerPrices(btn){
     catsReal.forEach(function(cat){
       var subs=allSubcats.filter(function(s){return s.category===cat;});
       html+='<div style="margin-bottom:1.25rem;">';
-      html+='<div style="font-weight:700;font-size:14px;color:var(--navy);margin-bottom:.5rem;padding-bottom:.4rem;border-bottom:1px solid var(--br);">'+cat+'</div>';
+      html+='<div style="font-weight:700;font-size:14px;color:var(--navy);margin-bottom:.5rem;padding-bottom:.4rem;border-bottom:1px solid var(--br);">'+esc(cat)+'</div>';
       subs.forEach(function(s){
         var sid=String(s._id);
         var wp=workerPrices.find(function(p){return String(p.subcat_id&&(p.subcat_id._id||p.subcat_id))===sid;});
         var price=wp?wp.price:s.price;
         html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
-        html+='<span style="flex:1;font-size:13px;color:var(--navy);">'+s.name+'</span>';
-        html+='<input type="number" id="wsp-'+sid+'" value="'+price+'" min="1" style="width:75px;padding:4px 8px;font-size:12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);" />';
+        html+='<span style="flex:1;font-size:13px;color:var(--navy);">'+esc(s.name)+'</span>';
+        html+='<input type="number" id="wsp-'+sid+'" value="'+esc(price)+'" min="1" style="width:75px;padding:4px 8px;font-size:12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);" />';
         html+=' lei ';
         html+='<button class="btn bt-bl bt-sm" data-wid="'+wid+'" data-sid="'+sid+'" onclick="saveWorkerSubcat(this)"><i class="ti ti-check"></i></button>';
         html+='</div>';
@@ -1817,7 +1858,7 @@ async function openWorkerPrices(btn){
       html+='</div>';
     });
     document.getElementById('wpm-body').innerHTML=html;
-  }catch(e){document.getElementById('wpm-body').innerHTML='Eroare: '+e.message;}
+  }catch(e){document.getElementById('wpm-body').innerHTML='Eroare: '+esc(e.message);}
 }
 
 
@@ -1864,13 +1905,13 @@ async function delJ(id){
       workerSelect+='<option value="">Neatribuit</option>';
       workers.forEach(function(w){
         var selected=String(h.assigned_worker)===String(w._id||w.id)?'selected':'';
-        workerSelect+='<option value="'+(w._id||w.id)+'" '+selected+'>'+w.name+'</option>';
+        workerSelect+='<option value="'+(w._id||w.id)+'" '+selected+'>'+esc(w.name)+'</option>';
       });
       workerSelect+='</select>';
       html+='<tr>';
-      html+='<td><strong>'+(h.horeca_name||h.name)+'</strong><br><span style="font-size:11px;color:var(--mu);">'+h.email+'</span></td>';
-      html+='<td style="font-size:12px;">'+(h.horeca_type||'-')+'</td>';
-      html+='<td style="font-size:12px;">'+(h.city||'București')+'</td>';
+      html+='<td><strong>'+esc(h.horeca_name||h.name)+'</strong><br><span style="font-size:11px;color:var(--mu);">'+esc(h.email)+'</span></td>';
+      html+='<td style="font-size:12px;">'+esc(h.horeca_type||'-')+'</td>';
+      html+='<td style="font-size:12px;">'+esc(h.city||'București')+'</td>';
       html+='<td>'+workerSelect+'</td>';
       html+='<td><button class="btn bt-bl bt-sm" data-hid="'+hid+'" onclick="assignWorker(this)"><i class="ti ti-check"></i> Atribuie</button></td>';
       html+='</tr>';
@@ -1900,14 +1941,14 @@ async function loadAdminContact(){
       var mid=String(m._id||m.id);
       html+='<div style="background:var(--card);border:0.5px solid var(--br);border-radius:var(--r);padding:1rem;">';
       html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">';
-      html+='<div style="font-weight:600;color:var(--navy);font-size:14px;">'+(m.sender_name||'Anonim')+'<span style="font-size:11px;font-weight:400;color:var(--mu);margin-left:8px;">'+(m.sender_email||'')+'</span></div>';
-      html+='<div style="font-size:11px;color:var(--mu);">'+ts(m.createdAt||m.created_at)+'</div></div>';
-      html+='<div style="font-size:13px;color:var(--navy);margin-bottom:.75rem;padding:.5rem .75rem;background:var(--bg);border-radius:var(--rs);">'+m.content+'</div>';
+      html+='<div style="font-weight:600;color:var(--navy);font-size:14px;">'+esc(m.sender_name||'Anonim')+'<span style="font-size:11px;font-weight:400;color:var(--mu);margin-left:8px;">'+esc(m.sender_email||'')+'</span></div>';
+      html+='<div style="font-size:11px;color:var(--mu);">'+esc(ts(m.createdAt||m.created_at))+'</div></div>';
+      html+='<div style="font-size:13px;color:var(--navy);margin-bottom:.75rem;padding:.5rem .75rem;background:var(--bg);border-radius:var(--rs);">'+esc(m.content)+'</div>';
       if(m.reply){
-        html+='<div style="font-size:12px;color:var(--mu);margin-bottom:.5rem;">Răspunsul tău: <span style="color:var(--navy);">'+m.reply+'</span></div>';
+        html+='<div style="font-size:12px;color:var(--mu);margin-bottom:.5rem;">Răspunsul tău: <span style="color:var(--navy);">'+esc(m.reply)+'</span></div>';
       }
       html+='<div style="display:flex;gap:8px;">';
-      html+='<input type="text" id="reply-'+mid+'" placeholder="Scrie raspuns..." value="'+(m.reply||'')+'" style="flex:1;padding:.5rem .75rem;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);font-size:13px;"/>';
+      html+='<input type="text" id="reply-'+mid+'" placeholder="Scrie raspuns..." value="'+esc(m.reply||'')+'" style="flex:1;padding:.5rem .75rem;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);font-size:13px;"/>';
       html+='<button class="btn bt-bl bt-sm" data-mid="'+mid+'" onclick="sendContactReply(this)"><i class="ti ti-send"></i> Răspunde</button>';
       html+='</div></div>';
     });
@@ -1936,15 +1977,15 @@ async function loadSubcatPrices(){
     CATS_FULL.forEach(function(cat){
       var subs=all.filter(function(s){return s.category===cat;});
       html+='<div style="margin-bottom:1.5rem;">';
-      html+='<div style=",sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--br);">'+cat+'</div>';
+      html+='<div style=",sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--br);">'+esc(cat)+'</div>';
       html+='<table style="width:100%;border-collapse:collapse;"><thead><tr>';
       html+='<th style="text-align:left;font-size:11px;color:var(--mu);padding:.5rem .75rem;background:var(--bg);">Serviciu</th>';
       html+='<th style="text-align:left;font-size:11px;color:var(--mu);padding:.5rem .75rem;background:var(--bg);">Pret (lei)</th>';
       html+='<th style="background:var(--bg);width:100px;"></th></tr></thead><tbody>';
       subs.forEach(function(s){
         html+='<tr style="border-bottom:0.5px solid var(--br);">';
-        html+='<td style="padding:.6rem .75rem;font-size:13px;color:var(--navy);">'+s.name+'</td>';
-        html+='<td style="padding:.6rem .75rem;"><input type="number" id="sp-'+s._id+'" value="'+s.price+'" min="1" style="width:80px;padding:4px 8px;font-size:12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);" /></td>';
+        html+='<td style="padding:.6rem .75rem;font-size:13px;color:var(--navy);">'+esc(s.name)+'</td>';
+        html+='<td style="padding:.6rem .75rem;"><input type="number" id="sp-'+s._id+'" value="'+esc(s.price)+'" min="1" style="width:80px;padding:4px 8px;font-size:12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);" /></td>';
         html+='<td style="padding:.6rem .75rem;"><button class="btn bt-bl bt-sm" data-sid="'+s._id+'" onclick="handleSaveSubcat(this)"><i class="ti ti-check"></i> Salveaza</button></td>';
         html+='</tr>';
       });
