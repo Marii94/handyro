@@ -940,7 +940,7 @@ const SUBCATS = {
   let calYear=new Date().getFullYear();
 let calMonth=new Date().getMonth();
 let selectedDate=null;
-const SLOTS=['08:00–10:00','10:00–12:00','12:00–14:00','14:00–16:00','16:00–18:00','18:00–20:00'];
+const SLOTS=['08:00–10:00','10:00–12:00','12:00–14:00','14:00–16:00','16:00–18:00','18:00–20:00','20:00–22:00'];
 const MONTHS=['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
 
 function calNav(dir){
@@ -1011,7 +1011,7 @@ slotsGrid.innerHTML=SLOTS.map(s=>{
   const slotHour=parseInt(s.split('–')[0].replace(':',''));
   if(isToday && slotHour<=currentHour) return `<div style="padding:10px;border-radius:var(--rs);background:var(--bg);border:1px solid var(--br);text-align:center;font-size:12px;color:var(--mu);cursor:not-allowed;">⏰ ${s}<br><span style="font-size:10px;">Trecut</span></div>`;
       const isBusy=busySlots.includes(s);
-      const isUrgent=s==='18:00–20:00';
+      const isUrgent=s==='18:00–20:00'||s==='20:00–22:00';
       if(isBusy) return `<div style="padding:10px;border-radius:var(--rs);background:var(--bg);border:1px solid var(--br);text-align:center;font-size:12px;color:var(--mu);cursor:not-allowed;">🚫 ${s}<br><span style="font-size:10px;">Ocupat</span></div>`;
       if(isUrgent || isWeekend) return `<div onclick="selectSlot('${s}',true,event)" style="padding:10px;border-radius:var(--rs);background:#FEF2F2;border:1px solid #FECACA;text-align:center;font-size:12px;color:#E24B4A;cursor:pointer;font-weight:500;">${s}<br><span style="font-size:10px;">+140 lei urgență</span></div>`;
       return `<div onclick="selectSlot('${s}',false,event)" style="padding:10px;border-radius:var(--rs);background:var(--bl);border:1px solid transparent;text-align:center;font-size:12px;color:var(--blue);cursor:pointer;font-weight:500;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='transparent'">${s}</div>`;
@@ -1023,7 +1023,7 @@ slotsGrid.innerHTML=SLOTS.map(s=>{
     slotsGrid.innerHTML=SLOTS.map(s=>{
       const slotHour=parseInt(s.split('–')[0].replace(':',''));
       if(isToday && slotHour<=currentHour) return `<div style="padding:10px;border-radius:var(--rs);background:var(--bg);border:1px solid var(--br);text-align:center;font-size:12px;color:var(--mu);cursor:not-allowed;">⏰ ${s}<br><span style="font-size:10px;">Trecut</span></div>`;
-      const isUrgentSlot=s==='18:00–20:00';
+      const isUrgentSlot=s==='18:00–20:00'||s==='20:00–22:00';
       if(isUrgentSlot||isWeekend) return `<div onclick="selectSlot('${s}',true,event)" style="padding:10px;border-radius:var(--rs);background:#FEF2F2;border:1px solid #FECACA;text-align:center;font-size:12px;color:#E24B4A;cursor:pointer;font-weight:500;">${s}<br><span style="font-size:10px;">+140 lei urgență</span></div>`;
       return `<div onclick="selectSlot('${s}',false,event)" style="padding:10px;border-radius:var(--rs);background:var(--bl);border:1px solid transparent;text-align:center;font-size:12px;color:var(--blue);cursor:pointer;font-weight:500;">${s}</div>`;
     }).join('');
