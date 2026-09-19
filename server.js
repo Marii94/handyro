@@ -3,6 +3,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const fs = require('fs');
+const { notifyAdmin } = require('./services/notify');
 
 // Conecteaza MongoDB
 require('./db');
@@ -94,6 +95,14 @@ app.post('/api/contact', async (req, res) => {
       sender_email: userEmail || '',
       content: content.trim()
     });
+
+    // Notificare admin — fire-and-forget, nu blocăm răspunsul către utilizator.
+    notifyAdmin(
+      `📩 Mesaj nou de contact`,
+      `De la: ${userName || 'Anonim'} (${userEmail || 'fără email'})\n` +
+      `Mesaj: ${content.trim()}`
+    ).catch(() => {});
+
     res.status(201).json({ message: 'Mesaj trimis!', id: msg._id });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
