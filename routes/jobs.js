@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { User, Worker, Job, Conversation } = require('../db');
 const { auth, requireRole } = require('../middleware/auth');
+const { notifyAdmin } = require('../services/notify');
 
 router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
   try {
@@ -13,6 +14,18 @@ router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
       const w = await Worker.findById(worker_id);
       if (w) await Conversation.create({ job_id: job._id, client_id: req.user.id, worker_id: w.user_id });
     }
+
+    // Notificare admin — nu așteptăm rezultatul (fire-and-forget), ca un eventual
+    // eșec de email/WhatsApp să nu întârzie sau să blocheze răspunsul către client.
+    notifyAdmin(
+      `🔧 Job nou — ${category}`,
+      `Client: ${req.user.name || req.user.email}\n` +
+      `Categorie: ${category}${subcat_name ? ' — ' + subcat_name : ''}\n` +
+      `Urgență: ${urgency === 'urgent' ? 'URGENT' : 'Normal'}\n` +
+      `Interval: ${time_slot || 'Orice interval'}\n` +
+      `Descriere: ${description.trim()}`
+    ).catch(() => {});
+
     res.status(201).json({ id: job._id, message: 'Cerere trimisă cu succes!' });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
