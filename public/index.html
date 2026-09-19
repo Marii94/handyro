@@ -788,6 +788,7 @@ function ss(el,cat,ico){
   document.querySelectorAll('.sc').forEach(c=>c.classList.remove('on'));el.classList.add('on');
   curCat=cat;curIco=ico;
   selectedWorkerId=null;
+  selectedSlot='';
   document.getElementById('fc-cat').textContent=cat;
   document.getElementById('fc-i').className='ti '+ico;
   if(document.getElementById('ww-t'))document.getElementById('ww-t').textContent='Meșter disponibil — '+cat;
@@ -933,6 +934,7 @@ const SUBCATS = {
     {name:'Reparat urgențe diverse',price:180},
   ],
 };
+  let selectedSlot='';
   let calYear=new Date().getFullYear();
 let calMonth=new Date().getMonth();
 let selectedDate=null;
@@ -1033,7 +1035,7 @@ function selectSlot(slot,isUrgent,evt){
     evt.target.closest('div').style.background=isUrgent?'#FECACA':'var(--blue)';
     evt.target.closest('div').style.color=isUrgent?'#991B1B':'#fff';
   }
-  if(document.getElementById('slot')) document.getElementById('slot').value=slot;
+  selectedSlot=slot;
   if(isUrgent){su('urgent');}else{su('normal');}
   updateSubBtn();
   toast('Interval selectat: '+slot);
@@ -1167,7 +1169,7 @@ const urgentExtra = urg==='urgent' ? 140 : 0;
     const fullDesc = subcatNames ? '[' + subcatNames + (urg==='urgent'?' — URGENT':'') + '] ' + desc : desc;
     var jobCity=document.getElementById('job-city')?.value||'București';
     const jobDate=selectedDate?selectedDate.toISOString():new Date().toISOString();
-await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:document.getElementById('slot')?document.getElementById('slot').value:'',photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice||null,city:jobCity,job_date:jobDate});
+await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:selectedSlot||'',photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice||null,city:jobCity,job_date:jobDate});
     const ptxt=files.length>0?` cu ${files.length} ${files.length===1?'poză':'poze'}`:'';
     const utxt=urg==='urgent'?' Marcat ca urgent.':'';
     document.getElementById('ok-txt').textContent=`Cererea ta a fost trimisă${ptxt}.${utxt} Meșterul îți va răspunde prin mesageria HandyRO.`;
