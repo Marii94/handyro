@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { User, Conversation, Message } = require('../db');
 const { auth } = require('../middleware/auth');
-const { notifyAdmin } = require('../services/notify');
+const { notifyAdmin, sendEmail } = require('../services/notify');
 
 function filterPhone(text) {
   return text.replace(/(\+4|0)(7\d{8}|\d{8,9})/g,'[număr blocat]').replace(/\b07\d{2}[\s.-]?\d{3}[\s.-]?\d{3}\b/g,'[număr blocat]');
@@ -58,20 +58,32 @@ router.post('/:convId', auth, async (req, res) => {
     const msg = await Message.create({ conversation_id: req.params.convId, sender_id: req.user.id, content: safe });
     const u = await User.findById(req.user.id);
 
-    // Notificare admin — arătăm clar cine a trimis mesajul și către cine,
-    // ca admin să nu mai trebuiască să deducă asta din context.
+    // Determinăm destinatarul real al mesajului (partea opusă din conversație).
     const isSenderClient = String(conv.client_id) === String(req.user.id);
     const recipientId = isSenderClient ? conv.worker_id : conv.client_id;
     const recipient = await User.findById(recipientId);
     const senderLabel = isSenderClient ? 'client' : 'meșter';
     const recipientLabel = isSenderClient ? 'meșter' : 'client';
 
+    // Notificare admin — fire-and-forget.
     notifyAdmin(
       `💬 Mesaj nou în chat`,
       `De la: ${u?.name || 'Utilizator necunoscut'} (${senderLabel})\n` +
       `Către: ${recipient?.name || 'Utilizator necunoscut'} (${recipientLabel})\n` +
       `Mesaj: ${safe}`
     ).catch(() => {});
+
+    // Email direct către destinatarul mesajului (client sau meșter) — fire-and-forget.
+    if (recipient?.email) {
+      sendEmail(
+        recipient.email,
+        `💬 Ai un mesaj nou de la ${u?.name || 'un utilizator'} — HandyRO`,
+        `Bună, ${recipient.name}!\n\n` +
+        `Ai primit un mesaj nou pe HandyRO de la ${u?.name || 'un utilizator'}:\n\n` +
+        `"${safe}"\n\n` +
+        `Intră în contul tău pe handyro.ro ca să răspunzi.`
+      ).catch(() => {});
+    }
 
     res.status(201).json({ ...msg.toObject(), sender_name: u?.name, was_filtered: safe !== content.trim() });
   } catch(e) { res.status(500).json({ error: e.message }); }
