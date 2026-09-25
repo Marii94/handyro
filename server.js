@@ -3,7 +3,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const fs = require('fs');
-const { notifyAdmin } = require('./services/notify');
+const { notifyAdmin, sendEmail } = require('./services/notify');
 
 // Conecteaza MongoDB
 require('./db');
@@ -124,6 +124,20 @@ app.patch('/api/contact/:id', async (req, res) => {
       { new: true }
     );
     if (!msg) return res.status(404).json({ error: 'Mesaj negăsit' });
+
+    // Email către clientul care a scris mesajul inițial, cu răspunsul adminului.
+    if (msg.sender_email) {
+      sendEmail(
+        msg.sender_email,
+        `💬 Ai primit un răspuns — HandyRO`,
+        `Bună, ${msg.sender_name || ''}!\n\n` +
+        `Ai primit un răspuns la mesajul tău de pe HandyRO:\n\n` +
+        `Mesajul tău: "${msg.content}"\n` +
+        `Răspuns: "${reply.trim()}"\n\n` +
+        `Poți continua conversația direct pe handyro.ro, pagina de Contact.`
+      ).catch(() => {});
+    }
+
     res.json({ message: 'Răspuns salvat' });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
