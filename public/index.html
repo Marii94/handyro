@@ -27,6 +27,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css"/>
+<script src="https://js.stripe.com/v3/"></script>
 <style>
 :root{--bg:#F7F5F0;--card:#FFF;--navy:#0F1F3D;--blue:#1A56DB;--bl:#EBF1FF;--acc:#FF5C35;--al:#FFF0EC;--mu:#6B7280;--br:rgba(15,31,61,0.1);--r:16px;--rs:10px;--gr:#059669;--gl:#D1FAE5;--re:#DC2626;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -500,6 +501,11 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   <label>Interval orar — <span id="selected-date-label" style="color:var(--blue);"></span></label>
   <div id="slots-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;"></div>
 </div>
+        <div class="fg" id="payment-wrap" style="display:none;">
+          <label>Date card <span style="color:#E24B4A;">*</span> <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(suma se blochează acum, se reține doar când lucrarea e finalizată)</span></label>
+          <div id="card-element" style="padding:12px;border:0.5px solid rgba(15,31,61,0.2);border-radius:var(--rs);background:var(--bg);"></div>
+          <div id="card-errors" style="color:#E24B4A;font-size:12px;margin-top:6px;"></div>
+        </div>
         <div class="ww" style="margin-bottom:14px;">
           <div class="wh"><div class="wht" id="ww-t">Meseriași disponibili</div><div class="avb"><span class="avd"></span>Disponibili acum</div></div>
           <div id="workers-list">Se încarcă...</div>
@@ -780,6 +786,21 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
 <script>/* HandyRO v6.21 */
 const API='';
 let CU=null,mm='login',urg='normal',files=[],accT=0,convId=null,curCat='',curIco='';
+// Stripe — plată cu autorizare/capturare manuală
+const stripe = Stripe('pk_test_51UJaN9LjlnzaJF31svvNxZMezLahimOkL5Dp87KY2Gc8AXoVKnX797ubZx3a66wM4q34UDIKIK9qSUbi8LyyOIie00nrKgGV9t');
+const stripeElements = stripe.elements();
+const cardElement = stripeElements.create('card', { style: { base: { fontSize: '14px', fontFamily: "'DM Sans', sans-serif", color: '#0F1F3D' } } });
+let cardMounted = false;
+function ensureCardMounted(){
+  if(!cardMounted){
+    cardElement.mount('#card-element');
+    cardElement.on('change', function(event){
+      document.getElementById('card-errors').textContent = event.error ? event.error.message : '';
+    });
+    cardMounted = true;
+  }
+}
+
 function esc(s){
   return String(s??'').replace(/[&<>"']/g,function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
@@ -1207,6 +1228,8 @@ function selectWorker(wid, price, name){
   document.querySelectorAll('.wr').forEach(r=>r.style.background='');
   document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea către '+esc(name);
   document.getElementById('sub-btn').disabled=false;
+  document.getElementById('payment-wrap').style.display='flex';
+  ensureCardMounted();
   updateSubBtn();
   toast('Meșter selectat: '+name+' — '+price+' lei/lucrare');
 }
@@ -1217,6 +1240,7 @@ async function submitJob(){
   if(!selectedWorkerId){toast('Alege un meșter mai întâi!');return;}
   const desc=document.getElementById('prob-desc').value.trim();
   if(!desc){document.getElementById('prob-desc').focus();document.getElementById('prob-desc').style.borderColor='#E24B4A';setTimeout(()=>document.getElementById('prob-desc').style.borderColor='',2000);return;}
+  if(!selectedSubcats.length){toast('Alege cel puțin un tip de lucrare, ca să știm suma de blocat pe card!');return;}
   const btn=document.getElementById('sub-btn');
   btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Se trimite...';
   try{
@@ -1244,10 +1268,31 @@ const urgentExtra = urg==='urgent' ? 140 : 0;
     const fullDesc = subcatNames ? '[' + subcatNames + (urg==='urgent'?' — URGENT':'') + '] ' + desc : desc;
     var jobCity=document.getElementById('job-city')?.value||'București';
     const jobDate=selectedDate?selectedDate.toISOString():new Date().toISOString();
-await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:selectedSlot||'',photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice||null,city:jobCity,job_date:jobDate});
+
+    // 1. Creăm autorizarea de card (banii se blochează, nu se retrag încă).
+    btn.innerHTML='<i class="ti ti-loader"></i> Se autorizează cardul...';
+    const intentData = await api('POST','/api/payments/create-intent',{amount:subcatPrice});
+    const confirmResult = await stripe.confirmCardPayment(intentData.client_secret, {
+      payment_method: { card: cardElement, billing_details: { name: CU.name, email: CU.email } }
+    });
+    if(confirmResult.error){
+      document.getElementById('card-errors').textContent = confirmResult.error.message;
+      toast('Card refuzat: '+confirmResult.error.message);
+      btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea';
+      return;
+    }
+    if(confirmResult.paymentIntent.status !== 'requires_capture'){
+      toast('Autorizarea cardului nu a reușit. Încearcă din nou.');
+      btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea';
+      return;
+    }
+
+    // 2. Autorizare reușită — creăm efectiv jobul.
+    btn.innerHTML='<i class="ti ti-loader"></i> Se trimite...';
+await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:selectedSlot||'',photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice||null,city:jobCity,job_date:jobDate,payment_intent_id:confirmResult.paymentIntent.id});
     const ptxt=files.length>0?` cu ${files.length} ${files.length===1?'poză':'poze'}`:'';
     const utxt=urg==='urgent'?' Marcat ca urgent.':'';
-    document.getElementById('ok-txt').textContent=`Cererea ta a fost trimisă${ptxt}.${utxt} Meșterul îți va răspunde prin mesageria HandyRO.`;
+    document.getElementById('ok-txt').textContent=`Cererea ta a fost trimisă${ptxt}.${utxt} Suma de ${subcatPrice} lei a fost blocată pe cardul tău — se reține doar când meșterul finalizează lucrarea.`;
     document.getElementById('job-ok').style.display='block';
     document.getElementById('job-ok').scrollIntoView({behavior:'smooth',block:'nearest'});
     btn.innerHTML='<i class="ti ti-check"></i> Trimis!';
@@ -1568,7 +1613,7 @@ async function loadMes(){
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
         <div class="jif"><div class="jt">${esc(j.category)}${j.subcat_name?' — '+esc(j.subcat_name):''} — ${esc(j.city||'București')}</div><div class="jm">Client: ${esc(j.client_name)} · ${esc(j.time_slot||'')}</div>${j.subcat_price?'<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:3px;">Preț: '+esc(j.subcat_price)+' lei</div>':''}${urgHtml}${phHtml}</div>
         <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'Nou'}</span>
-        <div style="display:flex;gap:5px;">${j.status!=='accepted'?`<button class="btn bt-bl bt-sm" onclick="accJob('${j._id||j.id}',this)"><i class="ti ti-check"></i> Acceptă</button>`:''}<button class="btn bt-gh bt-sm" onclick="openConv('${j._id||j.id}','${esc(j.client_name)}')"><i class="ti ti-message"></i> Chat</button></div></div>
+        <div style="display:flex;gap:5px;">${j.status!=='accepted'?`<button class="btn bt-bl bt-sm" onclick="accJob('${j._id||j.id}',this)"><i class="ti ti-check"></i> Acceptă</button>`:`<button class="btn bt-gr bt-sm" onclick="completeJob('${j._id||j.id}',this)"><i class="ti ti-flag"></i> Job finalizat</button>`}<button class="btn bt-gh bt-sm" onclick="openConv('${j._id||j.id}','${esc(j.client_name)}')"><i class="ti ti-message"></i> Chat</button></div></div>
       </div>`;
     }).join('');
     loadMConvs();
