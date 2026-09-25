@@ -468,7 +468,6 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
               <option value="Berceni (Ilfov)">Berceni</option>
               <option value="Jilava (Ilfov)">Jilava</option>
               <option value="Snagov (Ilfov)">Snagov</option>
-              <option value="Alt oraș din Ilfov">Alt oraș din Ilfov</option>
             </optgroup>
             <option value="Ploiești">Ploiești</option>
             <option value="Brașov">Brașov</option>
@@ -716,34 +715,38 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
     <div class="fg"><label>Parolă</label><div style="position:relative;"><input type="password" id="mp" placeholder="••••••••" style="width:100%;padding-right:36px;"/><span onclick="var i=document.getElementById('mp');i.type=i.type==='password'?'text':'password';this.innerText=i.type==='password'?'👁':'🙈';" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;">👁</span></div></div>
     <div class="fg" id="mrg" style="display:none"><label>Înregistrare ca</label><select id="mr" onchange="toggleMesCat(this.value)"><option value="client">Client</option><option value="meserias">Meșter</option><option value="horeca">HoReCa</option></select></div>
     <div class="fg" id="mes-cat-wrap" style="display:none"><label>Specialitate</label><select id="mes-cat"><option value="">Alege specialitatea</option><option value="Instalații sanitare">Instalații sanitare</option><option value="Instalații electrice">Instalații electrice</option><option value="Renovări & zugrăveală">Renovări & zugrăveală</option><option value="Curățenie profesională">Curățenie profesională</option><option value="Tâmplărie & mobilier">Tâmplărie & mobilier</option><option value="Mentenanță generală">Mentenanță generală</option><option value="Toate categoriile">Toate categoriile</option></select></div>
-    <div class="fg" id="mes-city-wrap" style="display:none"><label>Orașul unde lucrezi</label><select id="mes-city">
-      <optgroup label="București">
-        <option value="Sector 1">Sector 1</option>
-        <option value="Sector 2">Sector 2</option>
-        <option value="Sector 3">Sector 3</option>
-        <option value="Sector 4">Sector 4</option>
-        <option value="Sector 5">Sector 5</option>
-        <option value="Sector 6">Sector 6</option>
-      </optgroup>
-      <optgroup label="Ilfov">
-        <option value="Voluntari (Ilfov)">Voluntari</option>
-        <option value="Otopeni (Ilfov)">Otopeni</option>
-        <option value="Pantelimon (Ilfov)">Pantelimon</option>
-        <option value="Popești-Leordeni (Ilfov)">Popești-Leordeni</option>
-        <option value="Chitila (Ilfov)">Chitila</option>
-        <option value="Buftea (Ilfov)">Buftea</option>
-        <option value="Bragadiru (Ilfov)">Bragadiru</option>
-        <option value="Măgurele (Ilfov)">Măgurele</option>
-        <option value="Chiajna (Ilfov)">Chiajna</option>
-        <option value="Domnești (Ilfov)">Domnești</option>
-        <option value="Corbeanca (Ilfov)">Corbeanca</option>
-        <option value="Mogoșoaia (Ilfov)">Mogoșoaia</option>
-        <option value="Berceni (Ilfov)">Berceni</option>
-        <option value="Jilava (Ilfov)">Jilava</option>
-        <option value="Snagov (Ilfov)">Snagov</option>
-        <option value="Alt oraș din Ilfov">Alt oraș din Ilfov</option>
-      </optgroup>
-      <option value="Ploiești">Ploiești</option><option value="Brașov">Brașov</option><option value="Cluj-Napoca">Cluj-Napoca</option><option value="Timișoara">Timișoara</option><option value="Constanța">Constanța</option><option value="Iași">Iași</option><option value="Craiova">Craiova</option></select></div>
+    <div class="fg" id="mes-city-wrap" style="display:none;flex-direction:column;">
+      <label>Zonele în care lucrezi <span style="color:#E24B4A;">*</span> <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(maxim 2)</span></label>
+      <div id="mes-city-grid" style="max-height:220px;overflow-y:auto;border:0.5px solid rgba(15,31,61,0.2);border-radius:var(--rs);padding:10px;background:var(--bg);">
+        <div style="font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin:2px 0 6px;">București</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Sector 1" onchange="limitCitySelection(this)"/> Sector 1</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Sector 2" onchange="limitCitySelection(this)"/> Sector 2</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Sector 3" onchange="limitCitySelection(this)"/> Sector 3</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Sector 4" onchange="limitCitySelection(this)"/> Sector 4</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Sector 5" onchange="limitCitySelection(this)"/> Sector 5</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Sector 6" onchange="limitCitySelection(this)"/> Sector 6</label>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin:2px 0 6px;">Ilfov</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Voluntari (Ilfov)" onchange="limitCitySelection(this)"/> Voluntari</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Otopeni (Ilfov)" onchange="limitCitySelection(this)"/> Otopeni</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Pantelimon (Ilfov)" onchange="limitCitySelection(this)"/> Pantelimon</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Popești-Leordeni (Ilfov)" onchange="limitCitySelection(this)"/> Popești-Leordeni</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Chitila (Ilfov)" onchange="limitCitySelection(this)"/> Chitila</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Buftea (Ilfov)" onchange="limitCitySelection(this)"/> Buftea</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Bragadiru (Ilfov)" onchange="limitCitySelection(this)"/> Bragadiru</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Măgurele (Ilfov)" onchange="limitCitySelection(this)"/> Măgurele</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Chiajna (Ilfov)" onchange="limitCitySelection(this)"/> Chiajna</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Domnești (Ilfov)" onchange="limitCitySelection(this)"/> Domnești</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Corbeanca (Ilfov)" onchange="limitCitySelection(this)"/> Corbeanca</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Mogoșoaia (Ilfov)" onchange="limitCitySelection(this)"/> Mogoșoaia</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Berceni (Ilfov)" onchange="limitCitySelection(this)"/> Berceni</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Jilava (Ilfov)" onchange="limitCitySelection(this)"/> Jilava</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;"><input type="checkbox" class="mes-city-cb" value="Snagov (Ilfov)" onchange="limitCitySelection(this)"/> Snagov</label>
+        </div>
+      </div>
+    </div>
     <div class="fg" id="mes-phone-wrap" style="display:none"><label>Numărul tău de telefon</label><input type="text" id="mes-phone" placeholder="07xxxxxxxx"/></div>
     <div class="fg" id="horeca-name-wrap" style="display:none"><label>Numele restaurantului</label><input type="text" id="horeca-name" placeholder="Ex: Restaurant La Mama"/></div>
 <div class="fg" id="horeca-type-wrap" style="display:none"><label>Tip unitate</label><select id="horeca-type"><option value="restaurant">Restaurant</option><option value="cafenea">Cafenea</option><option value="hotel">Hotel</option><option value="bar">Bar</option><option value="alt">Alt tip</option></select></div>
@@ -1268,11 +1271,18 @@ function toggleMesCat(v){
   var isMes=v==='meserias';
   var isHoreca=v==='horeca';
   document.getElementById('mes-cat-wrap').style.display=isMes?'flex':'none';
-  document.getElementById('mes-city-wrap').style.display=(isMes||isHoreca)?'flex':'none';
+  document.getElementById('mes-city-wrap').style.display=isMes?'flex':'none';
   document.getElementById('mes-cats-wrap').style.display=isMes?'flex':'none';
   document.getElementById('mes-phone-wrap').style.display=isMes?'flex':'none';
   document.getElementById('horeca-name-wrap').style.display=isHoreca?'flex':'none';
   document.getElementById('horeca-type-wrap').style.display=isHoreca?'flex':'none';
+}
+function limitCitySelection(cb){
+  var checked=document.querySelectorAll('.mes-city-cb:checked');
+  if(checked.length>2){
+    cb.checked=false;
+    toast('Poți alege maxim 2 zone.');
+  }
 }
 async function subm(){
   const email=document.getElementById('me').value.trim();
@@ -1283,14 +1293,15 @@ async function subm(){
     if(mm==='login'){data=await api('POST','/api/auth/login',{email,password:pass});}
     else{const name=document.getElementById('mn').value.trim();const role=document.getElementById('mr').value;
       const specialization=role==='meserias'?(document.getElementById('mes-cat')?.value||'General'):'';
-      const workerCity=role==='meserias'?(document.getElementById('mes-city')?.value||'București'):'';
       if(role==='meserias'&&!specialization){toast('Alege specialitatea ta!');btn.disabled=false;return;}
       const cats=Array.from(document.querySelectorAll('#mes-cats-grid input:checked')).map(function(c){return c.value;});
          const mesPhone=role==='meserias'?(document.getElementById('mes-phone')?.value.trim()||''):'';
       if(role==='meserias'&&!cats.length){toast('Alege cel puțin o categorie!');btn.disabled=false;return;}
       const horecaname=role==='horeca'?(document.getElementById('horeca-name')?.value.trim()||''):'';
 const horecatype=role==='horeca'?(document.getElementById('horeca-type')?.value||'restaurant'):'';
-const regCity=document.getElementById('mes-city')?.value||'București';
+const cityZones=Array.from(document.querySelectorAll('.mes-city-cb:checked')).map(function(c){return c.value;});
+if(role==='meserias'&&!cityZones.length){toast('Alege cel puțin o zonă în care lucrezi!');btn.disabled=false;return;}
+const regCity=cityZones.length?cityZones.join(', '):'București';
 data=await api('POST','/api/auth/register',{name,email,password:pass,role,specialization,city:regCity,categories:cats,phone:mesPhone,horeca_name:horecaname,horeca_type:horecatype});if(!data.token){toast(data.message||'Cont creat!');cm();btn.disabled=false;return;}}
     localStorage.setItem('hro_tk',data.token);CU=data.user;cm();loginOk();
   }catch(e){const er=document.getElementById('merr');er.textContent=e.message;er.style.display='block';}
