@@ -56,6 +56,9 @@ const JobSchema = new mongoose.Schema({
   subcat_price: Number,
   completed_at: Date,
   job_date: Date,
+  payment_intent_id: { type: String, default: null },
+  payment_status: { type: String, enum: ['pending','authorized','captured','canceled','refunded'], default: 'pending' },
+  amount_lei: { type: Number, default: null },
 }, { timestamps: true });
 
 const ConversationSchema = new mongoose.Schema({
