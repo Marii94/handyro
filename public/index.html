@@ -1965,21 +1965,51 @@ async function loadAdminContact(){
   try{
     var msgs=await api('GET','/api/contact');
     if(!msgs||!msgs.length){document.getElementById('tcontact').innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Nu există mesaje de contact încă.</div>';return;}
-    var html='<div style="display:flex;flex-direction:column;gap:1rem;">';
+    // Grupăm mesajele pe expeditor (email, sau nume dacă nu are email),
+    // ca să vedem întreaga conversație cu o persoană într-un singur loc.
+    var groups={};
+    var order=[];
     msgs.forEach(function(m){
-      var mid=String(m._id||m.id);
-      html+='<div style="background:var(--card);border:0.5px solid var(--br);border-radius:var(--r);padding:1rem;">';
-      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">';
-      html+='<div style="font-weight:600;color:var(--navy);font-size:14px;">'+esc(m.sender_name||'Anonim')+'<span style="font-size:11px;font-weight:400;color:var(--mu);margin-left:8px;">'+esc(m.sender_email||'')+'</span></div>';
-      html+='<div style="font-size:11px;color:var(--mu);">'+esc(ts(m.createdAt||m.created_at))+'</div></div>';
-      html+='<div style="font-size:13px;color:var(--navy);margin-bottom:.75rem;padding:.5rem .75rem;background:var(--bg);border-radius:var(--rs);">'+esc(m.content)+'</div>';
-      if(m.reply){
-        html+='<div style="font-size:12px;color:var(--mu);margin-bottom:.5rem;">Răspunsul tău: <span style="color:var(--navy);">'+esc(m.reply)+'</span></div>';
-      }
-      html+='<div style="display:flex;gap:8px;">';
-      html+='<input type="text" id="reply-'+mid+'" placeholder="Scrie raspuns..." value="'+esc(m.reply||'')+'" style="flex:1;padding:.5rem .75rem;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);font-size:13px;"/>';
-      html+='<button class="btn bt-bl bt-sm" data-mid="'+mid+'" onclick="sendContactReply(this)"><i class="ti ti-send"></i> Răspunde</button>';
-      html+='</div></div>';
+      var key=(m.sender_email||m.sender_name||'anonim').toLowerCase();
+      if(!groups[key]){groups[key]=[];order.push(key);}
+      groups[key].push(m);
+    });
+    var html='<div style="display:flex;flex-direction:column;gap:1.25rem;">';
+    order.forEach(function(key){
+      var thread=groups[key].slice().sort(function(a,b){
+        return new Date(a.createdAt||a.created_at)-new Date(b.createdAt||b.created_at);
+      });
+      var first=thread[0];
+      html+='<div style="background:var(--card);border:0.5px solid var(--br);border-radius:var(--r);overflow:hidden;">';
+      html+='<div style="padding:.85rem 1.1rem;border-bottom:1px solid var(--br);background:var(--bg);">';
+      html+='<div style="font-weight:600;color:var(--navy);font-size:14px;">'+esc(first.sender_name||'Anonim')+'<span style="font-size:11px;font-weight:400;color:var(--mu);margin-left:8px;">'+esc(first.sender_email||'')+'</span></div>';
+      html+='</div>';
+      html+='<div style="padding:1rem 1.1rem;display:flex;flex-direction:column;gap:10px;">';
+      var lastUnanswered=null;
+      thread.forEach(function(m){
+        var mid=String(m._id||m.id);
+        html+='<div style="display:flex;flex-direction:column;align-items:flex-start;">';
+        html+='<div style="max-width:80%;background:var(--bg);border:0.5px solid var(--br);border-radius:13px;border-bottom-left-radius:3px;padding:8px 13px;font-size:13px;color:var(--navy);">'+esc(m.content)+'</div>';
+        html+='<div style="font-size:10px;color:var(--mu);margin-top:3px;padding:0 4px;">'+esc(ts(m.createdAt||m.created_at))+'</div>';
+        html+='</div>';
+        if(m.reply){
+          html+='<div style="display:flex;flex-direction:column;align-items:flex-end;">';
+          html+='<div style="max-width:80%;background:var(--blue);color:#fff;border-radius:13px;border-bottom-right-radius:3px;padding:8px 13px;font-size:13px;">'+esc(m.reply)+'</div>';
+          html+='<div style="font-size:10px;color:var(--mu);margin-top:3px;padding:0 4px;">Răspunsul tău</div>';
+          html+='</div>';
+        } else {
+          lastUnanswered=mid;
+        }
+      });
+      html+='</div>';
+      // Un singur câmp de răspuns pe conversație, legat de ultimul mesaj nerăspuns
+      // (dacă totul e deja răspuns, permite totuși un nou răspuns la ultimul mesaj).
+      var replyTargetId=lastUnanswered||String(thread[thread.length-1]._id||thread[thread.length-1].id);
+      html+='<div style="display:flex;gap:8px;padding:0 1.1rem 1rem 1.1rem;">';
+      html+='<input type="text" id="reply-'+replyTargetId+'" placeholder="Scrie răspuns..." style="flex:1;padding:.5rem .75rem;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);font-size:13px;"/>';
+      html+='<button class="btn bt-bl bt-sm" data-mid="'+replyTargetId+'" onclick="sendContactReply(this)"><i class="ti ti-send"></i> Răspunde</button>';
+      html+='</div>';
+      html+='</div>';
     });
     html+='</div>';
     document.getElementById('tcontact').innerHTML=html;
