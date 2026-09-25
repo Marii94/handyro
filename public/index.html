@@ -444,8 +444,32 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
         <div class="fg">
           <label>Orașul tău</label>
           <select id="job-city">
-            <option value="București">București</option>
-            <option value="Ilfov">Ilfov</option>
+            <optgroup label="București">
+              <option value="Sector 1">Sector 1</option>
+              <option value="Sector 2">Sector 2</option>
+              <option value="Sector 3">Sector 3</option>
+              <option value="Sector 4">Sector 4</option>
+              <option value="Sector 5">Sector 5</option>
+              <option value="Sector 6">Sector 6</option>
+            </optgroup>
+            <optgroup label="Ilfov">
+              <option value="Voluntari (Ilfov)">Voluntari</option>
+              <option value="Otopeni (Ilfov)">Otopeni</option>
+              <option value="Pantelimon (Ilfov)">Pantelimon</option>
+              <option value="Popești-Leordeni (Ilfov)">Popești-Leordeni</option>
+              <option value="Chitila (Ilfov)">Chitila</option>
+              <option value="Buftea (Ilfov)">Buftea</option>
+              <option value="Bragadiru (Ilfov)">Bragadiru</option>
+              <option value="Măgurele (Ilfov)">Măgurele</option>
+              <option value="Chiajna (Ilfov)">Chiajna</option>
+              <option value="Domnești (Ilfov)">Domnești</option>
+              <option value="Corbeanca (Ilfov)">Corbeanca</option>
+              <option value="Mogoșoaia (Ilfov)">Mogoșoaia</option>
+              <option value="Berceni (Ilfov)">Berceni</option>
+              <option value="Jilava (Ilfov)">Jilava</option>
+              <option value="Snagov (Ilfov)">Snagov</option>
+              <option value="Alt oraș din Ilfov">Alt oraș din Ilfov</option>
+            </optgroup>
             <option value="Ploiești">Ploiești</option>
             <option value="Brașov">Brașov</option>
             <option value="Cluj-Napoca">Cluj-Napoca</option>
@@ -692,7 +716,34 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
     <div class="fg"><label>Parolă</label><div style="position:relative;"><input type="password" id="mp" placeholder="••••••••" style="width:100%;padding-right:36px;"/><span onclick="var i=document.getElementById('mp');i.type=i.type==='password'?'text':'password';this.innerText=i.type==='password'?'👁':'🙈';" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;">👁</span></div></div>
     <div class="fg" id="mrg" style="display:none"><label>Înregistrare ca</label><select id="mr" onchange="toggleMesCat(this.value)"><option value="client">Client</option><option value="meserias">Meșter</option><option value="horeca">HoReCa</option></select></div>
     <div class="fg" id="mes-cat-wrap" style="display:none"><label>Specialitate</label><select id="mes-cat"><option value="">Alege specialitatea</option><option value="Instalații sanitare">Instalații sanitare</option><option value="Instalații electrice">Instalații electrice</option><option value="Renovări & zugrăveală">Renovări & zugrăveală</option><option value="Curățenie profesională">Curățenie profesională</option><option value="Tâmplărie & mobilier">Tâmplărie & mobilier</option><option value="Mentenanță generală">Mentenanță generală</option><option value="Toate categoriile">Toate categoriile</option></select></div>
-    <div class="fg" id="mes-city-wrap" style="display:none"><label>Orașul unde lucrezi</label><select id="mes-city"><option value="București">București</option><option value="Ilfov">Ilfov</option><option value="Ploiești">Ploiești</option><option value="Brașov">Brașov</option><option value="Cluj-Napoca">Cluj-Napoca</option><option value="Timișoara">Timișoara</option><option value="Constanța">Constanța</option><option value="Iași">Iași</option><option value="Craiova">Craiova</option></select></div>
+    <div class="fg" id="mes-city-wrap" style="display:none"><label>Orașul unde lucrezi</label><select id="mes-city">
+      <optgroup label="București">
+        <option value="Sector 1">Sector 1</option>
+        <option value="Sector 2">Sector 2</option>
+        <option value="Sector 3">Sector 3</option>
+        <option value="Sector 4">Sector 4</option>
+        <option value="Sector 5">Sector 5</option>
+        <option value="Sector 6">Sector 6</option>
+      </optgroup>
+      <optgroup label="Ilfov">
+        <option value="Voluntari (Ilfov)">Voluntari</option>
+        <option value="Otopeni (Ilfov)">Otopeni</option>
+        <option value="Pantelimon (Ilfov)">Pantelimon</option>
+        <option value="Popești-Leordeni (Ilfov)">Popești-Leordeni</option>
+        <option value="Chitila (Ilfov)">Chitila</option>
+        <option value="Buftea (Ilfov)">Buftea</option>
+        <option value="Bragadiru (Ilfov)">Bragadiru</option>
+        <option value="Măgurele (Ilfov)">Măgurele</option>
+        <option value="Chiajna (Ilfov)">Chiajna</option>
+        <option value="Domnești (Ilfov)">Domnești</option>
+        <option value="Corbeanca (Ilfov)">Corbeanca</option>
+        <option value="Mogoșoaia (Ilfov)">Mogoșoaia</option>
+        <option value="Berceni (Ilfov)">Berceni</option>
+        <option value="Jilava (Ilfov)">Jilava</option>
+        <option value="Snagov (Ilfov)">Snagov</option>
+        <option value="Alt oraș din Ilfov">Alt oraș din Ilfov</option>
+      </optgroup>
+      <option value="Ploiești">Ploiești</option><option value="Brașov">Brașov</option><option value="Cluj-Napoca">Cluj-Napoca</option><option value="Timișoara">Timișoara</option><option value="Constanța">Constanța</option><option value="Iași">Iași</option><option value="Craiova">Craiova</option></select></div>
     <div class="fg" id="mes-phone-wrap" style="display:none"><label>Numărul tău de telefon</label><input type="text" id="mes-phone" placeholder="07xxxxxxxx"/></div>
     <div class="fg" id="horeca-name-wrap" style="display:none"><label>Numele restaurantului</label><input type="text" id="horeca-name" placeholder="Ex: Restaurant La Mama"/></div>
 <div class="fg" id="horeca-type-wrap" style="display:none"><label>Tip unitate</label><select id="horeca-type"><option value="restaurant">Restaurant</option><option value="cafenea">Cafenea</option><option value="hotel">Hotel</option><option value="bar">Bar</option><option value="alt">Alt tip</option></select></div>
