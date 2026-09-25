@@ -28,6 +28,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/subcats', require('./routes/subcats'));
+app.use('/api/payments', require('./routes/payments'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', version: '6.0.0', db: 'MongoDB Atlas' }));
 // Stats grafice
@@ -193,4 +194,57 @@ app.get('/api/worker-subcats/:workerId/:category', async (req, res) => {
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 app.listen(PORT, () => console.log('HandyRO v6 pornit pe http://localhost:' + PORT));
+
+// ── Returnare automată a banilor blocați ──────────────────────────────────────
+// Dacă un job nu e finalizat în maxim 2 zile lucrătoare de la creare, autorizarea
+// de card se anulează automat și clientul primește banii înapoi (nu au fost
+// niciodată retrași efectiv, doar rezervați — anularea eliberează rezervarea).
+function addBusinessDays(date, days) {
+  const result = new Date(date);
+  let added = 0;
+  while (added < days) {
+    result.setDate(result.getDate() + 1);
+    const dow = result.getDay();
+    if (dow !== 0 && dow !== 6) added++; // sare peste sâmbătă/duminică
+  }
+  return result;
+}
+
+async function releaseExpiredHolds() {
+  try {
+    const { Job: JobModel, User: UserModel } = require('./db');
+    const { cancelHold } = require('./services/stripe');
+    const candidates = await JobModel.find({ payment_status: 'authorized', status: { $ne: 'completed' } });
+    for (const job of candidates) {
+      const deadline = addBusinessDays(job.createdAt, 2);
+      if (new Date() < deadline) continue; // încă în termen, nu facem nimic
+      try {
+        await cancelHold(job.payment_intent_id);
+        job.payment_status = 'canceled';
+        job.status = 'cancelled';
+        await job.save();
+        const client = await UserModel.findById(job.client_id);
+        if (client?.email) {
+          sendEmail(
+            client.email,
+            `↩️ Banii ți-au fost returnați — HandyRO`,
+            `Bună, ${client.name}!\n\nLucrarea "${job.category}" nu a fost finalizată în termen de 2 zile lucrătoare, ` +
+            `așa că suma blocată pe cardul tău (${job.amount_lei || ''} lei) a fost eliberată automat. ` +
+            `Nu ai fost taxat.\n\nPoți trimite oricând o cerere nouă pe handyro.ro.`
+          ).catch(() => {});
+        }
+        console.log('[payments] Autorizare anulată automat pentru job', job._id.toString());
+      } catch (e) {
+        console.error('[payments] Eroare la anularea automată a autorizării pentru job', job._id.toString(), e.message);
+      }
+    }
+  } catch (e) {
+    console.error('[payments] Eroare la verificarea autorizărilor expirate:', e.message);
+  }
+}
+
+// Verificăm la fiecare 6 ore. Rulăm și o dată la pornirea serverului.
+setInterval(releaseExpiredHolds, 6 * 60 * 60 * 1000);
+releaseExpiredHolds();
+
 module.exports = app;
