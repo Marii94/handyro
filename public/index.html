@@ -2104,6 +2104,17 @@ async function loadAdminExpenses(){
       html+='</tbody></table>';
     }
 
+    // Defalcare pe meșter
+    var workerKeys=Object.keys(totals.by_worker||{});
+    if(workerKeys.length){
+      html+='<div class="set">De plătit, pe meșter</div>';
+      html+='<table style="margin-bottom:1.5rem;"><thead><tr><th>Meșter</th><th>Sumă de plată</th></tr></thead><tbody>';
+      workerKeys.forEach(function(k){
+        html+='<tr><td>'+esc(totals.by_worker[k].name)+'</td><td><strong>'+totals.by_worker[k].total.toFixed(2)+' lei</strong></td></tr>';
+      });
+      html+='</tbody></table>';
+    }
+
     // Detaliu pe fiecare job finalizat și plătit
     html+='<div class="set">Detaliu joburi finalizate (plată încasată)</div>';
     if(!jobs.length){
