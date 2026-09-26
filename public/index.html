@@ -605,6 +605,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <button onclick="switchTab(this,'tsubcat')">Prețuri servicii</button>
       <button onclick="switchTab(this,'tm')">Mesaje</button>
       <button onclick="switchTab(this,'tcontact')" id="contact-tab-btn">Contact</button>
+      <button onclick="switchTab(this,'texp')">Cheltuieli</button>
     </div>
     <div id="tw">Se încarcă...</div>
     <div id="admin-grafice"></div>
@@ -614,6 +615,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
     <div id="tsubcat" style="display:none"></div>
     <div id="tm" style="display:none"></div>
     <div id="tcontact" style="display:none"></div>
+    <div id="texp" style="display:none"></div>
   </div>
 </div>
   <!-- HORECA -->
@@ -1760,7 +1762,7 @@ async function sendMsg(cid){
 function switchTab(btn,tab){
   document.querySelectorAll('.atb button').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
-  var tabs=['tw','tc','th','tj','tsubcat','tm','tcontact'];
+  var tabs=['tw','tc','th','tj','tsubcat','tm','tcontact','texp'];
   tabs.forEach(function(t){var el=document.getElementById(t);if(el)el.style.display='none';});
   var el=document.getElementById(tab);
   if(el)el.style.display='block';
@@ -1769,6 +1771,7 @@ function switchTab(btn,tab){
   if(tab==='tsubcat')loadSubcatPrices();
   if(tab==='tcontact')loadAdminContact();
 if(tab==='th')loadAdminHoreca();
+if(tab==='texp')loadAdminExpenses();
 }
 
 async function loadGrafice(containerId){
@@ -2073,6 +2076,55 @@ async function assignWorker(btn){
     await api('PATCH','/api/admin/users/'+hid+'/assign-worker',{worker_id:wid});
     toast('Meșter atribuit cu succes!');
     loadAdminHoreca();
+  }catch(e){toast('Eroare: '+e.message);}
+}
+
+async function loadAdminExpenses(){
+  try{
+    var data=await api('GET','/api/admin/payouts');
+    var jobs=data.jobs||[];
+    var totals=data.totals||{worker_total:0,agency_total:0,platform_total:0,by_agency:{}};
+    var html='';
+
+    // Sumar total
+    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:1.5rem;">';
+    html+='<div class="ds"><div class="dsn">'+totals.platform_total.toFixed(0)+' lei</div><div class="dsl">Rămâne la platformă</div></div>';
+    html+='<div class="ds"><div class="dsn">'+totals.worker_total.toFixed(0)+' lei</div><div class="dsl">De plătit meșterilor</div></div>';
+    html+='<div class="ds"><div class="dsn">'+totals.agency_total.toFixed(0)+' lei</div><div class="dsl">De plătit agențiilor</div></div>';
+    html+='</div>';
+
+    // Defalcare pe agenție
+    var agencyKeys=Object.keys(totals.by_agency||{});
+    if(agencyKeys.length){
+      html+='<div class="set">De plătit, pe agenție</div>';
+      html+='<table style="margin-bottom:1.5rem;"><thead><tr><th>Agenție</th><th>Sumă de plată</th></tr></thead><tbody>';
+      agencyKeys.forEach(function(k){
+        html+='<tr><td>'+esc(k)+'</td><td><strong>'+totals.by_agency[k].toFixed(2)+' lei</strong></td></tr>';
+      });
+      html+='</tbody></table>';
+    }
+
+    // Detaliu pe fiecare job finalizat și plătit
+    html+='<div class="set">Detaliu joburi finalizate (plată încasată)</div>';
+    if(!jobs.length){
+      html+='<div style="padding:1rem;color:var(--mu);font-size:13px;">Niciun job finalizat cu plată încasată încă.</div>';
+    } else {
+      html+='<table><thead><tr><th>Job</th><th>Meșter</th><th>Agenție</th><th>Sumă totală</th><th>Meșter primește</th><th>Agenție primește</th><th>Platformă păstrează</th></tr></thead><tbody>';
+      jobs.forEach(function(j){
+        html+='<tr>';
+        html+='<td>'+esc(j.category)+(j.subcat_name?' — '+esc(j.subcat_name):'')+'</td>';
+        html+='<td>'+esc(j.worker_name)+'</td>';
+        html+='<td>'+(j.referral_source?esc(j.referral_source):'<span style="color:var(--mu);">—</span>')+'</td>';
+        html+='<td>'+j.amount_lei.toFixed(2)+' lei</td>';
+        html+='<td>'+j.worker_share.toFixed(2)+' lei</td>';
+        html+='<td>'+(j.agency_share?j.agency_share.toFixed(2)+' lei':'—')+'</td>';
+        html+='<td>'+j.platform_share.toFixed(2)+' lei</td>';
+        html+='</tr>';
+      });
+      html+='</tbody></table>';
+    }
+
+    document.getElementById('texp').innerHTML=html;
   }catch(e){toast('Eroare: '+e.message);}
 }
 
