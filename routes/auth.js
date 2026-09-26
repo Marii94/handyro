@@ -58,6 +58,7 @@ const horeca_type = req.body.horeca_type || '';
       const pfa_name = req.body.pfa_name || '';
       const cui = req.body.cui || '';
       const iban = req.body.iban || '';
+      const referral_source = req.body.referral_source || null;
       await Worker.create({
         user_id: user._id,
         city,
@@ -66,6 +67,7 @@ const horeca_type = req.body.horeca_type || '';
         pfa_name,
         cui,
         iban,
+        referral_source,
       });
       return res.status(201).json({ message: 'Cont creat! Verifică-ți emailul, apoi așteaptă aprobarea adminului.' });
     }
