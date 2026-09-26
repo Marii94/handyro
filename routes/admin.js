@@ -83,4 +83,47 @@ router.patch('/users/:id/assign-worker', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+router.get('/payouts', async (req, res) => {
+  try {
+    // Doar joburile finalizate CU banii deja încasați (payment_status='captured')
+    // intră la calcul — nu are sens să calculăm comisioane pe bani nici măcar retrași încă.
+    const jobs = await Job.find({ payment_status: 'captured' }).sort({ completed_at: -1 });
+    const result = await Promise.all(jobs.map(async j => {
+      const worker = j.worker_id ? await Worker.findById(j.worker_id) : null;
+      const workerUser = worker ? await User.findById(worker.user_id) : null;
+      const amount = j.amount_lei || 0;
+      const hasAgency = !!(worker && worker.referral_source);
+      // Cu agenție: 70% meșter / 10% agenție / 20% platformă.
+      // Fără agenție: 80% meșter / 20% platformă (nu există agenție de plătit).
+      const workerShare = Math.round((hasAgency ? amount * 0.70 : amount * 0.80) * 100) / 100;
+      const agencyShare = Math.round((hasAgency ? amount * 0.10 : 0) * 100) / 100;
+      const platformShare = Math.round((amount - workerShare - agencyShare) * 100) / 100;
+      return {
+        job_id: j._id,
+        category: j.category,
+        subcat_name: j.subcat_name || '',
+        completed_at: j.completed_at,
+        amount_lei: amount,
+        worker_name: workerUser?.name || 'Necunoscut',
+        referral_source: worker?.referral_source || null,
+        worker_share: workerShare,
+        agency_share: agencyShare,
+        platform_share: platformShare,
+      };
+    }));
+
+    const totals = { worker_total: 0, agency_total: 0, platform_total: 0, by_agency: {} };
+    result.forEach(r => {
+      totals.worker_total += r.worker_share;
+      totals.agency_total += r.agency_share;
+      totals.platform_total += r.platform_share;
+      if (r.referral_source) {
+        totals.by_agency[r.referral_source] = (totals.by_agency[r.referral_source] || 0) + r.agency_share;
+      }
+    });
+
+    res.json({ jobs: result, totals });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;
