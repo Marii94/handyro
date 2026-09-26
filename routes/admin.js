@@ -36,6 +36,7 @@ router.get('/users', async (req, res) => {
         worker_id: w?._id,
         specialization: w?.specialization,
         categories: w?.categories || [],
+        referral_source: w?.referral_source || null,
         prices,
       };
     }));
