@@ -100,6 +100,7 @@ router.get('/payouts', async (req, res) => {
       const platformShare = Math.round((amount - workerShare - agencyShare) * 100) / 100;
       return {
         job_id: j._id,
+        worker_id: worker?._id || null,
         category: j.category,
         subcat_name: j.subcat_name || '',
         completed_at: j.completed_at,
@@ -112,7 +113,7 @@ router.get('/payouts', async (req, res) => {
       };
     }));
 
-    const totals = { worker_total: 0, agency_total: 0, platform_total: 0, by_agency: {} };
+    const totals = { worker_total: 0, agency_total: 0, platform_total: 0, by_agency: {}, by_worker: {} };
     result.forEach(r => {
       totals.worker_total += r.worker_share;
       totals.agency_total += r.agency_share;
@@ -120,6 +121,9 @@ router.get('/payouts', async (req, res) => {
       if (r.referral_source) {
         totals.by_agency[r.referral_source] = (totals.by_agency[r.referral_source] || 0) + r.agency_share;
       }
+      const wKey = String(r.worker_id || r.worker_name);
+      if (!totals.by_worker[wKey]) totals.by_worker[wKey] = { name: r.worker_name, total: 0 };
+      totals.by_worker[wKey].total += r.worker_share;
     });
 
     res.json({ jobs: result, totals });
