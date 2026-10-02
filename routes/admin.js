@@ -37,6 +37,7 @@ router.get('/users', async (req, res) => {
         specialization: w?.specialization,
         categories: w?.categories || [],
         referral_source: w?.referral_source || null,
+        pfa_name: w?.pfa_name || null,
         prices,
       };
     }));
@@ -106,6 +107,7 @@ router.get('/payouts', async (req, res) => {
         completed_at: j.completed_at,
         amount_lei: amount,
         worker_name: workerUser?.name || 'Necunoscut',
+        worker_pfa: worker?.pfa_name || null,
         referral_source: worker?.referral_source || null,
         worker_share: workerShare,
         agency_share: agencyShare,
@@ -122,7 +124,7 @@ router.get('/payouts', async (req, res) => {
         totals.by_agency[r.referral_source] = (totals.by_agency[r.referral_source] || 0) + r.agency_share;
       }
       const wKey = String(r.worker_id || r.worker_name);
-      if (!totals.by_worker[wKey]) totals.by_worker[wKey] = { name: r.worker_name, total: 0 };
+      if (!totals.by_worker[wKey]) totals.by_worker[wKey] = { name: r.worker_name, pfa: r.worker_pfa, total: 0 };
       totals.by_worker[wKey].total += r.worker_share;
     });
 
