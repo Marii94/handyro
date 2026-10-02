@@ -35,6 +35,9 @@ const WorkerSchema = new mongoose.Schema({
   cui: { type: String, default: '' },
   iban: { type: String, default: '' },
   referral_source: { type: String, default: null },
+  experience_years: { type: Number, default: null },
+  bio: { type: String, default: '' },
+  portfolio_photos: [String],
 }, { timestamps: true });
 
 const PriceSchema = new mongoose.Schema({
