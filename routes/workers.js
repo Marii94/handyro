@@ -35,9 +35,34 @@ if(time_slot && time_slot !== '18:00–20:00 — tarif urgență'){
   });
   if(busyJob) available = false;
 }
-return { _id: w._id, name: u.name, specialization: w.specialization, rating: w.rating, reviews_count: w.reviews_count, city: w.city, price_for_category: price, available };
+return { _id: w._id, name: u.name, specialization: w.specialization, rating: w.rating, reviews_count: w.reviews_count, city: w.city, price_for_category: price, available, experience_years: w.experience_years, bio: w.bio, portfolio_photos: w.portfolio_photos || [] };
     }));
     res.json(result.filter(Boolean));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/me/profile', auth, requireRole('meserias'), async (req, res) => {
+  try {
+    const worker = await Worker.findOne({ user_id: req.user.id });
+    if (!worker) return res.status(404).json({ error: 'Profil negăsit' });
+    res.json({ experience_years: worker.experience_years, bio: worker.bio, portfolio_photos: worker.portfolio_photos || [] });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.patch('/me/profile', auth, requireRole('meserias'), async (req, res) => {
+  try {
+    const { experience_years, bio, portfolio_photos } = req.body;
+    const update = {};
+    if (experience_years !== undefined) {
+      const n = Number(experience_years);
+      if (experience_years !== null && (!Number.isFinite(n) || n < 0 || n > 60)) return res.status(400).json({ error: 'Ani de experiență invalizi.' });
+      update.experience_years = experience_years === null || experience_years === '' ? null : n;
+    }
+    if (bio !== undefined) update.bio = String(bio).slice(0, 500);
+    if (Array.isArray(portfolio_photos)) update.portfolio_photos = portfolio_photos.slice(0, 6);
+    const worker = await Worker.findOneAndUpdate({ user_id: req.user.id }, update, { new: true });
+    if (!worker) return res.status(404).json({ error: 'Profil negăsit' });
+    res.json({ message: 'Profil actualizat ✓', experience_years: worker.experience_years, bio: worker.bio, portfolio_photos: worker.portfolio_photos });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
