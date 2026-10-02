@@ -41,6 +41,37 @@ return { _id: w._id, name: u.name, specialization: w.specialization, rating: w.r
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+router.post('/:id/favorite', auth, requireRole('client', 'horeca'), async (req, res) => {
+  try {
+    const worker = await Worker.findById(req.params.id);
+    if (!worker) return res.status(404).json({ error: 'Meșter negăsit' });
+    await User.findByIdAndUpdate(req.user.id, { $addToSet: { favorite_workers: worker._id } });
+    res.json({ message: 'Adăugat la favorite ✓' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/:id/favorite', auth, requireRole('client', 'horeca'), async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, { $pull: { favorite_workers: req.params.id } });
+    res.json({ message: 'Șters din favorite' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/favorites/mine', auth, requireRole('client', 'horeca'), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const ids = user.favorite_workers || [];
+    const workers = await Promise.all(ids.map(async id => {
+      const w = await Worker.findById(id);
+      if (!w) return null;
+      const u = await User.findById(w.user_id);
+      if (!u || u.status !== 'active') return null;
+      return { _id: w._id, name: u.name, specialization: w.specialization, categories: w.categories || [], rating: w.rating, reviews_count: w.reviews_count, city: w.city, experience_years: w.experience_years, bio: w.bio };
+    }));
+    res.json(workers.filter(Boolean));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 router.get('/me/profile', auth, requireRole('meserias'), async (req, res) => {
   try {
     const worker = await Worker.findOne({ user_id: req.user.id });
