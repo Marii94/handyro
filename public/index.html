@@ -597,6 +597,10 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
 <div class="page" id="page-client">
   <div class="dw">
     <div class="dt"><div><div class="dti" id="c-hi">Contul meu 👤</div><div class="dsi">Cererile și mesajele tale pe HandyRO</div></div><div style="display:flex;gap:8px;"><button class="btn bt-gh" style="font-size:12px;" onclick="gp('contact')"><i class="ti ti-message-circle"></i> Contact admin</button><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button></div></div>
+    <div id="c-fav-wrap" style="display:none;margin-bottom:1.5rem;">
+      <div class="set">Meșterii tăi favoriți</div>
+      <div id="c-fav-list"></div>
+    </div>
     <div class="set">Cererile mele</div>
     <div id="c-jobs">Se încarcă...</div>
     <div style="margin-top:1.5rem;"><div class="set">Mesaje</div><div id="c-convs"></div><div id="c-chat"></div></div>
@@ -1080,12 +1084,40 @@ function ss(el,cat,ico){
 showSubcats(cat);
 renderCalendar();
 }
+let favoriteIds=[];
+async function loadMyFavoriteIds(){
+  if(!CU||(CU.role!=='client'&&CU.role!=='horeca')){favoriteIds=[];return;}
+  try{
+    const favs=await api('GET','/api/workers/favorites/mine');
+    favoriteIds=favs.map(function(f){return String(f._id);});
+  }catch(e){favoriteIds=[];}
+}
+async function toggleFavorite(wid,btn){
+  var isFav=favoriteIds.indexOf(wid)>=0;
+  btn.disabled=true;
+  try{
+    if(isFav){
+      await api('DELETE','/api/workers/'+wid+'/favorite',{});
+      favoriteIds=favoriteIds.filter(function(id){return id!==wid;});
+      btn.textContent='☆ Favorite';
+      toast('Șters din favorite');
+    }else{
+      await api('POST','/api/workers/'+wid+'/favorite',{});
+      favoriteIds.push(wid);
+      btn.textContent='★ Favorit';
+      toast('Adăugat la favorite!');
+    }
+  }catch(e){toast(e.message);}
+  btn.disabled=false;
+}
+
 function loadWorkersForSelection(cat){
   const list=document.getElementById('workers-list');
   list.innerHTML='Se încarcă...';
   const selectedCity=document.getElementById('job-city')?.value||'';
   let url='/api/workers?category='+encodeURIComponent(cat);
   if(selectedCity) url+='&city='+encodeURIComponent(selectedCity);
+  loadMyFavoriteIds().then(function(){
   api('GET',url).then(workers=>{
     if(!workers.length){list.innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Niciun meseriaș nu lucrează momentan în '+esc(selectedCity||'zona ta')+'. Încearcă alt sector, sau trimite o cerere prin <a style="color:var(--blue);cursor:pointer;" onclick="gp(\'contact\')">mesageria cu adminul</a>.</div>';return;}
     list.innerHTML=workers.map(w=>{
@@ -1105,12 +1137,14 @@ function loadWorkersForSelection(cat){
         </div>
         <div class="wri">
           <div style="font-size:12px;color:var(--mu);">${w.reviews_count>0?'⭐ '+esc(w.rating)+' · '+esc(w.reviews_count)+' recenzii':'Fără recenzii încă'}</div>
+          <button class="btn bt-gh bt-sm" style="padding:3px 8px;font-size:11px;" id="fav-btn-${esc(w._id)}" onclick="toggleFavorite('${esc(w._id)}',this)">${favoriteIds.indexOf(String(w._id))>=0?'★ Favorit':'☆ Favorite'}</button>
           ${w.available ? `<button class="btn bt-bl bt-sm" onclick="selectWorker('${esc(w._id)}',0,'${esc(w.name)}')">Alege</button>` : `<span style="font-size:11px;color:var(--re);font-weight:500;">Ocupat în acest interval</span>`}
         </div>
       </div>`;
     }).join('');
   }).catch(()=>{
     list.innerHTML='<div style="padding:1rem;color:var(--re);font-size:13px;">Nu am putut încărca meseriașii disponibili. Verifică conexiunea și încearcă din nou.</div>';
+  });
   });
 }
 
@@ -1983,8 +2017,42 @@ async function openConv(jobId,cname){
 }
 
 // CLIENT
+async function loadClientFavorites(){
+  try{
+    const favs=await api('GET','/api/workers/favorites/mine');
+    const wrap=document.getElementById('c-fav-wrap');
+    const list=document.getElementById('c-fav-list');
+    if(!favs.length){wrap.style.display='none';return;}
+    wrap.style.display='block';
+    list.innerHTML=favs.map(function(w){
+      return '<div class="wr" style="border-top:0.5px solid var(--br);">'+
+        '<div class="wa">'+esc(ini(w.name))+'</div>'+
+        '<div class="wi"><div class="wn">'+esc(w.name)+'</div><div class="wsp">'+esc(w.specialization||'Specialist')+' · '+esc(w.city||'București')+'</div></div>'+
+        '<div class="wri"><button class="btn bt-bl bt-sm" onclick="rebookWorker(\''+esc(w._id)+'\',\''+esc(w.specialization||'')+'\')">Programează din nou</button></div>'+
+      '</div>';
+    }).join('');
+  }catch(e){}
+}
+function rebookWorker(workerId, specialization){
+  gp('services');
+  setTimeout(function(){
+    var catEl=Array.from(document.querySelectorAll('.sc')).find(function(el){return el.textContent.trim().indexOf(specialization)>=0;});
+    if(catEl){
+      catEl.click();
+      setTimeout(function(){
+        var btn=document.querySelector('.wr[data-wid="'+workerId+'"] button.bt-bl');
+        if(btn) btn.click();
+        else toast('Meșterul nu e disponibil momentan în zona selectată — alege altă zonă sau meșter.');
+      },700);
+    }else{
+      toast('Alege categoria din care face parte acest meșter.');
+    }
+  },200);
+}
+
 async function loadClient(){
   document.getElementById('c-hi').textContent='Bună, '+esc(CU.name)+'! 👤';
+  loadClientFavorites();
   try{
     const jobs=await api('GET','/api/jobs');
     const el=document.getElementById('c-jobs');
