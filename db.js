@@ -51,7 +51,7 @@ const JobSchema = new mongoose.Schema({
   urgency: { type: String, default: 'normal' },
   time_slot: { type: String, default: 'Orice interval' },
   photos: [String],
-  status: { type: String, enum: ['pending','accepted','completed','cancelled'], default: 'pending' },
+  status: { type: String, enum: ['pending','accepted','on_the_way','completed','cancelled'], default: 'pending' },
   city: { type: String, default: 'București' },
   exact_address: { type: String, default: '' },
   subcat_name: String,
