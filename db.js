@@ -21,6 +21,7 @@ horeca_type: { type: String, default: '' },
 phone: { type: String, default: '' },
   email_verified: { type: Boolean, default: false },
   email_verify_token: { type: String, default: null },
+  favorite_workers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Worker' }],
 }, { timestamps: true });
 
 const WorkerSchema = new mongoose.Schema({
