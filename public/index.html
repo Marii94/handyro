@@ -1929,13 +1929,35 @@ async function loadGrafice(containerId){
     await loadAW();
   }catch(e){toast('Eroare admin: '+e.message);console.error(e);}
 }
+function limitZoneSelect(sel){
+  var selected=Array.from(sel.selectedOptions);
+  if(selected.length>2){
+    selected[selected.length-1].selected=false;
+    toast('Maxim 2 zone per meșter.');
+  }
+}
+
+async function saveWorkerZones(btn){
+  var wid=btn.dataset.wid;
+  var sel=document.getElementById(btn.dataset.sel);
+  var zones=Array.from(sel.selectedOptions).map(function(o){return o.value;});
+  if(!zones.length){toast('Alege cel puțin o zonă!');return;}
+  btn.disabled=true;
+  try{
+    await api('PATCH','/api/admin/workers/'+wid+'/city',{zones:zones});
+    toast('Zone actualizate: '+zones.join(', '));
+  }catch(e){toast(e.message);}
+  btn.disabled=false;
+}
+
 async function loadAW(){ loadGrafice('admin-grafice');
   try{
     var us=await api('GET','/api/admin/users');
     var ws=us.filter(function(u){return u.role==='meserias';});
     var cats=['Instalatii sanitare','Instalatii electrice','Renovari & zugraveli','Curatenie profesionala','Tamplarie & mobilier','Mentenanta generala'];
    var catsFull=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
-    var wtbl='<table><thead><tr><th>Meșter</th><th>Telefon</th><th>Categorii</th><th>Rating</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
+    var ALL_ZONES=['Sector 1','Sector 2','Sector 3','Sector 4','Sector 5','Sector 6','Voluntari (Ilfov)','Otopeni (Ilfov)','Pantelimon (Ilfov)','Popești-Leordeni (Ilfov)','Chitila (Ilfov)','Buftea (Ilfov)','Bragadiru (Ilfov)','Măgurele (Ilfov)','Chiajna (Ilfov)','Domnești (Ilfov)','Corbeanca (Ilfov)','Mogoșoaia (Ilfov)','Berceni (Ilfov)','Jilava (Ilfov)','Cernica (Ilfov)','Afumați (Ilfov)','1 Decembrie (Ilfov)'];
+    var wtbl='<table><thead><tr><th>Meșter</th><th>Telefon</th><th>Categorii</th><th>Zone</th><th>Rating</th><th>Status</th><th>Acțiuni</th></tr></thead><tbody>';
     ws.forEach(function(w){
       var uid=String(w._id||w.id);
       var wid=String(w.worker_id||w._id||'');
@@ -1964,6 +1986,15 @@ async function loadAW(){ loadGrafice('admin-grafice');
       wtbl+='<td><strong>'+esc(w.name)+'</strong>'+refBadge+pfaBadge+'<br><span style="font-size:11px;color:var(--mu);">'+esc(w.email)+'</span></td>';
       wtbl+='<td style="font-size:11px;color:var(--mu);">📞 '+esc(w.phone||'-')+'</td>';
       wtbl+='<td style="font-size:11px;color:var(--navy);">'+(w.categories&&w.categories.length?w.categories.map(esc).join('<br>'):esc(w.specialization||'-'))+'</td>';
+
+      var curZones=(w.city||'').split(',').map(function(z){return z.trim();}).filter(Boolean);
+      var zoneSelId='zone-sel-'+wid;
+      var zoneHtml='<select id="'+zoneSelId+'" multiple size="5" style="font-size:11px;width:140px;border:0.5px solid var(--br);border-radius:6px;background:var(--bg);color:var(--navy);" onchange="limitZoneSelect(this)">';
+      ALL_ZONES.forEach(function(z){
+        zoneHtml+='<option value="'+esc(z)+'"'+(curZones.indexOf(z)>=0?' selected':'')+'>'+esc(z)+'</option>';
+      });
+      zoneHtml+='</select><br><button class="btn bt-bl" style="padding:2px 8px;font-size:10px;margin-top:3px;" data-wid="'+wid+'" data-sel="'+zoneSelId+'" onclick="saveWorkerZones(this)">Salvează zone</button>';
+      wtbl+='<td>'+zoneHtml+'</td>';
 
       wtbl+='<td>'+esc(String(w.rating||5.0))+' ('+esc(String(w.reviews_count||0))+')</td>';
       wtbl+='<td><span class="sb '+statusCls+'" id="sb-'+uid+'">'+esc(w.status)+'</span></td>';
