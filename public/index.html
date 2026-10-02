@@ -569,6 +569,23 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <div class="ds"><div class="dsn" id="ms-a">0</div><div class="dsl">Acceptate azi</div></div>
       <div class="ds"><div class="dsn" id="ms-m">—</div><div class="dsl">Mesaje necitite</div></div>
     </div>
+    <div class="set">Profilul tău public <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(ce vede clientul înainte să te aleagă)</span></div>
+    <div class="ww" style="margin-bottom:1.5rem;padding:16px;">
+      <div class="fg">
+        <label>Ani de experiență</label>
+        <input type="number" id="prof-exp" min="0" max="60" placeholder="Ex: 5"/>
+      </div>
+      <div class="fg">
+        <label>Despre tine <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(max 500 caractere)</span></label>
+        <textarea id="prof-bio" rows="3" maxlength="500" placeholder="Ex: Instalator cu 5 ani de experiență, specializat în renovări de baie..." style="width:100%;padding:10px 12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical;"></textarea>
+      </div>
+      <div class="fg">
+        <label>Poze din lucrări anterioare <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(max 6)</span></label>
+        <input type="file" id="prof-photos-input" accept="image/*" multiple style="font-size:13px;"/>
+        <div id="prof-photos-preview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
+      </div>
+      <button class="btn bt-bl bt-sm" onclick="saveMyProfile()">Salvează profilul</button>
+    </div>
     <div class="set">Joburi disponibile</div>
     <div id="m-jobs">Se încarcă...</div>
     <div id="m-convs-wrap" style="margin-top:1.5rem;display:none"><div class="set">Conversații</div><div id="m-convs"></div><div id="m-chat"></div></div>
@@ -1071,19 +1088,27 @@ function loadWorkersForSelection(cat){
   if(selectedCity) url+='&city='+encodeURIComponent(selectedCity);
   api('GET',url).then(workers=>{
     if(!workers.length){list.innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Niciun meseriaș nu lucrează momentan în '+esc(selectedCity||'zona ta')+'. Încearcă alt sector, sau trimite o cerere prin <a style="color:var(--blue);cursor:pointer;" onclick="gp(\'contact\')">mesageria cu adminul</a>.</div>';return;}
-    list.innerHTML=workers.map(w=>`
+    list.innerHTML=workers.map(w=>{
+      const expHtml=w.experience_years?`<span class="wt">${esc(String(w.experience_years))} ani experiență</span>`:'';
+      const bioHtml=w.bio?`<div class="jm" style="margin-top:4px;font-style:italic;font-size:12px;">${esc(w.bio)}</div>`:'';
+      const portfolioHtml=(w.portfolio_photos&&w.portfolio_photos.length)
+        ?`<div style="display:flex;gap:4px;margin-top:6px;">${w.portfolio_photos.slice(0,4).map(function(u){return '<img src="'+esc(u)+'" style="width:40px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer;" onclick="window.open(\''+esc(u)+'\',\'_blank\')"/>';}).join('')}</div>`
+        :'';
+      return `
       <div class="wr" data-wid="${esc(w._id)}" style="border-top:0.5px solid var(--br);">
         <div class="wa">${esc(ini(w.name))}</div>
         <div class="wi">
           <div class="wn">${esc(w.name)}</div>
           <div class="wsp">${esc(w.specialization||'Specialist')} · ${esc(w.city||'București')}</div>
-          <div class="wts"><span class="wt">Verificat</span><span class="wt">Garanție</span><span class="wt">Răspuns &lt;2h</span></div>
+          <div class="wts"><span class="wt">Verificat</span><span class="wt">Garanție</span><span class="wt">Răspuns &lt;2h</span>${expHtml}</div>
+          ${bioHtml}${portfolioHtml}
         </div>
         <div class="wri">
           <div style="font-size:12px;color:var(--mu);">${w.reviews_count>0?'⭐ '+esc(w.rating)+' · '+esc(w.reviews_count)+' recenzii':'Fără recenzii încă'}</div>
           ${w.available ? `<button class="btn bt-bl bt-sm" onclick="selectWorker('${esc(w._id)}',0,'${esc(w.name)}')">Alege</button>` : `<span style="font-size:11px;color:var(--re);font-weight:500;">Ocupat în acest interval</span>`}
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }).catch(()=>{
     list.innerHTML='<div style="padding:1rem;color:var(--re);font-size:13px;">Nu am putut încărca meseriașii disponibili. Verifică conexiunea și încearcă din nou.</div>';
   });
@@ -1819,8 +1844,10 @@ async function lo(){
 }
 
 // MESERIAS
+let profileLoadedOnce = false;
 async function loadMes(){
   document.getElementById('m-hi').textContent='Bună, '+esc(CU.name)+'! 👋';
+  if(!profileLoadedOnce){profileLoadedOnce=true;loadMyProfile();}
   try{
     const d=await api('GET','/api/workers/me/dashboard');
     document.getElementById('ms-j').textContent=d.jobs.filter(j=>j.status==='pending'||j.status==='accepted').length;
@@ -1847,6 +1874,58 @@ async function loadMes(){
     loadGrafice('mes-grafice');
   }catch(e){toast('Eroare: '+e.message);}
 }
+let profilePhotoUrls = [];
+async function loadMyProfile(){
+  try{
+    const p = await api('GET','/api/workers/me/profile');
+    document.getElementById('prof-exp').value = p.experience_years ?? '';
+    document.getElementById('prof-bio').value = p.bio || '';
+    profilePhotoUrls = Array.isArray(p.portfolio_photos) ? p.portfolio_photos.slice() : [];
+    renderProfilePhotoPreview();
+  }catch(e){}
+}
+function renderProfilePhotoPreview(){
+  var box = document.getElementById('prof-photos-preview');
+  box.innerHTML = profilePhotoUrls.map(function(u,i){
+    return '<div style="position:relative;"><img src="'+esc(u)+'" style="width:52px;height:52px;object-fit:cover;border-radius:8px;"/>'+
+      '<button onclick="removeProfilePhoto('+i+')" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--re);color:#fff;border:none;font-size:11px;cursor:pointer;line-height:1;">×</button></div>';
+  }).join('');
+}
+function removeProfilePhoto(i){
+  profilePhotoUrls.splice(i,1);
+  renderProfilePhotoPreview();
+}
+document.addEventListener('change', function(e){
+  if(e.target && e.target.id === 'prof-photos-input'){
+    var files = Array.from(e.target.files).filter(function(f){return f.size <= MAX_PHOTO_MB*1024*1024;});
+    if(!files.length) return;
+    if(profilePhotoUrls.length + files.length > 6){
+      toast('Maxim 6 poze în portofoliu.');
+      files = files.slice(0, 6 - profilePhotoUrls.length);
+    }
+    if(!files.length) return;
+    const fd = new FormData();
+    files.forEach(function(f){fd.append('photos', f);});
+    const tk = localStorage.getItem('hro_tk');
+    fetch('/api/upload/photos', {method:'POST', headers:{Authorization:'Bearer '+tk}, body:fd, credentials:'include'})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.urls){profilePhotoUrls = profilePhotoUrls.concat(d.urls);renderProfilePhotoPreview();}
+      }).catch(function(){toast('Eroare la încărcarea pozelor.');});
+    e.target.value = '';
+  }
+});
+async function saveMyProfile(){
+  try{
+    await api('PATCH','/api/workers/me/profile',{
+      experience_years: document.getElementById('prof-exp').value || null,
+      bio: document.getElementById('prof-bio').value.trim(),
+      portfolio_photos: profilePhotoUrls
+    });
+    toast('Profil salvat!');
+  }catch(e){toast(e.message);}
+}
+
 async function accJob(id,btn){
   btn.disabled=true;
   try{
