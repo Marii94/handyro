@@ -776,6 +776,20 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   </div>
 </div>
 
+<div class="mov" id="payov">
+  <div class="mb2">
+    <div class="ml">Handy<span class="dot">RO</span></div>
+    <div class="ms">Autorizează plata stabilită</div>
+    <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:10px;">Sumă: <span id="pay-amount" style="color:var(--blue);">0 lei</span></div>
+    <div class="fg">
+      <label>Date card</label>
+      <div id="pay-card-element" style="padding:12px;border:0.5px solid rgba(15,31,61,0.2);border-radius:var(--rs);background:var(--bg);"></div>
+      <div id="pay-card-errors" style="color:#E24B4A;font-size:12px;margin-top:6px;"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px;"><button class="btn bt-gh" style="flex:1" onclick="closePayModal()">Anulează</button><button class="btn bt-nv" style="flex:1" id="pay-confirm-btn" onclick="confirmPendingPrice()">Autorizează</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <footer id="ft">
@@ -794,6 +808,57 @@ const stripe = Stripe('pk_test_51UJaN9LjlnzaJF31svvNxZMezLahimOkL5Dp87KY2Gc8AXoV
 const stripeElements = stripe.elements();
 const cardElement = stripeElements.create('card', { style: { base: { fontSize: '14px', fontFamily: "'DM Sans', sans-serif", color: '#0F1F3D' } } });
 let cardMounted = false;
+const payCardElement = stripeElements.create('card', { style: { base: { fontSize: '14px', fontFamily: "'DM Sans', sans-serif", color: '#0F1F3D' } } });
+let payCardMounted = false;
+let payPendingJobId = null;
+function openPayModal(jobId, price){
+  payPendingJobId = jobId;
+  document.getElementById('pay-amount').textContent = price + ' lei';
+  document.getElementById('payov').classList.add('on');
+  document.body.style.overflow = 'hidden';
+  if(!payCardMounted){
+    payCardElement.mount('#pay-card-element');
+    payCardElement.on('change', function(event){
+      document.getElementById('pay-card-errors').textContent = event.error ? event.error.message : '';
+    });
+    payCardMounted = true;
+  }
+}
+function closePayModal(){
+  document.getElementById('payov').classList.remove('on');
+  document.body.style.overflow = '';
+  payPendingJobId = null;
+}
+async function confirmPendingPrice(){
+  if(!payPendingJobId) return;
+  const btn = document.getElementById('pay-confirm-btn');
+  const price = Number(document.getElementById('pay-amount').textContent);
+  btn.disabled = true; btn.textContent = 'Se autorizează...';
+  try{
+    const intentData = await api('POST','/api/payments/create-intent',{amount:price});
+    const confirmResult = await stripe.confirmCardPayment(intentData.client_secret, {
+      payment_method: { card: payCardElement }
+    });
+    if(confirmResult.error){
+      document.getElementById('pay-card-errors').textContent = confirmResult.error.message;
+      btn.disabled = false; btn.textContent = 'Autorizează';
+      return;
+    }
+    if(confirmResult.paymentIntent.status !== 'requires_capture'){
+      toast('Autorizarea cardului nu a reușit. Încearcă din nou.');
+      btn.disabled = false; btn.textContent = 'Autorizează';
+      return;
+    }
+    await api('PATCH','/api/jobs/'+payPendingJobId+'/authorize-price',{payment_intent_id:confirmResult.paymentIntent.id});
+    toast('Plată autorizată cu succes!');
+    closePayModal();
+    btn.disabled = false; btn.textContent = 'Autorizează';
+    loadClient();
+  }catch(e){
+    toast(e.message); btn.disabled = false; btn.textContent = 'Autorizează';
+  }
+}
+
 function ensureCardMounted(){
   if(!cardMounted){
     cardElement.mount('#card-element');
@@ -972,6 +1037,7 @@ const SUBCATS = {
     {name:'Montat cabină duș',price:350},
     {name:'Verificat instalație apă',price:120},
     {name:'Montat filtru apă',price:150},
+    {name:'Altceva (preț stabilit cu adminul)',price:null},
   ],
   'Instalații electrice': [
     {name:'Montat priză/întrerupător',price:80},
@@ -984,6 +1050,7 @@ const SUBCATS = {
     {name:'Remediat pană curent',price:150},
     {name:'Montat sonerie/interfon',price:200},
     {name:'Montat pompă recirculare',price:250},
+    {name:'Altceva (preț stabilit cu adminul)',price:null},
   ],
   'Renovări & zugrăveală': [
     {name:'Zugrăvit cameră (vopsea client)',price:250},
@@ -996,6 +1063,7 @@ const SUBCATS = {
     {name:'Montat plinte',price:150},
     {name:'Montat tavan fals (mp)',price:70},
     {name:'Demontat faianță/gresie (mp)',price:25},
+    {name:'Altceva (preț stabilit cu adminul)',price:null},
   ],
   'Curățenie profesională': [
     {name:'Curățenie apartament 1 cameră',price:200},
@@ -1008,6 +1076,7 @@ const SUBCATS = {
     {name:'Dezinfecție spații',price:250},
     {name:'Curățenie baie completă',price:120},
     {name:'Spălat covoare/mochete',price:80},
+    {name:'Altceva (preț stabilit cu adminul)',price:null},
   ],
   'Tâmplărie & mobilier': [
     {name:'Asamblat mobilier IKEA (piesă)',price:80},
@@ -1020,6 +1089,7 @@ const SUBCATS = {
     {name:'Montat polițe/rafturi',price:100},
     {name:'Reparat mobilier',price:150},
     {name:'Montat pat/canapea extensibilă',price:120},
+    {name:'Altceva (preț stabilit cu adminul)',price:null},
   ],
   'Mentenanță generală': [
     {name:'Vizită diagnostic',price:120},
@@ -1032,6 +1102,7 @@ const SUBCATS = {
     {name:'Montat copertină/prelată',price:250},
     {name:'Igienizare țevi/sifoane',price:150},
     {name:'Reparat urgențe diverse',price:180},
+    {name:'Altceva (preț stabilit cu adminul)',price:null},
   ],
 };
   let selectedSlot='';
@@ -1197,6 +1268,7 @@ function handleSelSubcat(btn){
 var selectedSubcats = []; // multiple selection
 
 function selSubcat(idx, name, price, cat) {
+  var isAltceva = isNaN(price); // price e null/NaN doar pentru "Altceva"
   var existing = selectedSubcats.findIndex(function(s){return s.name===name;});
   var btn = document.getElementById('sb-'+idx);
   if(existing >= 0) {
@@ -1204,7 +1276,16 @@ function selSubcat(idx, name, price, cat) {
     selectedSubcats.splice(existing, 1);
     if(btn){btn.style.background='var(--bg)';btn.style.borderColor='var(--br)';}
   } else {
-    // Select
+    // "Altceva" nu se poate combina cu alte selecții cu preț fix — nu avem cum
+    // să adunăm un preț necunoscut cu unul cunoscut pentru autorizarea de card.
+    if(isAltceva || selectedSubcats.some(function(s){return isNaN(s.price);})){
+      selectedSubcats.forEach(function(s,i){
+        var otherBtn=document.querySelector('.subcat-btn[data-name="'+encodeURIComponent(s.name)+'"]');
+        if(otherBtn){otherBtn.style.background='var(--bg)';otherBtn.style.borderColor='var(--br)';}
+      });
+      selectedSubcats = [];
+      if(isAltceva) toast('Ai ales "Altceva" — prețul se stabilește direct cu adminul, nu se mai blochează bani pe card acum.');
+    }
     selectedSubcats.push({name:name, price:price});
     if(btn){btn.style.background='var(--bl)';btn.style.borderColor='var(--blue)';}
   }
@@ -1223,6 +1304,12 @@ function updateSubBtn() {
   if(selectedSubcats.length === 0) {
     btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea';
     btn.disabled=false;
+    return;
+  }
+  var isPricePending = selectedSubcats.some(function(s){return isNaN(s.price);});
+  if(isPricePending){
+    btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea (preț stabilit cu adminul)';
+    btn.disabled = false;
     return;
   }
   var totalPrice = selectedSubcats.reduce(function(s,sc){return s+sc.price;}, 0);
@@ -1275,36 +1362,43 @@ if(currentHour >= 18 && urg !== 'urgent'){
   urgentSurcharge = urgentSurcharge===295 ? 295 : 195;
 }
 const urgentExtra = urg==='urgent' ? urgentSurcharge : 0;
+    const isPricePending = selectedSubcats.some(function(s){return isNaN(s.price);});
     const subcatNames = selectedSubcats.length > 0 ? selectedSubcats.map(function(s){return s.name;}).join(', ') : (selectedSubcat ? selectedSubcat.name : '');
-    const subcatPrice = selectedSubcats.reduce(function(s,sc){return s+sc.price;}, 0) + urgentExtra;
+    const subcatPrice = isPricePending ? null : selectedSubcats.reduce(function(s,sc){return s+sc.price;}, 0) + urgentExtra;
     const fullDesc = subcatNames ? '[' + subcatNames + (urg==='urgent'?' — URGENT':'') + '] ' + desc : desc;
     var jobCity=document.getElementById('job-city')?.value||'București';
     const jobDate=selectedDate?selectedDate.toISOString():new Date().toISOString();
 
-    // 1. Creăm autorizarea de card (banii se blochează, nu se retrag încă).
-    btn.innerHTML='<i class="ti ti-loader"></i> Se autorizează cardul...';
-    const intentData = await api('POST','/api/payments/create-intent',{amount:subcatPrice});
-    const confirmResult = await stripe.confirmCardPayment(intentData.client_secret, {
-      payment_method: { card: cardElement, billing_details: { name: CU.name, email: CU.email } }
-    });
-    if(confirmResult.error){
-      document.getElementById('card-errors').textContent = confirmResult.error.message;
-      toast('Card refuzat: '+confirmResult.error.message);
-      btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea';
-      return;
-    }
-    if(confirmResult.paymentIntent.status !== 'requires_capture'){
-      toast('Autorizarea cardului nu a reușit. Încearcă din nou.');
-      btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea';
-      return;
+    let paymentIntentId = null;
+    if(!isPricePending){
+      // 1. Creăm autorizarea de card (banii se blochează, nu se retrag încă).
+      btn.innerHTML='<i class="ti ti-loader"></i> Se autorizează cardul...';
+      const intentData = await api('POST','/api/payments/create-intent',{amount:subcatPrice});
+      const confirmResult = await stripe.confirmCardPayment(intentData.client_secret, {
+        payment_method: { card: cardElement, billing_details: { name: CU.name, email: CU.email } }
+      });
+      if(confirmResult.error){
+        document.getElementById('card-errors').textContent = confirmResult.error.message;
+        toast('Card refuzat: '+confirmResult.error.message);
+        btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea';
+        return;
+      }
+      if(confirmResult.paymentIntent.status !== 'requires_capture'){
+        toast('Autorizarea cardului nu a reușit. Încearcă din nou.');
+        btn.disabled=false;btn.innerHTML='<i class="ti ti-send"></i> Trimite cererea';
+        return;
+      }
+      paymentIntentId = confirmResult.paymentIntent.id;
     }
 
-    // 2. Autorizare reușită — creăm efectiv jobul.
+    // 2. Autorizare reușită (sau preț de stabilit) — creăm efectiv jobul.
     btn.innerHTML='<i class="ti ti-loader"></i> Se trimite...';
-await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:selectedSlot||'',photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice||null,city:jobCity,job_date:jobDate,payment_intent_id:confirmResult.paymentIntent.id});
+await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:selectedSlot||'',photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice,city:jobCity,job_date:jobDate,payment_intent_id:paymentIntentId,price_pending:isPricePending});
     const ptxt=files.length>0?` cu ${files.length} ${files.length===1?'poză':'poze'}`:'';
     const utxt=urg==='urgent'?' Marcat ca urgent.':'';
-    document.getElementById('ok-txt').textContent=`Cererea ta a fost trimisă${ptxt}.${utxt} Suma de ${subcatPrice} lei a fost blocată pe cardul tău — se reține doar când meșterul finalizează lucrarea.`;
+    document.getElementById('ok-txt').textContent = isPricePending
+      ? `Cererea ta a fost trimisă${ptxt}.${utxt} Adminul te va contacta pentru a stabili prețul lucrării.`
+      : `Cererea ta a fost trimisă${ptxt}.${utxt} Suma de ${subcatPrice} lei a fost blocată pe cardul tău — se reține doar când meșterul finalizează lucrarea.`;
     document.getElementById('job-ok').style.display='block';
     document.getElementById('job-ok').scrollIntoView({behavior:'smooth',block:'nearest'});
     btn.innerHTML='<i class="ti ti-check"></i> Trimis!';
@@ -1706,9 +1800,12 @@ async function loadClient(){
       const ph=j.photos||[];
       const phHtml=ph.length?`<div class="jph">${ph.map(u=>`<img src="${u}" class="pi2" alt="poza"/>`).join('')}</div>`:'';
       const urgHtml=j.urgency==='urgent'?`<div class="jurg u-urg"><i class="ti ti-alert-triangle" style="font-size:11px;"></i> Urgent</div>`:'';
+      const payHtml=(j.payment_status==='pending_quote' && j.subcat_price)
+        ? `<button class="btn bt-bl bt-sm" style="margin-top:6px;" onclick="openPayModal('${String(j._id||j.id)}',${j.subcat_price})"><i class="ti ti-credit-card"></i> Autorizează plata — ${esc(j.subcat_price)} lei</button>`
+        : (j.payment_status==='pending_quote' ? `<div class="jm" style="margin-top:4px;color:var(--mu);font-size:11px;">Adminul stabilește prețul în curând...</div>` : '');
       return`<div class="jc">
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
-        <div class="jif"><div class="jt">${esc(j.category)}</div><div class="jm">Meșter: ${esc(j.worker_name||'În așteptare')} · ${esc(j.time_slot||'')}</div>${urgHtml}<div class="jm" style="margin-top:4px;font-style:italic;">${esc(j.description||'')}</div>${phHtml}</div>
+        <div class="jif"><div class="jt">${esc(j.category)}</div><div class="jm">Meșter: ${esc(j.worker_name||'În așteptare')} · ${esc(j.time_slot||'')}</div>${urgHtml}<div class="jm" style="margin-top:4px;font-style:italic;">${esc(j.description||'')}</div>${phHtml}${payHtml}</div>
         <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'În așteptare'}</span></div>
       </div>`;
     }).join('');
@@ -1886,7 +1983,15 @@ async function loadAJ(){
       tbl+='<tr id="jr-'+jid+'">';
       tbl+='<td><strong>'+esc(j.category)+'</strong><br><span style="font-size:11px;color:var(--mu);">'+esc((j.description||'').substring(0,50))+'</span></td>';
       tbl+='<td>'+esc(j.client_name||'-')+'</td>';
-      tbl+='<td style="font-size:12px;color:var(--blue);">'+(j.subcat_name?esc(j.subcat_name)+' - '+esc(j.subcat_price||'')+' lei':'-')+'</td>';
+      var priceCell=(j.subcat_name?esc(j.subcat_name)+' - '+esc(j.subcat_price||'')+' lei':'-');
+      if(j.payment_status==='pending_quote' && !j.subcat_price){
+        priceCell='<span style="color:#E24B4A;font-weight:600;">Preț de stabilit</span><br>'+
+          '<input type="number" id="price-in-'+jid+'" placeholder="lei" style="width:70px;font-size:12px;padding:3px 6px;border:1px solid var(--br);border-radius:6px;margin-top:3px;"/> '+
+          '<button class="btn bt-bl bt-sm" style="padding:3px 8px;font-size:11px;" onclick="setJobPrice(\''+jid+'\')">Setează</button>';
+      } else if(j.payment_status==='pending_quote' && j.subcat_price){
+        priceCell='<span style="color:#1A56DB;font-weight:600;">'+esc(j.subcat_price)+' lei</span><br><span style="font-size:10px;color:var(--mu);">Așteaptă autorizare client</span>';
+      }
+      tbl+='<td style="font-size:12px;color:var(--blue);">'+priceCell+'</td>';
       tbl+='<td>'+urgHtml+'</td>';
       tbl+='<td><span class="sb '+statusCls+'">'+esc(j.status)+'</span></td>';
       tbl+='<td><button class="btn bt-re bt-sm" data-jid="'+jid+'" onclick="handleDelJ(this)"><i class="ti ti-trash"></i></button></td>';
@@ -1894,6 +1999,17 @@ async function loadAJ(){
     });
     tbl+='</tbody></table>';
     document.getElementById('tj').innerHTML=tbl;
+  }catch(e){toast(e.message);}
+}
+
+async function setJobPrice(jid){
+  var input=document.getElementById('price-in-'+jid);
+  var price=Number(input.value);
+  if(!price || price<1){toast('Introdu un preț valid!');return;}
+  try{
+    await api('PATCH','/api/admin/jobs/'+jid+'/set-price',{price:price});
+    toast('Preț trimis clientului — '+price+' lei');
+    loadAJ();
   }catch(e){toast(e.message);}
 }
 
