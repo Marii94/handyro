@@ -3,6 +3,7 @@ const router = express.Router();
 const { User, Worker, Job, Conversation } = require('../db');
 const { auth, requireRole } = require('../middleware/auth');
 const { notifyAdmin, sendEmail } = require('../services/notify');
+const PDFDocument = require('pdfkit');
 const { captureHold, cancelHold, retrieveIntent } = require('../services/stripe');
 
 router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
@@ -87,6 +88,61 @@ router.post('/:id/report', auth, async (req, res) => {
     ).catch(() => {});
 
     res.json({ message: 'Raport trimis. Adminul va analiza situația cât mai curând.' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/:id/receipt', auth, async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ error: 'Job negăsit' });
+
+    const isClient = String(job.client_id) === String(req.user.id);
+    if (!isClient && req.user.role !== 'admin') return res.status(403).json({ error: 'Nu ai acces la această chitanță.' });
+    if (job.payment_status !== 'captured' || !job.amount_lei) {
+      return res.status(400).json({ error: 'Chitanța e disponibilă doar după ce lucrarea e finalizată și plata încasată.' });
+    }
+
+    const client = await User.findById(job.client_id);
+    let workerName = '';
+    if (job.worker_id) {
+      const w = await Worker.findById(job.worker_id);
+      const wu = w ? await User.findById(w.user_id) : null;
+      workerName = wu?.name || '';
+    }
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="chitanta-handyro-${job._id}.pdf"`);
+
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    doc.pipe(res);
+
+    doc.fontSize(22).fillColor('#0F1F3D').text('HandyRO', { continued: false });
+    doc.fontSize(10).fillColor('#6B7280').text('handyro.ro · admin@handyro.ro');
+    doc.moveDown(1.5);
+
+    doc.fontSize(16).fillColor('#0F1F3D').text('CHITANȚĂ', { underline: false });
+    doc.fontSize(9).fillColor('#E24B4A').text('Document informativ — nu este factură fiscală.');
+    doc.moveDown(1);
+
+    doc.fontSize(10).fillColor('#0F1F3D');
+    doc.text(`Nr. referință: ${job._id}`);
+    doc.text(`Data: ${(job.completed_at || job.updatedAt || new Date()).toLocaleDateString('ro-RO')}`);
+    doc.moveDown(0.5);
+    doc.text(`Client: ${client?.name || ''}`);
+    doc.text(`Email: ${client?.email || ''}`);
+    doc.moveDown(0.5);
+    doc.text(`Meșter: ${workerName || '-'}`);
+    doc.text(`Serviciu: ${job.category}${job.subcat_name ? ' — ' + job.subcat_name : ''}`);
+    doc.text(`Adresă: ${job.exact_address || '-'} — ${job.city || ''}`);
+    doc.moveDown(1);
+
+    doc.fontSize(13).fillColor('#0F1F3D').text(`Sumă plătită: ${job.amount_lei} lei`, { bold: true });
+    doc.fontSize(9).fillColor('#6B7280').text('Plată efectuată online, cu cardul, prin Stripe.');
+    doc.moveDown(2);
+
+    doc.fontSize(8).fillColor('#9CA3AF').text('Această chitanță confirmă efectuarea plății prin platforma HandyRO. Nu reprezintă factură fiscală în sensul legii; pentru factură fiscală, contactați admin@handyro.ro.');
+
+    doc.end();
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
