@@ -180,6 +180,7 @@ router.patch('/:id/on-the-way', auth, requireRole('meserias'), async (req, res) 
 
 router.patch('/:id/complete', auth, requireRole('meserias'), async (req, res) => {
   try {
+    const { completion_photos } = req.body;
     const job = await Job.findById(req.params.id);
     if (!job) return res.status(404).json({ error: 'Job negăsit' });
     if (job.payment_intent_id && job.payment_status === 'authorized') {
@@ -192,6 +193,7 @@ router.patch('/:id/complete', auth, requireRole('meserias'), async (req, res) =>
     }
     job.status = 'completed';
     job.completed_at = new Date();
+    if (Array.isArray(completion_photos) && completion_photos.length) job.completion_photos = completion_photos;
     await job.save();
 
     const client = await User.findById(job.client_id);
@@ -201,6 +203,7 @@ router.patch('/:id/complete', auth, requireRole('meserias'), async (req, res) =>
         `✅ Lucrarea ta a fost finalizată — HandyRO`,
         `Bună, ${client.name}!\n\nLucrarea "${job.category}${job.subcat_name ? ' — ' + job.subcat_name : ''}" a fost marcată ca finalizată de meșter.\n` +
         (job.amount_lei ? `Suma de ${job.amount_lei} lei a fost încasată de pe cardul tău.\n` : '') +
+        (job.completion_photos && job.completion_photos.length ? `Meșterul a atașat poze cu lucrarea finalizată — le poți vedea în contul tău.\n` : '') +
         `Poți lăsa un review din contul tău pe handyro.ro.`
       ).catch(() => {});
     }
