@@ -35,7 +35,7 @@ html{scroll-behavior:smooth;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--navy);font-size:15px;line-height:1.6;}
 nav{position:sticky;top:0;z-index:50;background:rgba(247,245,240,0.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--br);}
 .nav-in{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:62px;padding:0 2rem;}
-.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--navy);cursor:pointer;}
+.logo{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--navy);cursor:pointer;}
 .logo .dot{color:var(--acc);}
 .nav-ul{display:flex;gap:1.75rem;list-style:none;}
 .nav-ul a{font-size:13px;font-weight:500;color:var(--mu);cursor:pointer;transition:color .15s;}
@@ -333,7 +333,31 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
 
 <nav>
   <div class="nav-in">
-    <div class="logo" onclick="gp('home')">Handy<span class="dot">RO</span></div>
+    <div class="logo" onclick="gp('home')">
+      <svg width="30" height="30" viewBox="0 0 200 200" style="flex-shrink:0">
+        <circle cx="100" cy="100" r="98" fill="var(--acc)"/>
+        <path d="M78 72 L122 72 L115 125 L85 125 Z" fill="#0F1F3D"/>
+        <path d="M85 125 L100 125 L96 172 L78 172 Z" fill="#0F1F3D"/>
+        <path d="M100 125 L115 125 L122 172 L104 172 Z" fill="#0F1F3D"/>
+        <rect x="70" y="168" width="30" height="10" rx="4" fill="#0F1F3D"/>
+        <rect x="102" y="168" width="30" height="10" rx="4" fill="#0F1F3D"/>
+        <rect x="64" y="75" width="16" height="44" rx="8" fill="#0F1F3D"/>
+        <circle cx="72" cy="121" r="9" fill="#0F1F3D"/>
+        <g transform="rotate(30 122 78)">
+          <rect x="114" y="38" width="16" height="40" rx="8" fill="#0F1F3D"/>
+          <circle cx="122" cy="38" r="10" fill="#0F1F3D"/>
+          <rect x="118.5" y="12" width="7" height="26" rx="3.5" fill="#ffffff"/>
+          <circle cx="122" cy="12" r="6" fill="none" stroke="#ffffff" stroke-width="4"/>
+        </g>
+        <circle cx="100" cy="50" r="18" fill="#0F1F3D"/>
+        <path d="M84 40 Q100 20 116 40 L116 47 Q100 34 84 47 Z" fill="#ffffff"/>
+        <rect x="80" y="43" width="24" height="6" rx="3" fill="#ffffff" transform="rotate(-6 92 46)"/>
+        <rect x="83" y="118" width="34" height="8" fill="#ffffff"/>
+        <rect x="89" y="126" width="10" height="12" rx="2" fill="#ffffff"/>
+        <rect x="101" y="126" width="10" height="12" rx="2" fill="#ffffff"/>
+      </svg>
+      <span>Handy<span class="dot">RO</span></span>
+    </div>
     <ul class="nav-ul" id="pub-nav">
       <li><a id="nl-home" class="on" onclick="gp('home')">Acasă</a></li>
       <li><a id="nl-services" onclick="gp('services')">Servicii</a></li>
