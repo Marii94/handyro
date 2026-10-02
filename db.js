@@ -54,6 +54,7 @@ const JobSchema = new mongoose.Schema({
   status: { type: String, enum: ['pending','accepted','on_the_way','completed','cancelled'], default: 'pending' },
   city: { type: String, default: 'București' },
   exact_address: { type: String, default: '' },
+  completion_photos: [String],
   subcat_name: String,
   subcat_price: Number,
   completed_at: Date,
