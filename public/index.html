@@ -693,7 +693,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   <div class="sec" style="max-width:800px;">
     <div class="sl">Legal</div>
     <div class="st">Termeni și Condiții</div>
-    <div style="font-size:13px;color:var(--mu);margin-bottom:2rem;">Ultima actualizare: 29 mai 2026</div>
+    <div style="font-size:13px;color:var(--mu);margin-bottom:2rem;">Ultima actualizare: 2 octombrie 2026</div>
     <div style="font-size:15px;color:var(--navy);line-height:1.8;">
       <p style="margin-bottom:1rem;">Prin crearea unui cont sau utilizarea serviciilor platformei, acceptați în întregime termenii de mai jos.</p>
       <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">1. Obiectul platformei</h3>
@@ -702,11 +702,17 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <p style="margin-bottom:1rem;">Utilizatorul declară că are cel puțin 18 ani, se angajează să furnizeze informații corecte și răspunde în exclusivitate pentru activitatea desfășurată prin contul său.</p>
       <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">3. Condiții pentru Meșteri</h3>
       <p style="margin-bottom:1rem;">Meșterii sunt responsabili pentru calitatea și legalitatea lucrărilor. Nu vor solicita clienților date de contact în scopul ocolirii platformei și vor plăti comisionul stabilit per Job finalizat.</p>
-      <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">4. Răspundere limitată</h3>
+      <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">4. Plata și autorizarea de card</h3>
+      <p style="margin-bottom:1rem;">La trimiterea unei cereri, suma aferentă lucrării este <strong>blocată (autorizată) pe cardul Clientului</strong>, fără a fi retrasă efectiv. Banii sunt retrași din cont abia în momentul în care Meșterul marchează lucrarea drept finalizată. Dacă lucrarea nu este finalizată în termen de <strong>2 zile lucrătoare</strong> de la trimiterea cererii, autorizarea se anulează automat, iar suma este eliberată integral către Client, fără nicio reținere.</p>
+      <p style="margin-bottom:1rem;">Pentru lucrările al căror preț nu poate fi stabilit dinainte ("Altceva"), prețul este convenit separat, prin discuție directă cu administratorul platformei, iar autorizarea de card se solicită Clientului abia după stabilirea sumei.</p>
+      <p style="margin-bottom:1rem;">Procesarea plăților este realizată integral de Stripe, un procesator de plăți terț, certificat PCI-DSS. HandyRO nu stochează și nu are acces la datele complete ale cardului.</p>
+      <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">5. Comision</h3>
+      <p style="margin-bottom:1rem;">Din suma încasată per lucrare finalizată, platforma reține un comision. Niciun comision nu este perceput în avans sau pentru lucrări neefectuate.</p>
+      <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">6. Răspundere limitată</h3>
       <p style="margin-bottom:1rem;">HandyRO acționează exclusiv ca intermediar și nu răspunde pentru calitatea serviciilor, prejudiciile cauzate de utilizatori sau întreruperea temporară a platformei.</p>
-      <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">5. SAL/ANPC</h3>
+      <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">7. SAL/ANPC</h3>
       <p style="margin-bottom:1rem;">Consumatorii pot apela la <a href="https://anpc.ro" target="_blank" style="color:var(--blue);">ANPC</a> sau platforma europeană <a href="https://ec.europa.eu/consumers/odr" target="_blank" style="color:var(--blue);">SOL</a>. Contact: admin@handyro.ro</p>
-      <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">6. Contact</h3>
+      <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">8. Contact</h3>
       <p>Email: admin@handyro.ro · Program: Luni–Sâmbătă, 08:00–20:00</p>
     </div>
   </div>
@@ -791,6 +797,10 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;"><input type="checkbox" value="Tâmplărie & mobilier"/> Tâmplărie & mobilier</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;"><input type="checkbox" value="Mentenanță generală"/> Mentenanță generală</label>
       </div>
+    </div>
+    <div class="fg" id="mterms-wrap" style="display:none;flex-direction:row;align-items:flex-start;gap:8px;">
+      <input type="checkbox" id="mterms" style="margin-top:3px;flex-shrink:0;"/>
+      <label for="mterms" style="font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--mu);line-height:1.5;">Sunt de acord cu <a onclick="gp('termeni')" style="color:var(--blue);cursor:pointer;">Termenii și Condițiile</a> și <a onclick="gp('confidentialitate')" style="color:var(--blue);cursor:pointer;">Politica de Confidențialitate</a>, inclusiv mecanismul de autorizare/blocare a sumei pe card.</label>
     </div>
     <div style="display:flex;gap:8px;margin-top:4px;"><button class="btn bt-gh" style="flex:1" onclick="cm()">Anulează</button><button class="btn bt-nv" style="flex:1" id="msub2" onclick="subm()">Intră în cont</button></div>
     <div class="mtg" id="mtog">Nu ai cont? <a onclick="tm2()">Înregistrează-te gratuit</a></div>
@@ -1587,6 +1597,8 @@ function rm(){
   document.getElementById('msub2').textContent=l?'Intră în cont':'Creează cont';
   document.getElementById('mng').style.display=l?'none':'flex';
   document.getElementById('mrg').style.display=l?'none':'flex';
+  document.getElementById('mterms-wrap').style.display=l?'none':'flex';
+  if(!l)document.getElementById('mterms').checked=false;
   document.getElementById('mtog').innerHTML=l?'Nu ai cont? <a onclick="tm2()">Înregistrează-te gratuit</a>':'Ai deja cont? <a onclick="tm2()">Intră în cont</a>';
 }
 function tm2(){mm=mm==='login'?'register':'login';document.getElementById('merr').style.display='none';rm();}
@@ -1614,7 +1626,9 @@ async function subm(){
   try{
     let data;
     if(mm==='login'){data=await api('POST','/api/auth/login',{email,password:pass});}
-    else{const name=document.getElementById('mn').value.trim();const role=document.getElementById('mr').value;
+    else{
+      if(!document.getElementById('mterms').checked){toast('Trebuie să accepți Termenii și Condițiile pentru a-ți crea cont!');btn.disabled=false;return;}
+      const name=document.getElementById('mn').value.trim();const role=document.getElementById('mr').value;
       const cats=Array.from(document.querySelectorAll('#mes-cats-grid input:checked')).map(function(c){return c.value;});
       const specialization=role==='meserias'?(cats.length>1?'Toate categoriile':(cats[0]||'General')):'';
          const mesPhone=role==='meserias'?(document.getElementById('mes-phone')?.value.trim()||''):'';
