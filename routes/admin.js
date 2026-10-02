@@ -39,6 +39,7 @@ router.get('/users', async (req, res) => {
         categories: w?.categories || [],
         referral_source: w?.referral_source || null,
         pfa_name: w?.pfa_name || null,
+        city: w?.city || '',
         prices,
       };
     }));
@@ -130,6 +131,27 @@ router.get('/payouts', async (req, res) => {
     });
 
     res.json({ jobs: result, totals });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+const VALID_ZONES = [
+  'Sector 1','Sector 2','Sector 3','Sector 4','Sector 5','Sector 6',
+  'Voluntari (Ilfov)','Otopeni (Ilfov)','Pantelimon (Ilfov)','Popești-Leordeni (Ilfov)',
+  'Chitila (Ilfov)','Buftea (Ilfov)','Bragadiru (Ilfov)','Măgurele (Ilfov)','Chiajna (Ilfov)',
+  'Domnești (Ilfov)','Corbeanca (Ilfov)','Mogoșoaia (Ilfov)','Berceni (Ilfov)','Jilava (Ilfov)',
+  'Cernica (Ilfov)','Afumați (Ilfov)','1 Decembrie (Ilfov)',
+];
+
+router.patch('/workers/:workerId/city', async (req, res) => {
+  try {
+    const { zones } = req.body; // array, ex: ['Sector 1','Sector 3']
+    if (!Array.isArray(zones) || !zones.length) return res.status(400).json({ error: 'Alege cel puțin o zonă.' });
+    if (zones.length > 2) return res.status(400).json({ error: 'Maxim 2 zone per meșter.' });
+    const invalid = zones.filter(z => !VALID_ZONES.includes(z));
+    if (invalid.length) return res.status(400).json({ error: 'Zonă invalidă: ' + invalid.join(', ') });
+    const worker = await Worker.findByIdAndUpdate(req.params.workerId, { city: zones.join(', ') }, { new: true });
+    if (!worker) return res.status(404).json({ error: 'Meșter negăsit' });
+    res.json({ message: 'Zone actualizate ✓', city: worker.city });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
