@@ -5,7 +5,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose.connect(MONGODB_URI).then(() => {
   console.log('✅ MongoDB conectat!');
-  seedIfEmpty();
+  seedIfEmpty().then(() => ensureAltcevaSubcats());
 }).catch(err => console.error('❌ MongoDB eroare:', err));
 
 // SCHEMAS
@@ -58,7 +58,7 @@ const JobSchema = new mongoose.Schema({
   completed_at: Date,
   job_date: Date,
   payment_intent_id: { type: String, default: null },
-  payment_status: { type: String, enum: ['pending','authorized','captured','canceled','refunded'], default: 'pending' },
+  payment_status: { type: String, enum: ['pending','authorized','captured','canceled','refunded','pending_quote'], default: 'pending' },
   amount_lei: { type: Number, default: null },
 }, { timestamps: true });
 
@@ -78,7 +78,9 @@ const MessageSchema = new mongoose.Schema({
 const SubcatPriceSchema = new mongoose.Schema({
   category: { type: String, required: true },
   name: { type: String, required: true },
-  price: { type: Number, required: true },
+  // 'price' poate fi null DOAR pentru subcategoria "Altceva" — preț stabilit
+  // manual de admin, direct cu clientul, în loc de autorizare automată de card.
+  price: { type: Number, required: false, default: null },
   order: { type: Number, default: 0 },
 });
 
@@ -213,8 +215,22 @@ async function seedIfEmpty() {
     {category:'Mentenanță generală',name:'Igienizare țevi/sifoane',price:150,order:9},
     {category:'Mentenanță generală',name:'Reparat urgențe diverse',price:180,order:10},
   ];
+  CATEGORIES.forEach(cat => subcats.push({category:cat,name:'Altceva (preț stabilit cu adminul)',price:null,order:99}));
   await SubcatPrice.insertMany(subcats);
   console.log('✅ Date seed introduse în MongoDB');
+}
+
+// Adaugă subcategoria "Altceva" pe fiecare categorie, dacă lipsește — rulează la
+// FIECARE pornire a serverului (nu doar pe o bază goală), ca să apară și pe baza
+// de date deja existentă, fără să șteargă sau să afecteze vreun alt rând.
+async function ensureAltcevaSubcats() {
+  for (const cat of CATEGORIES) {
+    await SubcatPrice.findOneAndUpdate(
+      { category: cat, name: 'Altceva (preț stabilit cu adminul)' },
+      { $setOnInsert: { category: cat, name: 'Altceva (preț stabilit cu adminul)', price: null, order: 99 } },
+      { upsert: true }
+    );
+  }
 }
 
 const ContactMsgSchema = new mongoose.Schema({
