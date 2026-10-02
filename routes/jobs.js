@@ -64,6 +64,32 @@ router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+router.post('/:id/report', auth, async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message?.trim()) return res.status(400).json({ error: 'Scrie ce s-a întâmplat.' });
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ error: 'Job negăsit' });
+    const isClient = String(job.client_id) === String(req.user.id);
+    let isWorker = false;
+    if (!isClient && job.worker_id) {
+      const w = await Worker.findById(job.worker_id);
+      isWorker = w && String(w.user_id) === String(req.user.id);
+    }
+    if (!isClient && !isWorker) return res.status(403).json({ error: 'Nu ai acces la acest job.' });
+
+    notifyAdmin(
+      `🚨 RAPORT — ${isClient ? 'de la client' : 'de la meșter'} — ${job.category}`,
+      `Raportat de: ${req.user.name || req.user.email} (${isClient ? 'client' : 'meșter'})\n` +
+      `Job: ${job.category}${job.subcat_name ? ' — ' + job.subcat_name : ''}\n` +
+      `Adresă: ${job.exact_address || '(neprecizată)'} — ${job.city || ''}\n\n` +
+      `Mesaj:\n${message.trim()}`
+    ).catch(() => {});
+
+    res.json({ message: 'Raport trimis. Adminul va analiza situația cât mai curând.' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 router.get('/', auth, async (req, res) => {
   try {
     let jobs;
