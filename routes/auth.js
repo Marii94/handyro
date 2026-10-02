@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const { User, Worker } = require('../db');
 const { auth } = require('../middleware/auth');
 const { JWT_SECRET } = require('../middleware/auth');
-const { sendEmail } = require('../services/notify');
+const { sendEmail, notifyAdmin } = require('../services/notify');
 
 const APP_URL = process.env.APP_URL || 'https://handyro.ro';
 
@@ -69,8 +69,22 @@ const horeca_type = req.body.horeca_type || '';
         iban,
         referral_source,
       });
+      notifyAdmin(
+        `🔨 Meșter nou înregistrat — ${user.name}`,
+        `Nume: ${user.name}\nEmail: ${user.email}\nTelefon: ${phone || '(neprecizat)'}\n` +
+        `Specializare: ${spec}\nCategorii: ${categories.join(', ') || '(niciuna)'}\nZone: ${city}\n` +
+        (pfa_name ? `PFA/SRL: ${pfa_name}\n` : '') +
+        (referral_source ? `Venit prin agenția: ${referral_source}\n` : '') +
+        `Așteaptă aprobare în panoul de admin.`
+      ).catch(() => {});
       return res.status(201).json({ message: 'Cont creat! Verifică-ți emailul, apoi așteaptă aprobarea adminului.' });
     }
+    notifyAdmin(
+      `${role === 'horeca' ? '🍽️' : '👤'} ${role === 'horeca' ? 'Cont HoReCa nou' : 'Client nou'} — ${user.name}`,
+      `Nume: ${user.name}\nEmail: ${user.email}\nTelefon: ${phone || '(neprecizat)'}` +
+      (role === 'horeca' ? `\nLocație: ${horeca_name || '(neprecizat)'} (${horeca_type || '-'})` : '')
+    ).catch(() => {});
+
     const token = jwt.sign({ id: user._id, name: user.name, email: user.email, role }, JWT_SECRET, { expiresIn: '7d' });
     res.cookie('token', token, { httpOnly: true, maxAge: 7*24*60*60*1000, sameSite: 'lax' });
     res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role, email_verified: false } });
