@@ -1846,7 +1846,8 @@ async function loadAW(){ loadGrafice('admin-grafice');
       actHtml+='</div>';
       wtbl+='<tr id="wr-'+uid+'">';
       var refBadge=w.referral_source?' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#EBF1FF;color:var(--blue);font-weight:600;">via '+esc(w.referral_source)+'</span>':'';
-      wtbl+='<td><strong>'+esc(w.name)+'</strong>'+refBadge+'<br><span style="font-size:11px;color:var(--mu);">'+esc(w.email)+'</span></td>';
+      var pfaBadge=w.pfa_name?' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#ECFDF5;color:#059669;font-weight:600;">'+esc(w.pfa_name)+'</span>':'';
+      wtbl+='<td><strong>'+esc(w.name)+'</strong>'+refBadge+pfaBadge+'<br><span style="font-size:11px;color:var(--mu);">'+esc(w.email)+'</span></td>';
       wtbl+='<td style="font-size:11px;color:var(--mu);">📞 '+esc(w.phone||'-')+'</td>';
       wtbl+='<td style="font-size:11px;color:var(--navy);">'+(w.categories&&w.categories.length?w.categories.map(esc).join('<br>'):esc(w.specialization||'-'))+'</td>';
 
@@ -2111,9 +2112,10 @@ async function loadAdminExpenses(){
     var workerKeys=Object.keys(totals.by_worker||{});
     if(workerKeys.length){
       html+='<div class="set">De plătit, pe meșter</div>';
-      html+='<table style="margin-bottom:1.5rem;"><thead><tr><th>Meșter</th><th>Sumă de plată</th></tr></thead><tbody>';
+      html+='<table style="margin-bottom:1.5rem;"><thead><tr><th>Meșter</th><th>PFA / SRL</th><th>Sumă de plată</th></tr></thead><tbody>';
       workerKeys.forEach(function(k){
-        html+='<tr><td>'+esc(totals.by_worker[k].name)+'</td><td><strong>'+totals.by_worker[k].total.toFixed(2)+' lei</strong></td></tr>';
+        var pfaTxt=totals.by_worker[k].pfa?esc(totals.by_worker[k].pfa):'<span style="color:var(--mu);">— (persoană fizică)</span>';
+        html+='<tr><td>'+esc(totals.by_worker[k].name)+'</td><td>'+pfaTxt+'</td><td><strong>'+totals.by_worker[k].total.toFixed(2)+' lei</strong></td></tr>';
       });
       html+='</tbody></table>';
     }
