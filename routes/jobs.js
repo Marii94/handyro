@@ -7,7 +7,7 @@ const { captureHold, cancelHold, retrieveIntent } = require('../services/stripe'
 
 router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
   try {
-    const { category, description, worker_id, urgency, time_slot, photos, subcat_name, subcat_price, job_date, payment_intent_id, price_pending } = req.body;
+    const { category, description, worker_id, urgency, time_slot, photos, subcat_name, subcat_price, job_date, payment_intent_id, price_pending, exact_address, city } = req.body;
     if (!category) return res.status(400).json({ error: 'Categoria este obligatorie' });
     if (!description?.trim()) return res.status(400).json({ error: 'Descrierea este obligatorie' });
 
@@ -15,7 +15,7 @@ router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
     if (price_pending) {
       // "Altceva" — nu există un preț fix, deci nu se cere nicio autorizare de card.
       // Jobul se creează direct, iar prețul se stabilește separat, prin discuție cu adminul.
-      job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name: subcat_name||'Altceva (preț stabilit cu adminul)', subcat_price: null, city: 'București', job_date: job_date?new Date(job_date):new Date(), payment_intent_id: null, payment_status: 'pending_quote', amount_lei: null });
+      job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name: subcat_name||'Altceva (preț stabilit cu adminul)', subcat_price: null, city: city||'București', exact_address: exact_address||'', job_date: job_date?new Date(job_date):new Date(), payment_intent_id: null, payment_status: 'pending_quote', amount_lei: null });
     } else {
       if (!payment_intent_id) return res.status(400).json({ error: 'Plata cu cardul este obligatorie pentru a trimite o cerere.' });
 
@@ -32,7 +32,7 @@ router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
       }
 
       const amountLei = intent.amount / 100;
-      job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name, subcat_price, city: 'București', job_date: job_date?new Date(job_date):new Date(), payment_intent_id, payment_status: 'authorized', amount_lei: amountLei });
+      job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name, subcat_price, city: city||'București', exact_address: exact_address||'', job_date: job_date?new Date(job_date):new Date(), payment_intent_id, payment_status: 'authorized', amount_lei: amountLei });
     }
     if (worker_id) {
       const w = await Worker.findById(worker_id);
@@ -45,6 +45,8 @@ router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
       price_pending ? `⚠️ Job nou — PREȚ DE STABILIT — ${category}` : `🔧 Job nou — ${category}`,
       `Client: ${req.user.name || req.user.email}\n` +
       `Categorie: ${category}${subcat_name ? ' — ' + subcat_name : ''}\n` +
+      `Zonă: ${city || 'București'}\n` +
+      `Adresă exactă: ${exact_address || '(neprecizată)'}\n` +
       `Urgență: ${urgency === 'urgent' ? 'URGENT' : 'Normal'}\n` +
       `Interval: ${time_slot || 'Orice interval'}\n` +
       (price_pending
