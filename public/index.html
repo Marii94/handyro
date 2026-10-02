@@ -443,8 +443,8 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
           </div>
         </div>
         <div class="fg">
-          <label>Orașul tău</label>
-          <select id="job-city">
+          <label>Sectorul / orașul tău <span style="color:#E24B4A;">*</span> <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(îți arătăm doar meșterii care lucrează acolo)</span></label>
+          <select id="job-city" onchange="onJobCityChange()">
             <optgroup label="București">
               <option value="Sector 1">Sector 1</option>
               <option value="Sector 2">Sector 2</option>
@@ -470,14 +470,11 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
               <option value="Jilava (Ilfov)">Jilava</option>
               <option value="Snagov (Ilfov)">Snagov</option>
             </optgroup>
-            <option value="Ploiești">Ploiești</option>
-            <option value="Brașov">Brașov</option>
-            <option value="Cluj-Napoca">Cluj-Napoca</option>
-            <option value="Timișoara">Timișoara</option>
-            <option value="Constanța">Constanța</option>
-            <option value="Iași">Iași</option>
-            <option value="Craiova">Craiova</option>
           </select>
+        </div>
+        <div class="fg">
+          <label>Adresa exactă <span style="color:#E24B4A;">*</span></label>
+          <input type="text" id="job-address" placeholder="Ex: Str. Mihai Eminescu nr. 12, ap. 4"/>
         </div>
         <div class="fg" id="calendar-wrap" style="display:none;">
   <label>Alege data</label>
@@ -960,11 +957,19 @@ function ss(el,cat,ico){
   document.getElementById('job-ok').style.display='none';
   document.getElementById('sub-btn').disabled=false;
   document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea';
-  api('GET','/api/workers?category='+encodeURIComponent(cat)).then(workers=>{
-    const list=document.getElementById('workers-list');
-    if(!workers.length){list.innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Nu există meseriași disponibili momentan.</div>';return;}
-    // Update hero price with first worker
-    // hero price removed
+  loadWorkersForSelection(cat);
+  document.getElementById('fc').scrollIntoView({behavior:'smooth',block:'start'});
+showSubcats(cat);
+renderCalendar();
+}
+function loadWorkersForSelection(cat){
+  const list=document.getElementById('workers-list');
+  list.innerHTML='Se încarcă...';
+  const selectedCity=document.getElementById('job-city')?.value||'';
+  let url='/api/workers?category='+encodeURIComponent(cat);
+  if(selectedCity) url+='&city='+encodeURIComponent(selectedCity);
+  api('GET',url).then(workers=>{
+    if(!workers.length){list.innerHTML='<div style="padding:1rem;color:var(--mu);font-size:13px;">Niciun meseriaș nu lucrează momentan în '+esc(selectedCity||'zona ta')+'. Încearcă alt sector, sau trimite o cerere prin <a style="color:var(--blue);cursor:pointer;" onclick="gp(\'contact\')">mesageria cu adminul</a>.</div>';return;}
     list.innerHTML=workers.map(w=>`
       <div class="wr" data-wid="${esc(w._id)}" style="border-top:0.5px solid var(--br);">
         <div class="wa">${esc(ini(w.name))}</div>
@@ -979,12 +984,17 @@ function ss(el,cat,ico){
         </div>
       </div>`).join('');
   }).catch(()=>{
-    document.getElementById('workers-list').innerHTML='<div style="padding:1rem;color:var(--re);font-size:13px;">Nu am putut încărca meseriașii disponibili. Verifică conexiunea și încearcă din nou.</div>';
+    list.innerHTML='<div style="padding:1rem;color:var(--re);font-size:13px;">Nu am putut încărca meseriașii disponibili. Verifică conexiunea și încearcă din nou.</div>';
   });
-  document.getElementById('fc').scrollIntoView({behavior:'smooth',block:'start'});
-showSubcats(cat);
-renderCalendar();
 }
+
+function onJobCityChange(){
+  if(!curCat) return;
+  selectedWorkerId=null;
+  updateSubBtn();
+  loadWorkersForSelection(curCat);
+}
+
 function su(u){
   urg=u;
   if(u==='urgent'){ if(urgentSurcharge!==295) urgentSurcharge=195; } else { urgentSurcharge=0; }
@@ -1275,17 +1285,18 @@ function selSubcat(idx, name, price, cat) {
     // Deselect
     selectedSubcats.splice(existing, 1);
     if(btn){btn.style.background='var(--bg)';btn.style.borderColor='var(--br)';}
+  } else if(isAltceva){
+    // "Altceva" nu intră în fluxul normal de cerere — trimitem clientul direct
+    // la mesageria cu adminul, ca să discute exact de ce are nevoie.
+    if(!CU){toast('Trebuie să fii autentificat');om('login');return;}
+    gp('contact');
+    setTimeout(function(){
+      var input=document.getElementById('contact-msg-input');
+      if(input){input.value='Bună! Aș avea nevoie de o lucrare din categoria "'+cat+'" care nu se încadrează în opțiunile standard. ';input.focus();}
+    },200);
+    toast('Te-am dus la mesageria cu adminul — descrie-i exact de ce ai nevoie.');
+    return;
   } else {
-    // "Altceva" nu se poate combina cu alte selecții cu preț fix — nu avem cum
-    // să adunăm un preț necunoscut cu unul cunoscut pentru autorizarea de card.
-    if(isAltceva || selectedSubcats.some(function(s){return isNaN(s.price);})){
-      selectedSubcats.forEach(function(s,i){
-        var otherBtn=document.querySelector('.subcat-btn[data-name="'+encodeURIComponent(s.name)+'"]');
-        if(otherBtn){otherBtn.style.background='var(--bg)';otherBtn.style.borderColor='var(--br)';}
-      });
-      selectedSubcats = [];
-      if(isAltceva) toast('Ai ales "Altceva" — prețul se stabilește direct cu adminul, nu se mai blochează bani pe card acum.');
-    }
     selectedSubcats.push({name:name, price:price});
     if(btn){btn.style.background='var(--bl)';btn.style.borderColor='var(--blue)';}
   }
@@ -1339,6 +1350,8 @@ async function submitJob(){
   const desc=document.getElementById('prob-desc').value.trim();
   if(!desc){document.getElementById('prob-desc').focus();document.getElementById('prob-desc').style.borderColor='#E24B4A';setTimeout(()=>document.getElementById('prob-desc').style.borderColor='',2000);return;}
   if(!selectedSubcats.length){toast('Alege cel puțin un tip de lucrare, ca să știm suma de blocat pe card!');return;}
+  const jobAddress=document.getElementById('job-address')?.value.trim()||'';
+  if(!jobAddress){document.getElementById('job-address').focus();toast('Completează adresa exactă, ca meșterul să știe unde să vină!');return;}
   const btn=document.getElementById('sub-btn');
   btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Se trimite...';
   try{
@@ -1393,7 +1406,7 @@ const urgentExtra = urg==='urgent' ? urgentSurcharge : 0;
 
     // 2. Autorizare reușită (sau preț de stabilit) — creăm efectiv jobul.
     btn.innerHTML='<i class="ti ti-loader"></i> Se trimite...';
-await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:selectedSlot||'',photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice,city:jobCity,job_date:jobDate,payment_intent_id:paymentIntentId,price_pending:isPricePending});
+await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:selectedSlot||'',photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice,city:jobCity,exact_address:jobAddress,job_date:jobDate,payment_intent_id:paymentIntentId,price_pending:isPricePending});
     const ptxt=files.length>0?` cu ${files.length} ${files.length===1?'poză':'poze'}`:'';
     const utxt=urg==='urgent'?' Marcat ca urgent.':'';
     document.getElementById('ok-txt').textContent = isPricePending
