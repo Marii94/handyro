@@ -156,6 +156,28 @@ router.patch('/:id/accept', auth, requireRole('meserias'), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+router.patch('/:id/on-the-way', auth, requireRole('meserias'), async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ error: 'Job negăsit' });
+    if (job.status !== 'accepted') return res.status(400).json({ error: 'Jobul trebuie acceptat înainte să fie marcat ca "pe drum".' });
+    job.status = 'on_the_way';
+    await job.save();
+
+    const client = await User.findById(job.client_id);
+    if (client?.email) {
+      sendEmail(
+        client.email,
+        `🚗 Meșterul e pe drum — HandyRO`,
+        `Bună, ${client.name}!\n\nMeșterul tău pentru lucrarea "${job.category}"${job.subcat_name ? ' — ' + job.subcat_name : ''} este pe drum către tine.\n` +
+        `Poți urmări discuția direct în chat, pe handyro.ro.`
+      ).catch(() => {});
+    }
+
+    res.json({ message: 'Status actualizat: pe drum!' });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 router.patch('/:id/complete', auth, requireRole('meserias'), async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);
