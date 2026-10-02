@@ -7,25 +7,33 @@ const { captureHold, cancelHold, retrieveIntent } = require('../services/stripe'
 
 router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
   try {
-    const { category, description, worker_id, urgency, time_slot, photos, subcat_name, subcat_price, job_date, payment_intent_id } = req.body;
+    const { category, description, worker_id, urgency, time_slot, photos, subcat_name, subcat_price, job_date, payment_intent_id, price_pending } = req.body;
     if (!category) return res.status(400).json({ error: 'Categoria este obligatorie' });
     if (!description?.trim()) return res.status(400).json({ error: 'Descrierea este obligatorie' });
-    if (!payment_intent_id) return res.status(400).json({ error: 'Plata cu cardul este obligatorie pentru a trimite o cerere.' });
 
-    // Verificăm la Stripe că autorizarea cardului chiar a reușit (status 'requires_capture')
-    // înainte de a crea jobul — nu avem încredere doar în ce trimite frontend-ul.
-    let intent;
-    try {
-      intent = await retrieveIntent(payment_intent_id);
-    } catch (e) {
-      return res.status(400).json({ error: 'Nu am putut verifica plata. Încearcă din nou.' });
-    }
-    if (intent.status !== 'requires_capture') {
-      return res.status(400).json({ error: 'Plata nu a fost autorizată cu succes. Încearcă din nou.' });
-    }
+    let job;
+    if (price_pending) {
+      // "Altceva" — nu există un preț fix, deci nu se cere nicio autorizare de card.
+      // Jobul se creează direct, iar prețul se stabilește separat, prin discuție cu adminul.
+      job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name: subcat_name||'Altceva (preț stabilit cu adminul)', subcat_price: null, city: 'București', job_date: job_date?new Date(job_date):new Date(), payment_intent_id: null, payment_status: 'pending_quote', amount_lei: null });
+    } else {
+      if (!payment_intent_id) return res.status(400).json({ error: 'Plata cu cardul este obligatorie pentru a trimite o cerere.' });
 
-    const amountLei = intent.amount / 100;
-    const job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name, subcat_price, city: 'București', job_date: job_date?new Date(job_date):new Date(), payment_intent_id, payment_status: 'authorized', amount_lei: amountLei });
+      // Verificăm la Stripe că autorizarea cardului chiar a reușit (status 'requires_capture')
+      // înainte de a crea jobul — nu avem încredere doar în ce trimite frontend-ul.
+      let intent;
+      try {
+        intent = await retrieveIntent(payment_intent_id);
+      } catch (e) {
+        return res.status(400).json({ error: 'Nu am putut verifica plata. Încearcă din nou.' });
+      }
+      if (intent.status !== 'requires_capture') {
+        return res.status(400).json({ error: 'Plata nu a fost autorizată cu succes. Încearcă din nou.' });
+      }
+
+      const amountLei = intent.amount / 100;
+      job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name, subcat_price, city: 'București', job_date: job_date?new Date(job_date):new Date(), payment_intent_id, payment_status: 'authorized', amount_lei: amountLei });
+    }
     if (worker_id) {
       const w = await Worker.findById(worker_id);
       if (w) await Conversation.create({ job_id: job._id, client_id: req.user.id, worker_id: w.user_id });
@@ -34,16 +42,23 @@ router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
     // Notificare admin — nu așteptăm rezultatul (fire-and-forget), ca un eventual
     // eșec de email/WhatsApp să nu întârzie sau să blocheze răspunsul către client.
     notifyAdmin(
-      `🔧 Job nou — ${category}`,
+      price_pending ? `⚠️ Job nou — PREȚ DE STABILIT — ${category}` : `🔧 Job nou — ${category}`,
       `Client: ${req.user.name || req.user.email}\n` +
       `Categorie: ${category}${subcat_name ? ' — ' + subcat_name : ''}\n` +
       `Urgență: ${urgency === 'urgent' ? 'URGENT' : 'Normal'}\n` +
       `Interval: ${time_slot || 'Orice interval'}\n` +
-      `Sumă blocată pe card: ${amountLei} lei\n` +
+      (price_pending
+        ? `⚠️ Necesită contactarea clientului pentru a stabili prețul lucrării.\n`
+        : `Sumă blocată pe card: ${job.amount_lei} lei\n`) +
       `Descriere: ${description.trim()}`
     ).catch(() => {});
 
-    res.status(201).json({ id: job._id, message: 'Cerere trimisă cu succes! Suma a fost blocată pe cardul tău.' });
+    res.status(201).json({
+      id: job._id,
+      message: price_pending
+        ? 'Cerere trimisă cu succes! Adminul te va contacta pentru a stabili prețul.'
+        : 'Cerere trimisă cu succes! Suma a fost blocată pe cardul tău.'
+    });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -63,6 +78,41 @@ router.get('/', auth, async (req, res) => {
     }));
     result.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.json(result);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.patch('/:id/authorize-price', auth, requireRole('client', 'horeca'), async (req, res) => {
+  try {
+    const { payment_intent_id } = req.body;
+    if (!payment_intent_id) return res.status(400).json({ error: 'Lipsește autorizarea de card.' });
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ error: 'Job negăsit' });
+    if (String(job.client_id) !== String(req.user.id)) return res.status(403).json({ error: 'Acest job nu îți aparține.' });
+    if (job.payment_status !== 'pending_quote' || !job.subcat_price) {
+      return res.status(400).json({ error: 'Acest job nu are un preț stabilit de autorizat.' });
+    }
+
+    let intent;
+    try {
+      intent = await retrieveIntent(payment_intent_id);
+    } catch (e) {
+      return res.status(400).json({ error: 'Nu am putut verifica plata. Încearcă din nou.' });
+    }
+    if (intent.status !== 'requires_capture') {
+      return res.status(400).json({ error: 'Autorizarea cardului nu a reușit. Încearcă din nou.' });
+    }
+
+    job.payment_intent_id = payment_intent_id;
+    job.payment_status = 'authorized';
+    job.amount_lei = intent.amount / 100;
+    await job.save();
+
+    notifyAdmin(
+      `✅ Client a autorizat prețul stabilit — ${job.category}`,
+      `Client: ${req.user.name || req.user.email}\nSuma de ${job.amount_lei} lei a fost blocată pe cardul clientului. Meșterul poate începe lucrarea.`
+    ).catch(() => {});
+
+    res.json({ message: 'Plată autorizată cu succes! Meșterul poate începe lucrarea.' });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
