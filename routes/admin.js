@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { User, Worker, Price, Job, Message, Conversation } = require('../db');
 const { auth, requireRole } = require('../middleware/auth');
+const { sendEmail } = require('../services/notify');
 
 router.use(auth, requireRole('admin'));
 
@@ -129,6 +130,33 @@ router.get('/payouts', async (req, res) => {
     });
 
     res.json({ jobs: result, totals });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.patch('/jobs/:id/set-price', async (req, res) => {
+  try {
+    const { price } = req.body;
+    const p = Number(price);
+    if (!p || p < 1) return res.status(400).json({ error: 'Preț invalid' });
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ error: 'Job negăsit' });
+    if (job.payment_status !== 'pending_quote') return res.status(400).json({ error: 'Acest job nu are prețul în așteptare — nu e un job de tip "Altceva".' });
+
+    job.subcat_price = p;
+    await job.save();
+
+    const client = await User.findById(job.client_id);
+    if (client?.email) {
+      sendEmail(
+        client.email,
+        `💰 Preț stabilit pentru lucrarea ta — HandyRO`,
+        `Bună, ${client.name}!\n\nAm stabilit prețul pentru lucrarea "${job.category}"${job.subcat_name ? ' — ' + job.subcat_name : ''}: ${p} lei.\n\n` +
+        `Intră în contul tău pe handyro.ro, la secțiunea "Cererile mele", și apasă "Autorizează plata" ca meșterul să poată începe lucrarea. ` +
+        `Suma rămâne doar blocată pe card, nu se retrage decât la finalizarea lucrării.`
+      ).catch(() => {});
+    }
+
+    res.json({ message: 'Preț stabilit și trimis clientului spre autorizare.', price: p });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
