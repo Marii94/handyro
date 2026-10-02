@@ -807,7 +807,8 @@ const stripe = Stripe('pk_test_51UJaN9LjlnzaJF31svvNxZMezLahimOkL5Dp87KY2Gc8AXoV
 const stripeElements = stripe.elements();
 const cardElement = stripeElements.create('card', { style: { base: { fontSize: '14px', fontFamily: "'DM Sans', sans-serif", color: '#0F1F3D' } } });
 let cardMounted = false;
-const payCardElement = stripeElements.create('card', { style: { base: { fontSize: '14px', fontFamily: "'DM Sans', sans-serif", color: '#0F1F3D' } } });
+const payStripeElements = stripe.elements(); // grup separat — un grup Stripe Elements permite un singur element de tip 'card'
+const payCardElement = payStripeElements.create('card', { style: { base: { fontSize: '14px', fontFamily: "'DM Sans', sans-serif", color: '#0F1F3D' } } });
 let payCardMounted = false;
 let payPendingJobId = null;
 function openPayModal(jobId, price){
