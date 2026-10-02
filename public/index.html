@@ -777,6 +777,19 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   </div>
 </div>
 
+<div class="mov" id="completeov">
+  <div class="mb2">
+    <div class="ml">Handy<span class="dot">RO</span></div>
+    <div class="ms">Marchează lucrarea ca finalizată</div>
+    <div class="fg">
+      <label>Poze cu lucrarea finalizată <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(opțional, dar recomandat)</span></label>
+      <input type="file" id="complete-photos-input" accept="image/*" multiple style="font-size:13px;"/>
+      <div id="complete-photos-preview" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px;"><button class="btn bt-gh" style="flex:1" onclick="closeCompleteModal()">Anulează</button><button class="btn bt-gr" style="flex:1" id="complete-confirm-btn" onclick="confirmComplete()">Marchează finalizat</button></div>
+  </div>
+</div>
+
 <div class="mov" id="reportov">
   <div class="mb2">
     <div class="ml">Handy<span class="dot">RO</span></div>
@@ -825,6 +838,51 @@ const payStripeElements = stripe.elements(); // grup separat — un grup Stripe 
 const payCardElement = payStripeElements.create('card', { style: { base: { fontSize: '14px', fontFamily: "'DM Sans', sans-serif", color: '#0F1F3D' } } });
 let payCardMounted = false;
 let payPendingJobId = null;
+let completeJobId = null;
+let completePhotoFiles = [];
+function openCompleteModal(jobId){
+  completeJobId = jobId;
+  completePhotoFiles = [];
+  document.getElementById('complete-photos-input').value = '';
+  document.getElementById('complete-photos-preview').innerHTML = '';
+  document.getElementById('completeov').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeCompleteModal(){
+  document.getElementById('completeov').classList.remove('on');
+  document.body.style.overflow = '';
+  completeJobId = null;
+}
+document.addEventListener('change', function(e){
+  if(e.target && e.target.id === 'complete-photos-input'){
+    completePhotoFiles = Array.from(e.target.files).filter(function(f){return f.size <= MAX_PHOTO_MB*1024*1024;});
+    if(completePhotoFiles.length < e.target.files.length) toast('Unele poze depășesc '+MAX_PHOTO_MB+'MB și au fost ignorate.');
+    var preview = document.getElementById('complete-photos-preview');
+    preview.innerHTML = completePhotoFiles.map(function(f){return '<span style="font-size:11px;background:var(--bl);color:var(--blue);padding:3px 8px;border-radius:6px;">'+esc(f.name)+'</span>';}).join('');
+  }
+});
+async function confirmComplete(){
+  if(!completeJobId) return;
+  var btn = document.getElementById('complete-confirm-btn');
+  btn.disabled = true; btn.textContent = 'Se procesează...';
+  try{
+    var photoUrls = [];
+    if(completePhotoFiles.length > 0){
+      const fd = new FormData();
+      completePhotoFiles.forEach(function(f){fd.append('photos', f);});
+      const tk = localStorage.getItem('hro_tk');
+      const r = await fetch('/api/upload/photos', {method:'POST', headers:{Authorization:'Bearer '+tk}, body:fd, credentials:'include'});
+      const d = await r.json();
+      if(r.ok) photoUrls = d.urls;
+    }
+    await api('PATCH','/api/jobs/'+completeJobId+'/complete',{completion_photos:photoUrls});
+    toast('Lucrare marcată ca finalizată! Clientul poate lăsa review.');
+    closeCompleteModal();
+    loadMes();
+  }catch(e){toast(e.message);}
+  btn.disabled = false; btn.textContent = 'Marchează finalizat';
+}
+
 let reportJobId = null;
 function openReportModal(jobId){
   reportJobId = jobId;
@@ -1818,18 +1876,8 @@ async function loadMConvs(){
   }catch(e){}
 }
 
-async function completeJob(id, btn){
-  if(!confirm('Marchezi lucrarea ca finalizată?'))return;
-  btn.disabled=true;
-  try{
-    await api('PATCH','/api/jobs/'+id+'/complete',{});
-    const card=document.getElementById('mj-'+id);
-    card.querySelector('.jb').className='jb jb-a';
-    card.querySelector('.jb').textContent='Finalizat ✓';
-    btn.remove();
-    toast('Lucrare marcată ca finalizată! Clientul poate lăsa review.');
-    loadMes();
-  }catch(e){toast(e.message);btn.disabled=false;}
+function completeJob(id){
+  openCompleteModal(id);
 }
 
 async function leaveReview(jobId, stars){
@@ -1869,9 +1917,12 @@ async function loadClient(){
       const payHtml=(j.payment_status==='pending_quote' && j.subcat_price)
         ? `<button class="btn bt-bl bt-sm" style="margin-top:6px;" onclick="openPayModal('${String(j._id||j.id)}',${j.subcat_price})"><i class="ti ti-credit-card"></i> Autorizează plata — ${esc(j.subcat_price)} lei</button>`
         : (j.payment_status==='pending_quote' ? `<div class="jm" style="margin-top:4px;color:var(--mu);font-size:11px;">Adminul stabilește prețul în curând...</div>` : '');
+      const completionPhHtml=(j.completion_photos&&j.completion_photos.length)
+        ? `<div style="margin-top:6px;"><div style="font-size:11px;color:var(--mu);margin-bottom:4px;">Poze de la meșter:</div><div style="display:flex;gap:5px;flex-wrap:wrap;">${j.completion_photos.map(function(u){return '<img src="'+esc(u)+'" style="width:52px;height:52px;object-fit:cover;border-radius:8px;cursor:pointer;" onclick="window.open(\''+esc(u)+'\',\'_blank\')"/>';}).join('')}</div></div>`
+        : '';
       return`<div class="jc">
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
-        <div class="jif"><div class="jt">${esc(j.category)}</div><div class="jm">Meșter: ${esc(j.worker_name||'În așteptare')} · ${esc(j.time_slot||'')}</div>${urgHtml}<div class="jm" style="margin-top:4px;font-style:italic;">${esc(j.description||'')}</div>${phHtml}${payHtml}</div>
+        <div class="jif"><div class="jt">${esc(j.category)}</div><div class="jm">Meșter: ${esc(j.worker_name||'În așteptare')} · ${esc(j.time_slot||'')}</div>${urgHtml}<div class="jm" style="margin-top:4px;font-style:italic;">${esc(j.description||'')}</div>${phHtml}${payHtml}${completionPhHtml}</div>
         <div class="jr"><span class="jb ${j.status==='completed'?'jb-a':j.status==='on_the_way'?'jb-w':j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='completed'?'Finalizat':j.status==='on_the_way'?'Pe drum':j.status==='accepted'?'Acceptat':j.status==='cancelled'?'Anulat':'Trimis'}</span><button class="btn bt-gh bt-sm" style="margin-top:6px;color:var(--re);" onclick="openReportModal('${String(j._id||j.id)}')" title="Raportează o problemă"><i class="ti ti-flag-3"></i></button></div>
       </div>`;
     }).join('');
