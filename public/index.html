@@ -776,6 +776,18 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   </div>
 </div>
 
+<div class="mov" id="reportov">
+  <div class="mb2">
+    <div class="ml">Handy<span class="dot">RO</span></div>
+    <div class="ms">Raportează o problemă</div>
+    <div class="fg">
+      <label>Ce s-a întâmplat?</label>
+      <textarea id="report-msg" rows="4" placeholder="Descrie exact situația — adminul va analiza și te va contacta dacă e nevoie." style="width:100%;padding:10px 12px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical;"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px;"><button class="btn bt-gh" style="flex:1" onclick="closeReportModal()">Anulează</button><button class="btn bt-re" style="flex:1" id="report-confirm-btn" onclick="confirmReport()">Trimite raport</button></div>
+  </div>
+</div>
+
 <div class="mov" id="payov">
   <div class="mb2">
     <div class="ml">Handy<span class="dot">RO</span></div>
@@ -812,6 +824,32 @@ const payStripeElements = stripe.elements(); // grup separat — un grup Stripe 
 const payCardElement = payStripeElements.create('card', { style: { base: { fontSize: '14px', fontFamily: "'DM Sans', sans-serif", color: '#0F1F3D' } } });
 let payCardMounted = false;
 let payPendingJobId = null;
+let reportJobId = null;
+function openReportModal(jobId){
+  reportJobId = jobId;
+  document.getElementById('report-msg').value = '';
+  document.getElementById('reportov').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeReportModal(){
+  document.getElementById('reportov').classList.remove('on');
+  document.body.style.overflow = '';
+  reportJobId = null;
+}
+async function confirmReport(){
+  if(!reportJobId) return;
+  var msg = document.getElementById('report-msg').value.trim();
+  if(!msg){toast('Scrie ce s-a întâmplat!');return;}
+  var btn = document.getElementById('report-confirm-btn');
+  btn.disabled = true; btn.textContent = 'Se trimite...';
+  try{
+    await api('POST','/api/jobs/'+reportJobId+'/report',{message:msg});
+    toast('Raport trimis. Adminul va analiza situația.');
+    closeReportModal();
+  }catch(e){toast(e.message);}
+  btn.disabled = false; btn.textContent = 'Trimite raport';
+}
+
 function openPayModal(jobId, price){
   payPendingJobId = jobId;
   document.getElementById('pay-amount').textContent = price + ' lei';
@@ -1739,7 +1777,7 @@ async function loadMes(){
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
         <div class="jif"><div class="jt">${esc(j.category)}${j.subcat_name?' — '+esc(j.subcat_name):''} — ${esc(j.city||'București')}</div><div class="jm">Client: ${esc(j.client_name)} · ${esc(j.time_slot||'')}</div>${j.subcat_price?'<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:3px;">Preț: '+esc(j.subcat_price)+' lei</div>':''}${urgHtml}${phHtml}</div>
         <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'Nou'}</span>
-        <div style="display:flex;gap:5px;">${j.status!=='accepted'?`<button class="btn bt-bl bt-sm" onclick="accJob('${j._id||j.id}',this)"><i class="ti ti-check"></i> Acceptă</button>`:`<button class="btn bt-gr bt-sm" onclick="completeJob('${j._id||j.id}',this)"><i class="ti ti-flag"></i> Job finalizat</button>`}<button class="btn bt-gh bt-sm" onclick="openConv('${j._id||j.id}','${esc(j.client_name)}')"><i class="ti ti-message"></i> Chat</button></div></div>
+        <div style="display:flex;gap:5px;">${j.status!=='accepted'?`<button class="btn bt-bl bt-sm" onclick="accJob('${j._id||j.id}',this)"><i class="ti ti-check"></i> Acceptă</button>`:`<button class="btn bt-gr bt-sm" onclick="completeJob('${j._id||j.id}',this)"><i class="ti ti-flag"></i> Job finalizat</button>`}<button class="btn bt-gh bt-sm" onclick="openConv('${j._id||j.id}','${esc(j.client_name)}')"><i class="ti ti-message"></i> Chat</button><button class="btn bt-gh bt-sm" style="color:var(--re);" onclick="openReportModal('${j._id||j.id}')" title="Raportează o problemă"><i class="ti ti-flag-3"></i></button></div></div>
       </div>`;
     }).join('');
     loadMConvs();
@@ -1823,7 +1861,7 @@ async function loadClient(){
       return`<div class="jc">
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
         <div class="jif"><div class="jt">${esc(j.category)}</div><div class="jm">Meșter: ${esc(j.worker_name||'În așteptare')} · ${esc(j.time_slot||'')}</div>${urgHtml}<div class="jm" style="margin-top:4px;font-style:italic;">${esc(j.description||'')}</div>${phHtml}${payHtml}</div>
-        <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'În așteptare'}</span></div>
+        <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'În așteptare'}</span><button class="btn bt-gh bt-sm" style="margin-top:6px;color:var(--re);" onclick="openReportModal('${String(j._id||j.id)}')" title="Raportează o problemă"><i class="ti ti-flag-3"></i></button></div>
       </div>`;
     }).join('');
     loadCConvs();
