@@ -5,11 +5,20 @@ const { auth, requireRole } = require('../middleware/auth');
 
 router.get('/', async (req, res) => {
   try {
-    const { category } = req.query;
+    const { category, city } = req.query;
     const workers = await Worker.find({});
     let result = await Promise.all(workers.map(async w => {
       const u = await User.findById(w.user_id);
       if (!u || u.status !== 'active') return null;
+
+      // Dacă clientul a ales un sector/oraș, arătăm doar meșterii care au
+      // bifat EXACT acea zonă la înregistrare (câmpul city e salvat ca
+      // "Sector 1, Sector 3" — comparăm fiecare zonă individual).
+      if (city) {
+        const zones = (w.city || '').split(',').map(z => z.trim()).filter(Boolean);
+        if (!zones.includes(city)) return null;
+      }
+
       let price = null;
       if (category) {
   const priceDoc = await Price.findOne({ worker_id: w._id, category });
