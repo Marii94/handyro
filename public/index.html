@@ -201,6 +201,7 @@ nav{position:sticky;top:0;z-index:50;background:rgba(247,245,240,0.94);backdrop-
 .jb{font-size:10px;padding:3px 10px;border-radius:999px;font-weight:500;}
 .jb-n{background:var(--bl);color:var(--blue);}
 .jb-a{background:var(--gl);color:#065F46;}
+.jb-w{background:var(--al);color:var(--acc);}
 
 /* CHAT */
 .cw{background:var(--card);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-top:10px;}
@@ -1562,7 +1563,7 @@ async function loadHoreca(){
     el.innerHTML=jobs.map(j=>`<div class="jc">
       <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
       <div class="jif"><div class="jt">${esc(j.category)}</div><div class="jm">Meșter: ${esc(j.worker_name||'În așteptare')}</div><div class="jm" style="font-style:italic;">${esc(j.description||'')}</div></div>
-      <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'În așteptare'}</span></div>
+      <div class="jr"><span class="jb ${j.status==='completed'?'jb-a':j.status==='on_the_way'?'jb-w':j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='completed'?'Finalizat':j.status==='on_the_way'?'Pe drum':j.status==='accepted'?'Acceptat':'Trimis'}</span></div>
     </div>`).join('');
     loadHConvs();
   }catch(e){toast('Eroare: '+e.message);}
@@ -1776,8 +1777,12 @@ async function loadMes(){
       return`<div class="jc" id="mj-${j._id||j.id}">
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
         <div class="jif"><div class="jt">${esc(j.category)}${j.subcat_name?' — '+esc(j.subcat_name):''} — ${esc(j.city||'București')}</div><div class="jm">Client: ${esc(j.client_name)} · ${esc(j.time_slot||'')}</div>${j.subcat_price?'<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:3px;">Preț: '+esc(j.subcat_price)+' lei</div>':''}${urgHtml}${phHtml}</div>
-        <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'Nou'}</span>
-        <div style="display:flex;gap:5px;">${j.status!=='accepted'?`<button class="btn bt-bl bt-sm" onclick="accJob('${j._id||j.id}',this)"><i class="ti ti-check"></i> Acceptă</button>`:`<button class="btn bt-gr bt-sm" onclick="completeJob('${j._id||j.id}',this)"><i class="ti ti-flag"></i> Job finalizat</button>`}<button class="btn bt-gh bt-sm" onclick="openConv('${j._id||j.id}','${esc(j.client_name)}')"><i class="ti ti-message"></i> Chat</button><button class="btn bt-gh bt-sm" style="color:var(--re);" onclick="openReportModal('${j._id||j.id}')" title="Raportează o problemă"><i class="ti ti-flag-3"></i></button></div></div>
+        <div class="jr"><span class="jb ${j.status==='completed'?'jb-a':j.status==='on_the_way'?'jb-w':j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='completed'?'Finalizat':j.status==='on_the_way'?'Pe drum':j.status==='accepted'?'Acceptat':'Nou'}</span>
+        <div style="display:flex;gap:5px;">${
+          j.status==='pending' ? `<button class="btn bt-bl bt-sm" onclick="accJob('${j._id||j.id}',this)"><i class="ti ti-check"></i> Acceptă</button>` :
+          j.status==='accepted' ? `<button class="btn bt-nv bt-sm" onclick="markOnTheWay('${j._id||j.id}',this)"><i class="ti ti-car"></i> Pe drum</button>` :
+          j.status==='on_the_way' ? `<button class="btn bt-gr bt-sm" onclick="completeJob('${j._id||j.id}',this)"><i class="ti ti-flag"></i> Job finalizat</button>` : ''
+        }<button class="btn bt-gh bt-sm" onclick="openConv('${j._id||j.id}','${esc(j.client_name)}')"><i class="ti ti-message"></i> Chat</button><button class="btn bt-gh bt-sm" style="color:var(--re);" onclick="openReportModal('${j._id||j.id}')" title="Raportează o problemă"><i class="ti ti-flag-3"></i></button></div></div>
       </div>`;
     }).join('');
     loadMConvs();
@@ -1788,10 +1793,16 @@ async function accJob(id,btn){
   btn.disabled=true;
   try{
     await api('PATCH','/api/jobs/'+id+'/accept',{});
-    const c=document.getElementById('mj-'+id);
-    if(c){const jb=c.querySelector('.jb');if(jb){jb.className='jb jb-a';jb.textContent='Acceptat';}}
-    btn.remove();accT++;document.getElementById('ms-a').textContent=accT;
-    toast('Job acceptat!');loadMConvs();
+    accT++;document.getElementById('ms-a').textContent=accT;
+    toast('Job acceptat!');loadMConvs();loadMes();
+  }catch(e){toast(e.message);btn.disabled=false;}
+}
+async function markOnTheWay(id,btn){
+  btn.disabled=true;
+  try{
+    await api('PATCH','/api/jobs/'+id+'/on-the-way',{});
+    toast('Clientul a fost anunțat că ești pe drum!');
+    loadMes();
   }catch(e){toast(e.message);btn.disabled=false;}
 }
 async function loadMConvs(){
@@ -1861,7 +1872,7 @@ async function loadClient(){
       return`<div class="jc">
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
         <div class="jif"><div class="jt">${esc(j.category)}</div><div class="jm">Meșter: ${esc(j.worker_name||'În așteptare')} · ${esc(j.time_slot||'')}</div>${urgHtml}<div class="jm" style="margin-top:4px;font-style:italic;">${esc(j.description||'')}</div>${phHtml}${payHtml}</div>
-        <div class="jr"><span class="jb ${j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='accepted'?'Acceptat':'În așteptare'}</span><button class="btn bt-gh bt-sm" style="margin-top:6px;color:var(--re);" onclick="openReportModal('${String(j._id||j.id)}')" title="Raportează o problemă"><i class="ti ti-flag-3"></i></button></div>
+        <div class="jr"><span class="jb ${j.status==='completed'?'jb-a':j.status==='on_the_way'?'jb-w':j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='completed'?'Finalizat':j.status==='on_the_way'?'Pe drum':j.status==='accepted'?'Acceptat':j.status==='cancelled'?'Anulat':'Trimis'}</span><button class="btn bt-gh bt-sm" style="margin-top:6px;color:var(--re);" onclick="openReportModal('${String(j._id||j.id)}')" title="Raportează o problemă"><i class="ti ti-flag-3"></i></button></div>
       </div>`;
     }).join('');
     loadCConvs();
@@ -2064,7 +2075,8 @@ async function loadAJ(){
     var tbl='<table><thead><tr><th>Serviciu</th><th>Client</th><th>Subcategorie</th><th>Urgenta</th><th>Status</th><th>Actiuni</th></tr></thead><tbody>';
     js.forEach(function(j){
       var jid=String(j._id||j.id);
-      var statusCls=(j.status==='accepted'||j.status==='completed')?'sb-a':'sb-p';
+      var statusCls=(j.status==='accepted'||j.status==='on_the_way'||j.status==='completed')?'sb-a':'sb-p';
+      var statusLabel={pending:'În așteptare',accepted:'Acceptat',on_the_way:'Pe drum',completed:'Finalizat',cancelled:'Anulat'}[j.status]||j.status;
       var urgHtml=j.urgency==='urgent'?'<span style="color:#e53935;font-size:11px;font-weight:600;">Urgent</span>':'Normal';
       tbl+='<tr id="jr-'+jid+'">';
       tbl+='<td><strong>'+esc(j.category)+'</strong><br><span style="font-size:11px;color:var(--mu);">'+esc((j.description||'').substring(0,50))+'</span></td>';
@@ -2079,7 +2091,7 @@ async function loadAJ(){
       }
       tbl+='<td style="font-size:12px;color:var(--blue);">'+priceCell+'</td>';
       tbl+='<td>'+urgHtml+'</td>';
-      tbl+='<td><span class="sb '+statusCls+'">'+esc(j.status)+'</span></td>';
+      tbl+='<td><span class="sb '+statusCls+'">'+esc(statusLabel)+'</span></td>';
       tbl+='<td><button class="btn bt-re bt-sm" data-jid="'+jid+'" onclick="handleDelJ(this)"><i class="ti ti-trash"></i></button></td>';
       tbl+='</tr>';
     });
