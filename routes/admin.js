@@ -39,6 +39,7 @@ router.get('/users', async (req, res) => {
         categories: w?.categories || [],
         referral_source: w?.referral_source || null,
         pfa_name: w?.pfa_name || null,
+        stripe_payouts_enabled: !!w?.stripe_payouts_enabled,
         city: w?.city || '',
         prices,
       };
@@ -114,20 +115,27 @@ router.get('/payouts', async (req, res) => {
         worker_share: workerShare,
         agency_share: agencyShare,
         platform_share: platformShare,
+        split_via_connect: !!j.split_via_connect,
       };
     }));
 
-    const totals = { worker_total: 0, agency_total: 0, platform_total: 0, by_agency: {}, by_worker: {} };
+    const totals = { worker_total: 0, agency_total: 0, platform_total: 0, already_paid_via_stripe: 0, by_agency: {}, by_worker: {} };
     result.forEach(r => {
-      totals.worker_total += r.worker_share;
+      // Dacă plata a fost deja împărțită automat prin Stripe Connect, partea
+      // meșterului a ajuns deja la el — nu o mai adunăm la "de plătit".
+      if (r.split_via_connect) {
+        totals.already_paid_via_stripe += r.worker_share;
+      } else {
+        totals.worker_total += r.worker_share;
+        const wKey = String(r.worker_id || r.worker_name);
+        if (!totals.by_worker[wKey]) totals.by_worker[wKey] = { name: r.worker_name, pfa: r.worker_pfa, total: 0 };
+        totals.by_worker[wKey].total += r.worker_share;
+      }
       totals.agency_total += r.agency_share;
       totals.platform_total += r.platform_share;
       if (r.referral_source) {
         totals.by_agency[r.referral_source] = (totals.by_agency[r.referral_source] || 0) + r.agency_share;
       }
-      const wKey = String(r.worker_id || r.worker_name);
-      if (!totals.by_worker[wKey]) totals.by_worker[wKey] = { name: r.worker_name, pfa: r.worker_pfa, total: 0 };
-      totals.by_worker[wKey].total += r.worker_share;
     });
 
     res.json({ jobs: result, totals });
