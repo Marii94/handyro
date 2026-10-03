@@ -21,6 +21,7 @@ horeca_type: { type: String, default: '' },
 phone: { type: String, default: '' },
   email_verified: { type: Boolean, default: false },
   email_verify_token: { type: String, default: null },
+  last_seen: { type: Date, default: null },
   favorite_workers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Worker' }],
 }, { timestamps: true });
 
@@ -41,6 +42,7 @@ const WorkerSchema = new mongoose.Schema({
   portfolio_photos: [String],
   stripe_account_id: { type: String, default: null },
   stripe_payouts_enabled: { type: Boolean, default: false },
+  strikes: { type: Number, default: 0 },
 }, { timestamps: true });
 
 const PriceSchema = new mongoose.Schema({
@@ -69,6 +71,10 @@ const JobSchema = new mongoose.Schema({
   payment_status: { type: String, enum: ['pending','authorized','captured','canceled','refunded','pending_quote'], default: 'pending' },
   amount_lei: { type: Number, default: null },
   split_via_connect: { type: Boolean, default: false },
+  payment_method: { type: String, enum: ['card', 'cash'], default: 'card' },
+  cash_commission_lei: { type: Number, default: null },
+  cash_commission_due_date: { type: Date, default: null },
+  cash_commission_paid: { type: Boolean, default: false },
 }, { timestamps: true });
 
 const ConversationSchema = new mongoose.Schema({
