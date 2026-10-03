@@ -33,7 +33,8 @@ router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
       }
 
       const amountLei = intent.amount / 100;
-      job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name, subcat_price, city: city||'București', exact_address: exact_address||'', job_date: job_date?new Date(job_date):new Date(), payment_intent_id, payment_status: 'authorized', amount_lei: amountLei });
+      const splitViaConnect = intent.metadata && intent.metadata.split === 'connect';
+      job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name, subcat_price, city: city||'București', exact_address: exact_address||'', job_date: job_date?new Date(job_date):new Date(), payment_intent_id, payment_status: 'authorized', amount_lei: amountLei, split_via_connect: splitViaConnect });
     }
     if (worker_id) {
       const w = await Worker.findById(worker_id);
@@ -189,6 +190,7 @@ router.patch('/:id/authorize-price', auth, requireRole('client', 'horeca'), asyn
     job.payment_intent_id = payment_intent_id;
     job.payment_status = 'authorized';
     job.amount_lei = intent.amount / 100;
+    job.split_via_connect = !!(intent.metadata && intent.metadata.split === 'connect');
     await job.save();
 
     notifyAdmin(
