@@ -8,6 +8,8 @@ router.use(auth, requireRole('admin'));
 
 router.get('/stats', async (req, res) => {
   try {
+    // "Online acum" = un puls de prezență primit în ultimele 3 minute.
+    const onlineSince = new Date(Date.now() - 3 * 60 * 1000);
     res.json({
       total_users: await User.countDocuments({ role: { $ne: 'admin' } }),
       active_workers: await User.countDocuments({ role: 'meserias', status: 'active' }),
@@ -15,6 +17,8 @@ router.get('/stats', async (req, res) => {
       total_clients: await User.countDocuments({ role: 'client' }),
       total_jobs: await Job.countDocuments(),
       total_messages: await Message.countDocuments(),
+      clients_online: await User.countDocuments({ role: { $in: ['client', 'horeca'] }, last_seen: { $gte: onlineSince } }),
+      workers_online: await User.countDocuments({ role: 'meserias', last_seen: { $gte: onlineSince } }),
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
@@ -40,6 +44,7 @@ router.get('/users', async (req, res) => {
         referral_source: w?.referral_source || null,
         pfa_name: w?.pfa_name || null,
         stripe_payouts_enabled: !!w?.stripe_payouts_enabled,
+        strikes: w?.strikes || 0,
         city: w?.city || '',
         prices,
       };
@@ -138,7 +143,25 @@ router.get('/payouts', async (req, res) => {
       }
     });
 
-    res.json({ jobs: result, totals });
+    // Comisioane cash de recuperat — joburi plătite cash direct meșterului,
+    // unde acesta trebuie să vireze comisionul platformei în maxim 15 zile.
+    const cashJobs = await Job.find({ payment_method: 'cash', status: 'completed', cash_commission_lei: { $ne: null } }).sort({ cash_commission_due_date: 1 });
+    const cash_pending = await Promise.all(cashJobs.map(async j => {
+      const worker = j.worker_id ? await Worker.findById(j.worker_id) : null;
+      const workerUser = worker ? await User.findById(worker.user_id) : null;
+      return {
+        job_id: j._id,
+        worker_name: workerUser?.name || 'Necunoscut',
+        worker_pfa: worker?.pfa_name || null,
+        category: j.category,
+        commission_lei: j.cash_commission_lei,
+        due_date: j.cash_commission_due_date,
+        overdue: !j.cash_commission_paid && j.cash_commission_due_date && new Date() > j.cash_commission_due_date,
+        paid: j.cash_commission_paid,
+      };
+    }));
+
+    res.json({ jobs: result, totals, cash_pending });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -160,6 +183,54 @@ router.patch('/workers/:workerId/city', async (req, res) => {
     const worker = await Worker.findByIdAndUpdate(req.params.workerId, { city: zones.join(', ') }, { new: true });
     if (!worker) return res.status(404).json({ error: 'Meșter negăsit' });
     res.json({ message: 'Zone actualizate ✓', city: worker.city });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Avertisment pentru un meșter — de obicei legat de o problemă la o lucrare
+// plătită cash (nu s-a prezentat, nu a virat comisionul etc.). La al 3-lea
+// avertisment, contul se blochează automat.
+router.post('/workers/:workerId/strike', async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const worker = await Worker.findById(req.params.workerId);
+    if (!worker) return res.status(404).json({ error: 'Meșter negăsit' });
+
+    worker.strikes = (worker.strikes || 0) + 1;
+    await worker.save();
+
+    const user = await User.findById(worker.user_id);
+    let blocked = false;
+    if (worker.strikes >= 3 && user) {
+      user.status = 'blocked';
+      await user.save();
+      blocked = true;
+    }
+
+    if (user?.email) {
+      sendEmail(
+        user.email,
+        blocked ? `🚫 Cont blocat — 3 avertismente — HandyRO` : `⚠️ Ai primit un avertisment — HandyRO`,
+        `Bună, ${user.name}!\n\n` +
+        (blocked
+          ? `Contul tău a fost blocat automat, după ce ai acumulat 3 avertismente (al 3-lea motiv: ${reason || 'nespecificat'}).\nDacă crezi că e o greșeală, scrie-ne la admin@handyro.ro.`
+          : `Ai primit un avertisment (${worker.strikes}/3) pe contul tău de meșter.\nMotiv: ${reason || 'nespecificat'}\n\nLa al 3-lea avertisment, contul se blochează automat. Te rugăm să te prezinți la toate lucrările acceptate, inclusiv cele plătite cash, și să virezi comisionul platformei la timp.`)
+      ).catch(() => {});
+    }
+
+    res.json({ message: blocked ? 'Avertisment adăugat — cont blocat (3/3).' : `Avertisment adăugat (${worker.strikes}/3).`, strikes: worker.strikes, blocked });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+router.patch('/jobs/:id/mark-cash-paid', async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ error: 'Job negăsit' });
+    if (job.payment_method !== 'cash' || !job.cash_commission_lei) {
+      return res.status(400).json({ error: 'Acest job nu are un comision cash de încasat.' });
+    }
+    job.cash_commission_paid = true;
+    await job.save();
+    res.json({ message: 'Comision marcat ca încasat ✓' });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
