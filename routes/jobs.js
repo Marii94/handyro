@@ -8,12 +8,18 @@ const { captureHold, cancelHold, retrieveIntent } = require('../services/stripe'
 
 router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
   try {
-    const { category, description, worker_id, urgency, time_slot, photos, subcat_name, subcat_price, job_date, payment_intent_id, price_pending, exact_address, city } = req.body;
+    const { category, description, worker_id, urgency, time_slot, photos, subcat_name, subcat_price, job_date, payment_intent_id, price_pending, exact_address, city, payment_method } = req.body;
     if (!category) return res.status(400).json({ error: 'Categoria este obligatorie' });
     if (!description?.trim()) return res.status(400).json({ error: 'Descrierea este obligatorie' });
 
     let job;
-    if (price_pending) {
+    if (payment_method === 'cash') {
+      // Plată cash — clientul plătește meșterul direct, fără card. Nu se cere
+      // nicio autorizare; comisionul datorat platformei se calculează abia la
+      // finalizarea jobului, iar meșterul are 15 zile să-l vireze.
+      if (!subcat_price || Number(subcat_price) <= 0) return res.status(400).json({ error: 'Alege un tip de lucrare cu preț stabilit pentru plata cash.' });
+      job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name, subcat_price, city: city||'București', exact_address: exact_address||'', job_date: job_date?new Date(job_date):new Date(), payment_intent_id: null, payment_status: 'pending', amount_lei: Number(subcat_price), payment_method: 'cash' });
+    } else if (price_pending) {
       // "Altceva" — nu există un preț fix, deci nu se cere nicio autorizare de card.
       // Jobul se creează direct, iar prețul se stabilește separat, prin discuție cu adminul.
       job = await Job.create({ client_id: req.user.id, worker_id: worker_id||null, category, description: description.trim(), urgency: urgency||'normal', time_slot: time_slot||'Orice interval', photos: Array.isArray(photos)?photos:[], subcat_name: subcat_name||'Altceva (preț stabilit cu adminul)', subcat_price: null, city: city||'București', exact_address: exact_address||'', job_date: job_date?new Date(job_date):new Date(), payment_intent_id: null, payment_status: 'pending_quote', amount_lei: null });
@@ -264,6 +270,25 @@ router.patch('/:id/complete', auth, requireRole('meserias'), async (req, res) =>
     job.status = 'completed';
     job.completed_at = new Date();
     if (Array.isArray(completion_photos) && completion_photos.length) job.completion_photos = completion_photos;
+
+    if (job.payment_method === 'cash' && job.amount_lei) {
+      const worker = job.worker_id ? await Worker.findById(job.worker_id) : null;
+      const hasAgency = !!(worker && worker.referral_source);
+      const platformSharePct = hasAgency ? 0.30 : 0.20;
+      job.cash_commission_lei = Math.round(job.amount_lei * platformSharePct * 100) / 100;
+      const deadline = new Date(job.completed_at);
+      deadline.setDate(deadline.getDate() + 15);
+      job.cash_commission_due_date = deadline;
+
+      notifyAdmin(
+        `💵 Job cash finalizat — comision de recuperat`,
+        `Meșter: ${req.user.name || req.user.email}\nJob: ${job.category}${job.subcat_name ? ' — ' + job.subcat_name : ''}\n` +
+        `Sumă totală (plătită cash de client): ${job.amount_lei} lei\n` +
+        `Comision datorat platformei: ${job.cash_commission_lei} lei\n` +
+        `Termen de plată (virament bancar): ${deadline.toLocaleDateString('ro-RO')} (15 zile)`
+      ).catch(() => {});
+    }
+
     await job.save();
 
     const client = await User.findById(job.client_id);
