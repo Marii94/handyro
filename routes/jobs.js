@@ -11,6 +11,7 @@ router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
     const { category, description, worker_id, urgency, time_slot, photos, subcat_name, subcat_price, job_date, payment_intent_id, price_pending, exact_address, city, payment_method } = req.body;
     if (!category) return res.status(400).json({ error: 'Categoria este obligatorie' });
     if (!description?.trim()) return res.status(400).json({ error: 'Descrierea este obligatorie' });
+    if (!Array.isArray(photos) || !photos.length) return res.status(400).json({ error: 'Adaugă cel puțin o poză cu problema.' });
 
     let job;
     if (payment_method === 'cash') {
