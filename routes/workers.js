@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { User, Worker, Price } = require('../db');
 const { auth, requireRole } = require('../middleware/auth');
+const { createConnectedAccount, createAccountLink, getAccountStatus } = require('../services/stripe');
 
 router.get('/', async (req, res) => {
   try {
@@ -35,7 +36,7 @@ if(time_slot && time_slot !== '18:00–20:00 — tarif urgență'){
   });
   if(busyJob) available = false;
 }
-return { _id: w._id, name: u.name, specialization: w.specialization, rating: w.rating, reviews_count: w.reviews_count, city: w.city, price_for_category: price, available, experience_years: w.experience_years, bio: w.bio, portfolio_photos: w.portfolio_photos || [] };
+return { _id: w._id, name: u.name, specialization: w.specialization, rating: w.rating, reviews_count: w.reviews_count, city: w.city, price_for_category: price, available, experience_years: w.experience_years, bio: w.bio, portfolio_photos: w.portfolio_photos || [], stripe_account_id: w.stripe_account_id || null, stripe_payouts_enabled: !!w.stripe_payouts_enabled };
     }));
     res.json(result.filter(Boolean));
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -69,6 +70,46 @@ router.get('/favorites/mine', auth, requireRole('client', 'horeca'), async (req,
       return { _id: w._id, name: u.name, specialization: w.specialization, categories: w.categories || [], rating: w.rating, reviews_count: w.reviews_count, city: w.city, experience_years: w.experience_years, bio: w.bio };
     }));
     res.json(workers.filter(Boolean));
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Pornește / continuă onboarding-ul Stripe Connect al meșterului — creează
+// contul Connect la prima accesare, apoi generează mereu un link proaspăt
+// (link-urile de onboarding Stripe expiră după câteva minute).
+router.post('/me/stripe-onboard', auth, requireRole('meserias'), async (req, res) => {
+  try {
+    const worker = await Worker.findOne({ user_id: req.user.id });
+    if (!worker) return res.status(404).json({ error: 'Profil negăsit' });
+    const user = await User.findById(req.user.id);
+
+    if (!worker.stripe_account_id) {
+      const account = await createConnectedAccount(user.email, { worker_id: String(worker._id) });
+      worker.stripe_account_id = account.id;
+      await worker.save();
+    }
+
+    const appUrl = process.env.APP_URL || 'https://handyro.ro';
+    const link = await createAccountLink(
+      worker.stripe_account_id,
+      `${appUrl}/?stripe_onboard=refresh`,
+      `${appUrl}/?stripe_onboard=done`
+    );
+    res.json({ url: link.url });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Verifică dacă meșterul a terminat de completat datele la Stripe.
+router.get('/me/stripe-status', auth, requireRole('meserias'), async (req, res) => {
+  try {
+    const worker = await Worker.findOne({ user_id: req.user.id });
+    if (!worker) return res.status(404).json({ error: 'Profil negăsit' });
+    if (!worker.stripe_account_id) return res.json({ connected: false, payouts_enabled: false });
+    const status = await getAccountStatus(worker.stripe_account_id);
+    if (status.payouts_enabled !== worker.stripe_payouts_enabled) {
+      worker.stripe_payouts_enabled = status.payouts_enabled;
+      await worker.save();
+    }
+    res.json({ connected: true, ...status });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
