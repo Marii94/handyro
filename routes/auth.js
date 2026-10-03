@@ -91,6 +91,15 @@ const horeca_type = req.body.horeca_type || '';
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// "Puls" de prezență — frontend-ul îl apelează periodic cât timp utilizatorul
+// are site-ul deschis, ca să putem număra câți clienți/meșteri sunt "online".
+router.patch('/heartbeat', auth, async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, { last_seen: new Date() });
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // Confirmarea adresei de email — accesată direct din linkul trimis pe email.
 router.get('/verify-email/:token', async (req, res) => {
   try {
