@@ -526,9 +526,19 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   <div id="slots-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;"></div>
 </div>
         <div class="fg" id="payment-wrap" style="display:none;">
-          <label>Date card <span style="color:#E24B4A;">*</span> <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(suma se blochează acum, se reține doar când lucrarea e finalizată)</span></label>
-          <div id="card-element" style="padding:12px;border:0.5px solid rgba(15,31,61,0.2);border-radius:var(--rs);background:var(--bg);"></div>
-          <div id="card-errors" style="color:#E24B4A;font-size:12px;margin-top:6px;"></div>
+          <label>Modalitate de plată <span style="color:#E24B4A;">*</span></label>
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <button type="button" class="btn bt-bl bt-sm" id="pm-card-btn" onclick="setPaymentMethod('card')" style="flex:1;justify-content:center;">💳 Card (recomandat)</button>
+            <button type="button" class="btn bt-gh bt-sm" id="pm-cash-btn" onclick="setPaymentMethod('cash')" style="flex:1;justify-content:center;">💵 Cash</button>
+          </div>
+          <div id="pm-cash-warning" style="display:none;background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--rs);padding:10px 12px;font-size:12px;color:#991B1B;margin-bottom:10px;">
+            Cu plata cash, banii <strong>nu sunt protejați</strong> — nu există nicio garanție că meșterul se prezintă sau că plata se face corect. Recomandăm cardul, unde suma se blochează automat și e restituită dacă ceva nu merge bine.
+          </div>
+          <div id="pm-card-fields">
+            <label>Date card <span style="color:#E24B4A;">*</span> <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(suma se blochează acum, se reține doar când lucrarea e finalizată)</span></label>
+            <div id="card-element" style="padding:12px;border:0.5px solid rgba(15,31,61,0.2);border-radius:var(--rs);background:var(--bg);"></div>
+            <div id="card-errors" style="color:#E24B4A;font-size:12px;margin-top:6px;"></div>
+          </div>
         </div>
         <div class="ww" style="margin-bottom:14px;">
           <div class="wh"><div class="wht" id="ww-t">Meseriași disponibili</div><div class="avb"><span class="avd"></span>Disponibili acum</div></div>
@@ -593,6 +603,10 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <div class="ds"><div class="dsn" id="ms-a">0</div><div class="dsl">Acceptate azi</div></div>
       <div class="ds"><div class="dsn" id="ms-m">—</div><div class="dsl">Mesaje necitite</div></div>
     </div>
+    <div id="strikes-wrap" style="display:none;margin-bottom:1.5rem;padding:14px 16px;border-radius:var(--rs);background:#FEF2F2;border:1px solid #FECACA;">
+      <div style="font-weight:700;color:#991B1B;font-size:14px;" id="strikes-text"></div>
+      <div style="font-size:12px;color:#991B1B;margin-top:4px;">Politica HandyRO: dacă nu te prezinți la o lucrare acceptată (mai ales cele plătite cash) sau nu virezi comisionul la timp, primești un avertisment. La al 3-lea, contul se blochează automat.</div>
+    </div>
     <div class="set">Cont de plată</div>
     <div class="ww" style="margin-bottom:1.5rem;padding:16px;">
       <div id="stripe-connect-status" style="font-size:13px;color:var(--mu);">Se verifică...</div>
@@ -645,6 +659,8 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <div class="ds"><div class="dsn" id="as-w">—</div><div class="dsl">Meseriași activi</div></div>
       <div class="ds"><div class="dsn" id="as-j">—</div><div class="dsl">Joburi postate</div></div>
       <div class="ds"><div class="dsn" id="as-p">—</div><div class="dsl">În așteptare</div></div>
+      <div class="ds"><div class="dsn" id="as-co" style="color:var(--gr);">—</div><div class="dsl">Clienți online acum</div></div>
+      <div class="ds"><div class="dsn" id="as-wo" style="color:var(--gr);">—</div><div class="dsl">Meseriași online acum</div></div>
     </div>
     <div class="atb">
       <button class="on" onclick="switchTab(this,'tw')">Meseriași</button>
@@ -731,6 +747,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <p style="margin-bottom:1rem;">Utilizatorul declară că are cel puțin 18 ani, se angajează să furnizeze informații corecte și răspunde în exclusivitate pentru activitatea desfășurată prin contul său.</p>
       <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">3. Condiții pentru Meșteri</h3>
       <p style="margin-bottom:1rem;">Meșterii sunt responsabili pentru calitatea și legalitatea lucrărilor. Nu vor solicita clienților date de contact în scopul ocolirii platformei și vor plăti comisionul stabilit per Job finalizat.</p>
+      <p style="margin-bottom:1rem;">Neprezentarea la o lucrare acceptată, sau nevirarea comisionului datorat platformei în termenul stabilit (pentru lucrările plătite cash), se sancționează cu un <strong>avertisment</strong>. La acumularea a <strong>3 avertismente</strong>, contul de Meșter este <strong>blocat automat</strong>, fără drept de contestare ulterioară a avertismentelor deja acordate.</p>
       <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">4. Plata și autorizarea de card</h3>
       <p style="margin-bottom:1rem;">La trimiterea unei cereri, suma aferentă lucrării este <strong>blocată (autorizată) pe cardul Clientului</strong>, fără a fi retrasă efectiv. Banii sunt retrași din cont abia în momentul în care Meșterul marchează lucrarea drept finalizată. Dacă lucrarea nu este finalizată în termen de <strong>2 zile lucrătoare</strong> de la trimiterea cererii, autorizarea se anulează automat, iar suma este eliberată integral către Client, fără nicio reținere.</p>
       <p style="margin-bottom:1rem;">Pentru lucrările al căror preț nu poate fi stabilit dinainte ("Altceva"), prețul este convenit separat, prin discuție directă cu administratorul platformei, iar autorizarea de card se solicită Clientului abia după stabilirea sumei.</p>
@@ -893,6 +910,15 @@ let CU=null,mm='login',urg='normal',files=[],accT=0,convId=null,curCat='',curIco
 const stripe = Stripe('pk_test_51UJaN9LjlnzaJF31svvNxZMezLahimOkL5Dp87KY2Gc8AXoVKnX797ubZx3a66wM4q34UDIKIK9qSUbi8LyyOIie00nrKgGV9t');
 const stripeElements = stripe.elements();
 const cardElement = stripeElements.create('card', { style: { base: { fontSize: '14px', fontFamily: "'DM Sans', sans-serif", color: '#0F1F3D' } } });
+let selectedPaymentMethod = 'card';
+function setPaymentMethod(method){
+  selectedPaymentMethod = method;
+  document.getElementById('pm-card-btn').className = method==='card' ? 'btn bt-bl bt-sm' : 'btn bt-gh bt-sm';
+  document.getElementById('pm-cash-btn').className = method==='cash' ? 'btn bt-bl bt-sm' : 'btn bt-gh bt-sm';
+  document.getElementById('pm-card-fields').style.display = method==='card' ? 'block' : 'none';
+  document.getElementById('pm-cash-warning').style.display = method==='cash' ? 'block' : 'none';
+  if(method==='card') ensureCardMounted();
+}
 let cardMounted = false;
 const payStripeElements = stripe.elements(); // grup separat — un grup Stripe Elements permite un singur element de tip 'card'
 const payCardElement = payStripeElements.create('card', { style: { base: { fontSize: '14px', fontFamily: "'DM Sans', sans-serif", color: '#0F1F3D' } } });
@@ -1537,7 +1563,7 @@ function selectWorker(wid, price, name){
   document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea către '+esc(name);
   document.getElementById('sub-btn').disabled=false;
   document.getElementById('payment-wrap').style.display='flex';
-  ensureCardMounted();
+  setPaymentMethod('card');
   updateSubBtn();
   toast('Meșter selectat: '+name+' — '+price+' lei/lucrare');
 }
@@ -1581,8 +1607,9 @@ const urgentExtra = urg==='urgent' ? urgentSurcharge : 0;
     var jobCity=document.getElementById('job-city')?.value||'București';
     const jobDate=selectedDate?selectedDate.toISOString():new Date().toISOString();
 
+    const isCash = !isPricePending && selectedPaymentMethod === 'cash';
     let paymentIntentId = null;
-    if(!isPricePending){
+    if(!isPricePending && !isCash){
       // 1. Creăm autorizarea de card (banii se blochează, nu se retrag încă).
       btn.innerHTML='<i class="ti ti-loader"></i> Se autorizează cardul...';
       const intentData = await api('POST','/api/payments/create-intent',{amount:subcatPrice,worker_id:wid});
@@ -1603,13 +1630,15 @@ const urgentExtra = urg==='urgent' ? urgentSurcharge : 0;
       paymentIntentId = confirmResult.paymentIntent.id;
     }
 
-    // 2. Autorizare reușită (sau preț de stabilit) — creăm efectiv jobul.
+    // 2. Autorizare reușită (sau preț de stabilit, sau plată cash) — creăm efectiv jobul.
     btn.innerHTML='<i class="ti ti-loader"></i> Se trimite...';
-await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:selectedSlot||'',photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice,city:jobCity,exact_address:jobAddress,job_date:jobDate,payment_intent_id:paymentIntentId,price_pending:isPricePending});
+await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid,urgency:urg,time_slot:selectedSlot||'',photos:photoUrls,subcat_name:subcatNames,subcat_price:subcatPrice,city:jobCity,exact_address:jobAddress,job_date:jobDate,payment_intent_id:paymentIntentId,price_pending:isPricePending,payment_method:isCash?'cash':'card'});
     const ptxt=files.length>0?` cu ${files.length} ${files.length===1?'poză':'poze'}`:'';
     const utxt=urg==='urgent'?' Marcat ca urgent.':'';
     document.getElementById('ok-txt').textContent = isPricePending
       ? `Cererea ta a fost trimisă${ptxt}.${utxt} Adminul te va contacta pentru a stabili prețul lucrării.`
+      : isCash
+      ? `Cererea ta a fost trimisă${ptxt}.${utxt} Plătești ${subcatPrice} lei direct meșterului, cash, la finalizare.`
       : `Cererea ta a fost trimisă${ptxt}.${utxt} Suma de ${subcatPrice} lei a fost blocată pe cardul tău — se reține doar când meșterul finalizează lucrarea.`;
     document.getElementById('job-ok').style.display='block';
     document.getElementById('job-ok').scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -1765,7 +1794,16 @@ await api('POST','/api/jobs',{category:hCat,description:desc,worker_id:wid,urgen
     loadHoreca();
   }catch(e){toast(e.message);}
 }
+let heartbeatInterval=null;
+function startHeartbeat(){
+  if(heartbeatInterval) return;
+  api('PATCH','/api/auth/heartbeat',{}).catch(()=>{});
+  heartbeatInterval=setInterval(function(){
+    api('PATCH','/api/auth/heartbeat',{}).catch(()=>{});
+  }, 60000);
+}
 function loginOk(){
+  startHeartbeat();
   if(CU.role==='client'){
     document.getElementById('nav-act').innerHTML=`<button class="btn bt-gh" onclick="gp('client')"><i class="ti ti-user"></i> Contul meu</button><span style="font-size:13px;color:var(--mu);">${esc(CU.name)}</span><button class="btn bt-gh" onclick="lo()"><i class="ti ti-logout"></i> Ieși</button>`;
   } else {
@@ -1929,6 +1967,11 @@ async function loadMes(){
     const d=await api('GET','/api/workers/me/dashboard');
     document.getElementById('ms-j').textContent=d.jobs.filter(j=>j.status==='pending'||j.status==='accepted').length;
     document.getElementById('ms-m').textContent=d.unread_messages;
+    var mySrikes=d.worker?.strikes||0;
+    if(mySrikes>0){
+      document.getElementById('strikes-wrap').style.display='block';
+      document.getElementById('strikes-text').textContent='⚠️ Ai '+mySrikes+'/3 avertismente pe cont.'+(mySrikes>=3?' Contul tău este blocat.':'');
+    }
     const el=document.getElementById('m-jobs');
     const active=d.jobs.filter(j=>j.status==='pending'||j.status==='accepted');
     if(!active.length){el.innerHTML='<div style="color:var(--mu);font-size:13px;">Nu ai joburi active.</div>';return;}
@@ -1938,7 +1981,7 @@ async function loadMes(){
       const urgHtml=j.urgency==='urgent'?`<div class="jurg u-urg"><i class="ti ti-alert-triangle" style="font-size:11px;"></i> Urgent</div>`:`<div class="jurg u-nor">Normal</div>`;
       return`<div class="jc" id="mj-${j._id||j.id}">
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
-        <div class="jif"><div class="jt">${esc(j.category)}${j.subcat_name?' — '+esc(j.subcat_name):''} — ${esc(j.city||'București')}</div><div class="jm">Client: ${esc(j.client_name)} · ${esc(j.time_slot||'')}</div>${j.subcat_price?'<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:3px;">Preț: '+esc(j.subcat_price)+' lei</div>':''}${urgHtml}${phHtml}</div>
+        <div class="jif"><div class="jt">${esc(j.category)}${j.subcat_name?' — '+esc(j.subcat_name):''} — ${esc(j.city||'București')}</div><div class="jm">Client: ${esc(j.client_name)} · ${esc(j.time_slot||'')}</div>${j.subcat_price?'<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:3px;">Preț: '+esc(j.subcat_price)+' lei</div>':''}${j.payment_method==='cash'?'<div style="font-size:11px;color:#991B1B;font-weight:600;margin-top:2px;">💵 Plată cash — virezi comisionul platformei în max 15 zile</div>':''}${urgHtml}${phHtml}</div>
         <div class="jr"><span class="jb ${j.status==='completed'?'jb-a':j.status==='on_the_way'?'jb-w':j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='completed'?'Finalizat':j.status==='on_the_way'?'Pe drum':j.status==='accepted'?'Acceptat':'Nou'}</span>
         <div style="display:flex;gap:5px;">${
           j.status==='pending' ? `<button class="btn bt-bl bt-sm" onclick="accJob('${j._id||j.id}',this)"><i class="ti ti-check"></i> Acceptă</button>` :
@@ -2244,6 +2287,8 @@ async function loadGrafice(containerId){
     document.getElementById('as-w').textContent=s.active_workers;
     document.getElementById('as-j').textContent=s.total_jobs;
     document.getElementById('as-p').textContent=s.pending_workers;
+    document.getElementById('as-co').textContent=s.clients_online ?? 0;
+    document.getElementById('as-wo').textContent=s.workers_online ?? 0;
     // Show tw tab first
     const tw=document.getElementById('tw');
     if(tw)tw.style.display='block';
@@ -2305,7 +2350,9 @@ async function loadAW(){ loadGrafice('admin-grafice');
       var refBadge=w.referral_source?' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#EBF1FF;color:var(--blue);font-weight:600;">via '+esc(w.referral_source)+'</span>':'';
       var pfaBadge=w.pfa_name?' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#ECFDF5;color:#059669;font-weight:600;">'+esc(w.pfa_name)+'</span>':'';
       var stripeBadge=w.stripe_payouts_enabled?' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#ECFDF5;color:#059669;font-weight:600;" title="Primește plățile automat">💳 Stripe ✓</span>':' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#FEF2F2;color:#E24B4A;font-weight:600;" title="Plată manuală necesară">💳 neconectat</span>';
-      wtbl+='<td><strong>'+esc(w.name)+'</strong>'+refBadge+pfaBadge+stripeBadge+'<br><span style="font-size:11px;color:var(--mu);">'+esc(w.email)+'</span></td>';
+      var strikesN=w.strikes||0;
+      var strikesBadge=strikesN>0?' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:'+(strikesN>=3?'#FEF2F2':'#FFF0EC')+';color:'+(strikesN>=3?'#991B1B':'#E24B4A')+';font-weight:700;">⚠️ '+strikesN+'/3</span>':'';
+      wtbl+='<td><strong>'+esc(w.name)+'</strong>'+refBadge+pfaBadge+stripeBadge+strikesBadge+'<br><span style="font-size:11px;color:var(--mu);">'+esc(w.email)+'</span><br><button class="btn bt-gh" style="padding:2px 8px;font-size:10px;margin-top:4px;color:#E24B4A;" onclick="addWorkerStrike(\''+(w.worker_id||'')+'\',\''+esc(w.name)+'\')">⚠️ Adaugă avertisment</button></td>';
       wtbl+='<td style="font-size:11px;color:var(--mu);">📞 '+esc(w.phone||'-')+'</td>';
       wtbl+='<td style="font-size:11px;color:var(--navy);">'+(w.categories&&w.categories.length?w.categories.map(esc).join('<br>'):esc(w.specialization||'-'))+'</td>';
 
@@ -2570,6 +2617,27 @@ async function assignWorker(btn){
   }catch(e){toast('Eroare: '+e.message);}
 }
 
+async function addWorkerStrike(workerId,name){
+  if(!workerId){toast('Acest cont nu are profil de meșter asociat.');return;}
+  var reason=prompt('Motivul avertismentului pentru '+name+' (ex: nu s-a prezentat la lucrarea plătită cash):');
+  if(reason===null)return;
+  if(!confirm('Sigur adaugi un avertisment lui '+name+'? La al 3-lea, contul se blochează automat.'))return;
+  try{
+    var r=await api('POST','/api/admin/workers/'+workerId+'/strike',{reason:reason});
+    toast(r.message);
+    loadAW();
+  }catch(e){toast(e.message);}
+}
+
+async function markCashPaid(jobId){
+  if(!confirm('Confirmi că ai primit virarea comisionului de la meșter?'))return;
+  try{
+    await api('PATCH','/api/admin/jobs/'+jobId+'/mark-cash-paid',{});
+    toast('Comision marcat ca încasat!');
+    loadAdminExpenses();
+  }catch(e){toast(e.message);}
+}
+
 async function loadAdminExpenses(){
   try{
     var data=await api('GET','/api/admin/payouts');
@@ -2584,6 +2652,19 @@ async function loadAdminExpenses(){
     html+='<div class="ds"><div class="dsn">'+totals.agency_total.toFixed(0)+' lei</div><div class="dsl">De plătit agențiilor</div></div>';
     html+='<div class="ds"><div class="dsn" style="color:#059669;">'+(totals.already_paid_via_stripe||0).toFixed(0)+' lei</div><div class="dsl">Deja transferate automat (Stripe)</div></div>';
     html+='</div>';
+
+    // Comisioane cash de recuperat (plăți directe meșter-client, virate în max 15 zile)
+    var cashPending=(data.cash_pending||[]).filter(function(c){return !c.paid;});
+    if(cashPending.length){
+      html+='<div class="set">Comisioane cash de recuperat <span style="color:var(--mu);font-size:11px;text-transform:none;letter-spacing:0;">(meșterul virează, max 15 zile de la finalizare)</span></div>';
+      html+='<table style="margin-bottom:1.5rem;"><thead><tr><th>Meșter</th><th>PFA/SRL</th><th>Job</th><th>Comision</th><th>Termen</th><th></th></tr></thead><tbody>';
+      cashPending.forEach(function(c){
+        var dueTxt=c.due_date?new Date(c.due_date).toLocaleDateString('ro-RO'):'-';
+        var overdueTag=c.overdue?' <span style="color:#E24B4A;font-weight:700;">(depășit)</span>':'';
+        html+='<tr><td>'+esc(c.worker_name)+'</td><td>'+(c.worker_pfa?esc(c.worker_pfa):'<span style="color:var(--mu);">—</span>')+'</td><td>'+esc(c.category)+'</td><td><strong>'+c.commission_lei+' lei</strong></td><td>'+dueTxt+overdueTag+'</td><td><button class="btn bt-gr bt-sm" style="padding:3px 8px;font-size:11px;" onclick="markCashPaid(\''+c.job_id+'\')">Marchează plătit</button></td></tr>';
+      });
+      html+='</tbody></table>';
+    }
 
     // Defalcare pe agenție
     var agencyKeys=Object.keys(totals.by_agency||{});
