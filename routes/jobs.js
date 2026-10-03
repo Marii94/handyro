@@ -92,30 +92,16 @@ router.post('/:id/report', auth, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-router.get('/:id/receipt', auth, async (req, res) => {
-  try {
-    const job = await Job.findById(req.params.id);
-    if (!job) return res.status(404).json({ error: 'Job negăsit' });
-
-    const isClient = String(job.client_id) === String(req.user.id);
-    if (!isClient && req.user.role !== 'admin') return res.status(403).json({ error: 'Nu ai acces la această chitanță.' });
-    if (job.payment_status !== 'captured' || !job.amount_lei) {
-      return res.status(400).json({ error: 'Chitanța e disponibilă doar după ce lucrarea e finalizată și plata încasată.' });
-    }
-
-    const client = await User.findById(job.client_id);
-    let workerName = '';
-    if (job.worker_id) {
-      const w = await Worker.findById(job.worker_id);
-      const wu = w ? await User.findById(w.user_id) : null;
-      workerName = wu?.name || '';
-    }
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="chitanta-handyro-${job._id}.pdf"`);
-
+// Generează PDF-ul de chitanță ca Buffer în memorie — folosit atât pentru
+// descărcarea manuală (ruta de mai jos), cât și pentru atașarea automată la
+// emailul trimis clientului când jobul se finalizează.
+async function buildReceiptPdfBuffer(job, client, workerName) {
+  return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
-    doc.pipe(res);
+    const chunks = [];
+    doc.on('data', (chunk) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
 
     doc.fontSize(22).fillColor('#0F1F3D').text('HandyRO', { continued: false });
     doc.fontSize(10).fillColor('#6B7280').text('handyro.ro · admin@handyro.ro');
@@ -144,6 +130,32 @@ router.get('/:id/receipt', auth, async (req, res) => {
     doc.fontSize(8).fillColor('#9CA3AF').text('Această chitanță confirmă efectuarea plății prin platforma HandyRO. Nu reprezintă factură fiscală în sensul legii; pentru factură fiscală, contactați admin@handyro.ro.');
 
     doc.end();
+  });
+}
+
+router.get('/:id/receipt', auth, async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ error: 'Job negăsit' });
+
+    const isClient = String(job.client_id) === String(req.user.id);
+    if (!isClient && req.user.role !== 'admin') return res.status(403).json({ error: 'Nu ai acces la această chitanță.' });
+    if (job.payment_status !== 'captured' || !job.amount_lei) {
+      return res.status(400).json({ error: 'Chitanța e disponibilă doar după ce lucrarea e finalizată și plata încasată.' });
+    }
+
+    const client = await User.findById(job.client_id);
+    let workerName = '';
+    if (job.worker_id) {
+      const w = await Worker.findById(job.worker_id);
+      const wu = w ? await User.findById(w.user_id) : null;
+      workerName = wu?.name || '';
+    }
+
+    const pdfBuffer = await buildReceiptPdfBuffer(job, client, workerName);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="chitanta-handyro-${job._id}.pdf"`);
+    res.send(pdfBuffer);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -256,13 +268,24 @@ router.patch('/:id/complete', auth, requireRole('meserias'), async (req, res) =>
 
     const client = await User.findById(job.client_id);
     if (client?.email) {
+      let attachments;
+      if (job.payment_status === 'captured' && job.amount_lei) {
+        try {
+          const pdfBuffer = await buildReceiptPdfBuffer(job, client, req.user.name || '');
+          attachments = [{ filename: `chitanta-handyro-${job._id}.pdf`, content: pdfBuffer }];
+        } catch (e) {
+          console.error('[jobs] Eroare la generarea chitanței pentru email:', e.message);
+        }
+      }
       sendEmail(
         client.email,
         `✅ Lucrarea ta a fost finalizată — HandyRO`,
         `Bună, ${client.name}!\n\nLucrarea "${job.category}${job.subcat_name ? ' — ' + job.subcat_name : ''}" a fost marcată ca finalizată de meșter.\n` +
         (job.amount_lei ? `Suma de ${job.amount_lei} lei a fost încasată de pe cardul tău.\n` : '') +
+        (attachments ? `Chitanța e atașată la acest email.\n` : '') +
         (job.completion_photos && job.completion_photos.length ? `Meșterul a atașat poze cu lucrarea finalizată — le poți vedea în contul tău.\n` : '') +
-        `Poți lăsa un review din contul tău pe handyro.ro.`
+        `Poți lăsa un review din contul tău pe handyro.ro.`,
+        attachments
       ).catch(() => {});
     }
 
