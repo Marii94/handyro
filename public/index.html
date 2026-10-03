@@ -593,6 +593,11 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <div class="ds"><div class="dsn" id="ms-a">0</div><div class="dsl">Acceptate azi</div></div>
       <div class="ds"><div class="dsn" id="ms-m">—</div><div class="dsl">Mesaje necitite</div></div>
     </div>
+    <div class="set">Cont de plată</div>
+    <div class="ww" style="margin-bottom:1.5rem;padding:16px;">
+      <div id="stripe-connect-status" style="font-size:13px;color:var(--mu);">Se verifică...</div>
+      <button class="btn bt-bl bt-sm" id="stripe-connect-btn" style="margin-top:10px;display:none;" onclick="startStripeOnboard()"><i class="ti ti-building-bank"></i> Conectează-ți contul de plată</button>
+    </div>
     <div class="set">Profilul tău public <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(ce vede clientul înainte să te aleagă)</span></div>
     <div class="ww" style="margin-bottom:1.5rem;padding:16px;">
       <div class="fg">
@@ -730,8 +735,8 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <p style="margin-bottom:1rem;">La trimiterea unei cereri, suma aferentă lucrării este <strong>blocată (autorizată) pe cardul Clientului</strong>, fără a fi retrasă efectiv. Banii sunt retrași din cont abia în momentul în care Meșterul marchează lucrarea drept finalizată. Dacă lucrarea nu este finalizată în termen de <strong>2 zile lucrătoare</strong> de la trimiterea cererii, autorizarea se anulează automat, iar suma este eliberată integral către Client, fără nicio reținere.</p>
       <p style="margin-bottom:1rem;">Pentru lucrările al căror preț nu poate fi stabilit dinainte ("Altceva"), prețul este convenit separat, prin discuție directă cu administratorul platformei, iar autorizarea de card se solicită Clientului abia după stabilirea sumei.</p>
       <p style="margin-bottom:1rem;">Procesarea plăților este realizată integral de Stripe, un procesator de plăți terț, certificat PCI-DSS. HandyRO nu stochează și nu are acces la datele complete ale cardului.</p>
-      <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">5. Comision</h3>
-      <p style="margin-bottom:1rem;">Din suma încasată per lucrare finalizată, platforma reține un comision. Niciun comision nu este perceput în avans sau pentru lucrări neefectuate.</p>
+      <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">5. Comision și mandat de încasare</h3>
+      <p style="margin-bottom:1rem;">Platforma acționează exclusiv ca intermediar și mandatar al Meșterului. Contractul de prestări servicii se încheie direct între Client și Meșter. Platforma încasează prețul lucrării în numele și pe seama Meșterului, prin procesatorul de plăți Stripe, reținând un comision de intermediere stabilit pe platformă (și, acolo unde este cazul, comisionul datorat agenției de recomandare). Suma cuvenită Meșterului este transferată automat către contul său, fără a tranzita ca venit propriu al platformei. Niciun comision nu este perceput în avans sau pentru lucrări neefectuate.</p>
       <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">6. Răspundere limitată</h3>
       <p style="margin-bottom:1rem;">HandyRO acționează exclusiv ca intermediar și nu răspunde pentru calitatea serviciilor, prejudiciile cauzate de utilizatori sau întreruperea temporară a platformei.</p>
       <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">7. SAL/ANPC</h3>
@@ -1580,7 +1585,7 @@ const urgentExtra = urg==='urgent' ? urgentSurcharge : 0;
     if(!isPricePending){
       // 1. Creăm autorizarea de card (banii se blochează, nu se retrag încă).
       btn.innerHTML='<i class="ti ti-loader"></i> Se autorizează cardul...';
-      const intentData = await api('POST','/api/payments/create-intent',{amount:subcatPrice});
+      const intentData = await api('POST','/api/payments/create-intent',{amount:subcatPrice,worker_id:wid});
       const confirmResult = await stripe.confirmCardPayment(intentData.client_secret, {
         payment_method: { card: cardElement, billing_details: { name: CU.name, email: CU.email } }
       });
@@ -1919,7 +1924,7 @@ async function lo(){
 let profileLoadedOnce = false;
 async function loadMes(){
   document.getElementById('m-hi').textContent='Bună, '+esc(CU.name)+'! 👋';
-  if(!profileLoadedOnce){profileLoadedOnce=true;loadMyProfile();}
+  if(!profileLoadedOnce){profileLoadedOnce=true;loadMyProfile();loadStripeConnectStatus();}
   try{
     const d=await api('GET','/api/workers/me/dashboard');
     document.getElementById('ms-j').textContent=d.jobs.filter(j=>j.status==='pending'||j.status==='accepted').length;
@@ -1946,6 +1951,34 @@ async function loadMes(){
     loadGrafice('mes-grafice');
   }catch(e){toast('Eroare: '+e.message);}
 }
+async function loadStripeConnectStatus(){
+  var box=document.getElementById('stripe-connect-status');
+  var btn=document.getElementById('stripe-connect-btn');
+  try{
+    var s=await api('GET','/api/workers/me/stripe-status');
+    if(s.payouts_enabled){
+      box.innerHTML='<span style="color:var(--gr);font-weight:600;"><i class="ti ti-circle-check"></i> Cont conectat — primești plățile direct, automat.</span>';
+      btn.style.display='none';
+    }else if(s.connected){
+      box.innerHTML='<span style="color:var(--acc);font-weight:600;">Contul e creat, dar nu e complet verificat încă.</span>';
+      btn.textContent='Continuă verificarea contului';
+      btn.style.display='inline-flex';
+    }else{
+      box.innerHTML='Conectează-ți contul ca să primești plățile direct, automat, fără să mai aștepți transfer manual.';
+      btn.textContent='Conectează-ți contul de plată';
+      btn.style.display='inline-flex';
+    }
+  }catch(e){box.textContent='Nu am putut verifica statusul contului.';}
+}
+async function startStripeOnboard(){
+  var btn=document.getElementById('stripe-connect-btn');
+  btn.disabled=true;
+  try{
+    var r=await api('POST','/api/workers/me/stripe-onboard',{});
+    window.location.href=r.url;
+  }catch(e){toast(e.message);btn.disabled=false;}
+}
+
 let profilePhotoUrls = [];
 async function loadMyProfile(){
   try{
@@ -2271,7 +2304,8 @@ async function loadAW(){ loadGrafice('admin-grafice');
       wtbl+='<tr id="wr-'+uid+'">';
       var refBadge=w.referral_source?' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#EBF1FF;color:var(--blue);font-weight:600;">via '+esc(w.referral_source)+'</span>':'';
       var pfaBadge=w.pfa_name?' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#ECFDF5;color:#059669;font-weight:600;">'+esc(w.pfa_name)+'</span>':'';
-      wtbl+='<td><strong>'+esc(w.name)+'</strong>'+refBadge+pfaBadge+'<br><span style="font-size:11px;color:var(--mu);">'+esc(w.email)+'</span></td>';
+      var stripeBadge=w.stripe_payouts_enabled?' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#ECFDF5;color:#059669;font-weight:600;" title="Primește plățile automat">💳 Stripe ✓</span>':' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#FEF2F2;color:#E24B4A;font-weight:600;" title="Plată manuală necesară">💳 neconectat</span>';
+      wtbl+='<td><strong>'+esc(w.name)+'</strong>'+refBadge+pfaBadge+stripeBadge+'<br><span style="font-size:11px;color:var(--mu);">'+esc(w.email)+'</span></td>';
       wtbl+='<td style="font-size:11px;color:var(--mu);">📞 '+esc(w.phone||'-')+'</td>';
       wtbl+='<td style="font-size:11px;color:var(--navy);">'+(w.categories&&w.categories.length?w.categories.map(esc).join('<br>'):esc(w.specialization||'-'))+'</td>';
 
@@ -2544,10 +2578,11 @@ async function loadAdminExpenses(){
     var html='';
 
     // Sumar total
-    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:1.5rem;">';
+    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:1.5rem;">';
     html+='<div class="ds"><div class="dsn">'+totals.platform_total.toFixed(0)+' lei</div><div class="dsl">Rămâne la platformă</div></div>';
-    html+='<div class="ds"><div class="dsn">'+totals.worker_total.toFixed(0)+' lei</div><div class="dsl">De plătit meșterilor</div></div>';
+    html+='<div class="ds"><div class="dsn">'+totals.worker_total.toFixed(0)+' lei</div><div class="dsl">De plătit manual meșterilor</div></div>';
     html+='<div class="ds"><div class="dsn">'+totals.agency_total.toFixed(0)+' lei</div><div class="dsl">De plătit agențiilor</div></div>';
+    html+='<div class="ds"><div class="dsn" style="color:#059669;">'+(totals.already_paid_via_stripe||0).toFixed(0)+' lei</div><div class="dsl">Deja transferate automat (Stripe)</div></div>';
     html+='</div>';
 
     // Defalcare pe agenție
