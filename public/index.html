@@ -526,6 +526,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   <div id="slots-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;"></div>
 </div>
         <div class="fg" id="payment-wrap" style="display:none;">
+          <div style="font-size:11px;color:var(--mu);margin-bottom:8px;">Suma de mai jos acoperă <strong>doar manopera</strong>. Dacă lucrarea necesită materiale (ex: robinet nou, piese), acestea se discută și se achită separat, direct cu meșterul.</div>
           <label>Modalitate de plată <span style="color:#E24B4A;">*</span></label>
           <div style="display:flex;gap:8px;margin-bottom:10px;">
             <button type="button" class="btn bt-bl bt-sm" id="pm-card-btn" onclick="setPaymentMethod('card')" style="flex:1;justify-content:center;">💳 Card (recomandat)</button>
@@ -751,6 +752,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">4. Plata și autorizarea de card</h3>
       <p style="margin-bottom:1rem;">La trimiterea unei cereri, suma aferentă lucrării este <strong>blocată (autorizată) pe cardul Clientului</strong>, fără a fi retrasă efectiv. Banii sunt retrași din cont abia în momentul în care Meșterul marchează lucrarea drept finalizată. Dacă lucrarea nu este finalizată în termen de <strong>2 zile lucrătoare</strong> de la trimiterea cererii, autorizarea se anulează automat, iar suma este eliberată integral către Client, fără nicio reținere.</p>
       <p style="margin-bottom:1rem;">Pentru lucrările al căror preț nu poate fi stabilit dinainte ("Altceva"), prețul este convenit separat, prin discuție directă cu administratorul platformei, iar autorizarea de card se solicită Clientului abia după stabilirea sumei.</p>
+      <p style="margin-bottom:1rem;">Prețurile afișate pe platformă reprezintă exclusiv costul <strong>manoperei</strong>. Costul materialelor necesare (piese de schimb, consumabile, obiecte sanitare etc.) nu este inclus și se stabilește și se achită separat, direct între Client și Meșter, în afara sumei autorizate prin platformă.</p>
       <p style="margin-bottom:1rem;">Procesarea plăților este realizată integral de Stripe, un procesator de plăți terț, certificat PCI-DSS. HandyRO nu stochează și nu are acces la datele complete ale cardului.</p>
       <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">5. Comision și mandat de încasare</h3>
       <p style="margin-bottom:1rem;">Platforma acționează exclusiv ca intermediar și mandatar al Meșterului. Contractul de prestări servicii se încheie direct între Client și Meșter. Platforma încasează prețul lucrării în numele și pe seama Meșterului, prin procesatorul de plăți Stripe, reținând un comision de intermediere stabilit pe platformă (și, acolo unde este cazul, comisionul datorat agenției de recomandare). Suma cuvenită Meșterului este transferată automat către contul său, fără a tranzita ca venit propriu al platformei. Niciun comision nu este perceput în avans sau pentru lucrări neefectuate.</p>
@@ -1463,7 +1465,8 @@ function renderSubcatsList(cat, subs) {
     const div = document.createElement('div');
     div.id = 'subcats-wrap';
     div.style.cssText = 'margin-bottom:14px;';
-    div.innerHTML = '<div style="font-size:11px;font-weight:500;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Alege tipul lucrării (poți selecta mai multe)</div>' +
+    div.innerHTML = '<div style="font-size:11px;font-weight:500;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Alege tipul lucrării (poți selecta mai multe)</div>' +
+      '<div style="font-size:11px;color:var(--acc);font-weight:500;margin-bottom:8px;">💡 Prețurile afișate sunt pentru manoperă. Materialele (piese, consumabile) se achită separat, direct către meșter.</div>' +
       '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;" id="subcat-grid">' +
       subs.map(function(s,i){
         return '<div class="subcat-btn" id="sb-'+i+'" data-idx="'+i+'" data-name="'+encodeURIComponent(s.name)+'" data-price="'+s.price+'" data-cat="'+encodeURIComponent(cat)+'" onclick="handleSelSubcat(this)"' +
@@ -1639,7 +1642,7 @@ await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid
       ? `Cererea ta a fost trimisă${ptxt}.${utxt} Adminul te va contacta pentru a stabili prețul lucrării.`
       : isCash
       ? `Cererea ta a fost trimisă${ptxt}.${utxt} Plătești ${subcatPrice} lei direct meșterului, cash, la finalizare.`
-      : `Cererea ta a fost trimisă${ptxt}.${utxt} Suma de ${subcatPrice} lei a fost blocată pe cardul tău — se reține doar când meșterul finalizează lucrarea.`;
+      : `Cererea ta a fost trimisă${ptxt}.${utxt} Suma de ${subcatPrice} lei (manoperă) a fost blocată pe cardul tău — se reține doar când meșterul finalizează lucrarea. Eventualele materiale se achită separat, direct cu meșterul.`;
     document.getElementById('job-ok').style.display='block';
     document.getElementById('job-ok').scrollIntoView({behavior:'smooth',block:'nearest'});
     btn.innerHTML='<i class="ti ti-check"></i> Trimis!';
