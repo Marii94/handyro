@@ -39,6 +39,8 @@ const WorkerSchema = new mongoose.Schema({
   experience_years: { type: Number, default: null },
   bio: { type: String, default: '' },
   portfolio_photos: [String],
+  stripe_account_id: { type: String, default: null },
+  stripe_payouts_enabled: { type: Boolean, default: false },
 }, { timestamps: true });
 
 const PriceSchema = new mongoose.Schema({
@@ -66,6 +68,7 @@ const JobSchema = new mongoose.Schema({
   payment_intent_id: { type: String, default: null },
   payment_status: { type: String, enum: ['pending','authorized','captured','canceled','refunded','pending_quote'], default: 'pending' },
   amount_lei: { type: Number, default: null },
+  split_via_connect: { type: Boolean, default: false },
 }, { timestamps: true });
 
 const ConversationSchema = new mongoose.Schema({
