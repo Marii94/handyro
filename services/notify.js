@@ -14,24 +14,34 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 // Trimite un email către ORICE adresă — folosită atât pentru notificări admin,
 // cât și pentru emailuri directe către clienți/meșteri.
-async function sendEmail(to, subject, text) {
+//
+// attachments (opțional) — array de { filename, content } unde content e un
+// Buffer sau un string Base64 (ex: PDF-ul de chitanță generat automat).
+async function sendEmail(to, subject, text, attachments) {
   if (!RESEND_API_KEY || !to) {
     console.log('[notify] Email dezactivat sau destinatar lipsă — lipsesc RESEND_API_KEY sau adresa destinatarului.');
     return;
   }
   try {
+    const body = {
+      from: EMAIL_FROM,
+      to,
+      subject,
+      text,
+    };
+    if (Array.isArray(attachments) && attachments.length) {
+      body.attachments = attachments.map(a => ({
+        filename: a.filename,
+        content: Buffer.isBuffer(a.content) ? a.content.toString('base64') : a.content,
+      }));
+    }
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: EMAIL_FROM,
-        to,
-        subject,
-        text,
-      }),
+      body: JSON.stringify(body),
     });
     if (!r.ok) {
       const errBody = await r.text();
