@@ -42,17 +42,34 @@ async function createHold(amountLei, metadata, connectOpts) {
   return intent; // conține client_secret, folosit de frontend pentru a confirma cardul
 }
 
-// ── Stripe Connect — cont pentru meșter ───────────────────────────────────────
-// Creează un cont Connect de tip "Express" pentru un meșter (dacă nu are deja unul).
+// ── Stripe Connect — cont pentru meșter (API v2) ──────────────────────────────
+// Stripe nu mai acceptă API-ul vechi (v1, stripe.accounts.create) pentru conturi
+// Connect noi — folosim API-ul curent, v2 (stripe.v2.core.accounts.create).
+// Configurația "recipient" cu capacitatea "stripe_balance.stripe_transfers" e
+// cea care permite contului să primească transferuri de la platformă (necesară
+// pentru destination charges — exact fluxul nostru).
 async function createConnectedAccount(email, metadata) {
   ensureConfigured();
-  return stripe.accounts.create({
-    type: 'express',
-    country: 'RO',
-    email,
-    capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
-    business_type: 'individual',
+  return stripe.v2.core.accounts.create({
+    contact_email: email,
+    display_name: email,
+    defaults: {
+      responsibilities: {
+        fees_collector: 'application',
+        losses_collector: 'application',
+      },
+    },
+    dashboard: 'express',
+    identity: { country: 'ro' },
+    configuration: {
+      recipient: {
+        capabilities: {
+          stripe_balance: { stripe_transfers: { requested: true } },
+        },
+      },
+    },
     metadata: metadata || {},
+    include: ['configuration.recipient', 'identity', 'requirements'],
   });
 }
 
@@ -60,22 +77,31 @@ async function createConnectedAccount(email, metadata) {
 // e redirecționat acolo ca să-și completeze datele direct la Stripe, în siguranță.
 async function createAccountLink(accountId, refreshUrl, returnUrl) {
   ensureConfigured();
-  return stripe.accountLinks.create({
+  return stripe.v2.core.accountLinks.create({
     account: accountId,
-    refresh_url: refreshUrl,
-    return_url: returnUrl,
-    type: 'account_onboarding',
+    use_case: {
+      type: 'account_onboarding',
+      account_onboarding: {
+        return_url: returnUrl,
+        refresh_url: refreshUrl,
+      },
+    },
   });
 }
 
-// Verifică dacă meșterul a terminat onboarding-ul și poate primi plăți.
+// Verifică dacă meșterul a terminat onboarding-ul și poate primi plăți —
+// capacitatea "stripe_transfers" trebuie să fie "active".
 async function getAccountStatus(accountId) {
   ensureConfigured();
-  const acct = await stripe.accounts.retrieve(accountId);
+  const acct = await stripe.v2.core.accounts.retrieve(accountId, {
+    include: ['configuration.recipient', 'requirements'],
+  });
+  const capStatus = acct.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers?.status;
+  const hasOutstandingRequirements = !!(acct.requirements?.entries && acct.requirements.entries.length > 0);
   return {
-    details_submitted: !!acct.details_submitted,
-    charges_enabled: !!acct.charges_enabled,
-    payouts_enabled: !!acct.payouts_enabled,
+    details_submitted: !hasOutstandingRequirements,
+    charges_enabled: capStatus === 'active',
+    payouts_enabled: capStatus === 'active',
   };
 }
 
