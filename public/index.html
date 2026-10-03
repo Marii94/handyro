@@ -451,7 +451,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
           <div class="cc"><span id="cc">0</span>/500 caractere</div>
         </div>
         <div class="fg">
-          <label>Adaugă poze cu problema <span style="color:var(--mu);font-size:10px;">(opțional, max 3)</span></label>
+          <label>Adaugă poze cu problema <span style="color:#E24B4A;">*</span> <span style="color:var(--mu);font-size:10px;">(obligatoriu, max 3)</span></label>
           <div class="uz" id="uz" ondragover="dov(event,1)" ondragleave="dov(event,0)" ondrop="ddr(event)">
             <input type="file" accept="image/*" multiple id="fi" onchange="onf(this.files)"/>
             <i class="ti ti-camera-plus"></i>
@@ -526,7 +526,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   <div id="slots-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;"></div>
 </div>
         <div class="fg" id="payment-wrap" style="display:none;">
-          <div style="font-size:11px;color:var(--mu);margin-bottom:8px;">Suma de mai jos acoperă <strong>doar manopera</strong>. Dacă lucrarea necesită materiale (ex: robinet nou, piese), acestea se discută și se achită separat, direct cu meșterul.</div>
+          <div style="font-size:11px;color:var(--mu);margin-bottom:8px;">Suma de mai jos acoperă <strong>doar manopera</strong>. Dacă lucrarea necesită materiale (ex: robinet nou, piese), meșterul trebuie să vină cu <strong>bon fiscal</strong> — plătești exact suma de pe bon, nimic în plus.</div>
           <label>Modalitate de plată <span style="color:#E24B4A;">*</span></label>
           <div style="display:flex;gap:8px;margin-bottom:10px;">
             <button type="button" class="btn bt-bl bt-sm" id="pm-card-btn" onclick="setPaymentMethod('card')" style="flex:1;justify-content:center;">💳 Card (recomandat)</button>
@@ -710,7 +710,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
         <div class="fc-b">
           <div class="fg"><label>Descrie problema <span style="color:#E24B4A;">*</span></label><textarea id="h-desc" placeholder="Descrie situația..." maxlength="500"></textarea></div>
           <div class="fg">
-  <label>Adaugă poze <span style="color:var(--mu);font-size:10px;">(opțional, max 3)</span></label>
+  <label>Adaugă poze <span style="color:#E24B4A;">*</span> <span style="color:var(--mu);font-size:10px;">(obligatoriu, max 3)</span></label>
   <div class="uz" id="h-uz" ondragover="dov(event,1)" ondragleave="dov(event,0)" ondrop="hdr(event)">
     <input type="file" accept="image/*" multiple id="h-fi" onchange="honf(this.files)"/>
     <i class="ti ti-camera-plus"></i>
@@ -752,7 +752,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">4. Plata și autorizarea de card</h3>
       <p style="margin-bottom:1rem;">La trimiterea unei cereri, suma aferentă lucrării este <strong>blocată (autorizată) pe cardul Clientului</strong>, fără a fi retrasă efectiv. Banii sunt retrași din cont abia în momentul în care Meșterul marchează lucrarea drept finalizată. Dacă lucrarea nu este finalizată în termen de <strong>2 zile lucrătoare</strong> de la trimiterea cererii, autorizarea se anulează automat, iar suma este eliberată integral către Client, fără nicio reținere.</p>
       <p style="margin-bottom:1rem;">Pentru lucrările al căror preț nu poate fi stabilit dinainte ("Altceva"), prețul este convenit separat, prin discuție directă cu administratorul platformei, iar autorizarea de card se solicită Clientului abia după stabilirea sumei.</p>
-      <p style="margin-bottom:1rem;">Prețurile afișate pe platformă reprezintă exclusiv costul <strong>manoperei</strong>. Costul materialelor necesare (piese de schimb, consumabile, obiecte sanitare etc.) nu este inclus și se stabilește și se achită separat, direct între Client și Meșter, în afara sumei autorizate prin platformă.</p>
+      <p style="margin-bottom:1rem;">Prețurile afișate pe platformă reprezintă exclusiv costul <strong>manoperei</strong>. Costul materialelor necesare (piese de schimb, consumabile, obiecte sanitare etc.) nu este inclus și se stabilește și se achită separat, direct între Client și Meșter, în afara sumei autorizate prin platformă. Meșterul are obligația de a prezenta Clientului <strong>bon fiscal</strong> pentru orice material achiziționat în scopul lucrării, iar Clientul datorează pentru materiale strict suma înscrisă pe bonul fiscal prezentat.</p>
       <p style="margin-bottom:1rem;">Procesarea plăților este realizată integral de Stripe, un procesator de plăți terț, certificat PCI-DSS. HandyRO nu stochează și nu are acces la datele complete ale cardului.</p>
       <h3 style="font-family:'Syne',sans-serif;margin:1.5rem 0 .5rem;">5. Comision și mandat de încasare</h3>
       <p style="margin-bottom:1rem;">Platforma acționează exclusiv ca intermediar și mandatar al Meșterului. Contractul de prestări servicii se încheie direct între Client și Meșter. Platforma încasează prețul lucrării în numele și pe seama Meșterului, prin procesatorul de plăți Stripe, reținând un comision de intermediere stabilit pe platformă (și, acolo unde este cazul, comisionul datorat agenției de recomandare). Suma cuvenită Meșterului este transferată automat către contul său, fără a tranzita ca venit propriu al platformei. Niciun comision nu este perceput în avans sau pentru lucrări neefectuate.</p>
@@ -1466,7 +1466,7 @@ function renderSubcatsList(cat, subs) {
     div.id = 'subcats-wrap';
     div.style.cssText = 'margin-bottom:14px;';
     div.innerHTML = '<div style="font-size:11px;font-weight:500;color:var(--mu);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Alege tipul lucrării (poți selecta mai multe)</div>' +
-      '<div style="font-size:11px;color:var(--acc);font-weight:500;margin-bottom:8px;">💡 Prețurile afișate sunt pentru manoperă. Materialele (piese, consumabile) se achită separat, direct către meșter.</div>' +
+      '<div style="font-size:11px;color:var(--acc);font-weight:500;margin-bottom:8px;">💡 Prețurile afișate sunt pentru manoperă. Materialele se achită separat, direct către meșter — acesta trebuie să vină cu bon fiscal, iar tu plătești exact suma de pe bon.</div>' +
       '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;" id="subcat-grid">' +
       subs.map(function(s,i){
         return '<div class="subcat-btn" id="sb-'+i+'" data-idx="'+i+'" data-name="'+encodeURIComponent(s.name)+'" data-price="'+s.price+'" data-cat="'+encodeURIComponent(cat)+'" onclick="handleSelSubcat(this)"' +
@@ -1580,6 +1580,7 @@ async function submitJob(){
   if(!selectedSubcats.length){toast('Alege cel puțin un tip de lucrare, ca să știm suma de blocat pe card!');return;}
   const jobAddress=document.getElementById('job-address')?.value.trim()||'';
   if(!jobAddress){document.getElementById('job-address').focus();toast('Completează adresa exactă, ca meșterul să știe unde să vină!');return;}
+  if(!files.length){toast('Adaugă cel puțin o poză cu problema — e obligatoriu!');document.getElementById('uz').scrollIntoView({behavior:'smooth',block:'center'});return;}
   const btn=document.getElementById('sub-btn');
   btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Se trimite...';
   try{
@@ -1642,7 +1643,7 @@ await api('POST','/api/jobs',{category:curCat,description:fullDesc,worker_id:wid
       ? `Cererea ta a fost trimisă${ptxt}.${utxt} Adminul te va contacta pentru a stabili prețul lucrării.`
       : isCash
       ? `Cererea ta a fost trimisă${ptxt}.${utxt} Plătești ${subcatPrice} lei direct meșterului, cash, la finalizare.`
-      : `Cererea ta a fost trimisă${ptxt}.${utxt} Suma de ${subcatPrice} lei (manoperă) a fost blocată pe cardul tău — se reține doar când meșterul finalizează lucrarea. Eventualele materiale se achită separat, direct cu meșterul.`;
+      : `Cererea ta a fost trimisă${ptxt}.${utxt} Suma de ${subcatPrice} lei (manoperă) a fost blocată pe cardul tău — se reține doar când meșterul finalizează lucrarea. Eventualele materiale se achită separat, pe bază de bon fiscal — plătești exact suma de pe bon.`;
     document.getElementById('job-ok').style.display='block';
     document.getElementById('job-ok').scrollIntoView({behavior:'smooth',block:'nearest'});
     btn.innerHTML='<i class="ti ti-check"></i> Trimis!';
@@ -1776,6 +1777,7 @@ async function submitHoreca(){
   const desc=document.getElementById('h-desc').value.trim();
   if(!desc){toast('Descrie problema!');return;}
   if(!hCat){toast('Alege o categorie!');return;}
+  if(!hFiles.length){toast('Adaugă cel puțin o poză cu problema — e obligatoriu!');return;}
   try{
     let photoUrls=[];
     if(hFiles.length>0){
@@ -1984,7 +1986,7 @@ async function loadMes(){
       const urgHtml=j.urgency==='urgent'?`<div class="jurg u-urg"><i class="ti ti-alert-triangle" style="font-size:11px;"></i> Urgent</div>`:`<div class="jurg u-nor">Normal</div>`;
       return`<div class="jc" id="mj-${j._id||j.id}">
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
-        <div class="jif"><div class="jt">${esc(j.category)}${j.subcat_name?' — '+esc(j.subcat_name):''} — ${esc(j.city||'București')}</div><div class="jm">Client: ${esc(j.client_name)} · ${esc(j.time_slot||'')}</div>${j.subcat_price?'<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:3px;">Preț: '+esc(j.subcat_price)+' lei</div>':''}${j.payment_method==='cash'?'<div style="font-size:11px;color:#991B1B;font-weight:600;margin-top:2px;">💵 Plată cash — virezi comisionul platformei în max 15 zile</div>':''}${urgHtml}${phHtml}</div>
+        <div class="jif"><div class="jt">${esc(j.category)}${j.subcat_name?' — '+esc(j.subcat_name):''} — ${esc(j.city||'București')}</div><div class="jm">Client: ${esc(j.client_name)} · ${esc(j.time_slot||'')}</div>${j.subcat_price?'<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:3px;">Preț: '+esc(j.subcat_price)+' lei (manoperă)</div>':''}<div style="font-size:10px;color:var(--mu);margin-top:2px;">Dacă folosești materiale, vino cu bon fiscal — clientul plătește exact suma de pe bon.</div>${j.payment_method==='cash'?'<div style="font-size:11px;color:#991B1B;font-weight:600;margin-top:2px;">💵 Plată cash — virezi comisionul platformei în max 15 zile</div>':''}${urgHtml}${phHtml}</div>
         <div class="jr"><span class="jb ${j.status==='completed'?'jb-a':j.status==='on_the_way'?'jb-w':j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='completed'?'Finalizat':j.status==='on_the_way'?'Pe drum':j.status==='accepted'?'Acceptat':'Nou'}</span>
         <div style="display:flex;gap:5px;">${
           j.status==='pending' ? `<button class="btn bt-bl bt-sm" onclick="accJob('${j._id||j.id}',this)"><i class="ti ti-check"></i> Acceptă</button>` :
