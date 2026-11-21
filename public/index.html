@@ -613,6 +613,22 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <div id="stripe-connect-status" style="font-size:13px;color:var(--mu);">Se verifică...</div>
       <button class="btn bt-bl bt-sm" id="stripe-connect-btn" style="margin-top:10px;display:none;" onclick="startStripeOnboard()"><i class="ti ti-building-bank"></i> Conectează-ți contul de plată</button>
     </div>
+    <div class="set">Date fiscale <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(necesare ca platforma să îți poată emite factura de comision)</span></div>
+    <div class="ww" style="margin-bottom:1.5rem;padding:16px;">
+      <div class="fg">
+        <label>PFA sau SRL <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(opțional, doar dacă ai)</span></label>
+        <input type="text" id="prof-pfa" placeholder="Numele firmei / PFA-ului tău"/>
+      </div>
+      <div class="fg">
+        <label>CUI <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(cod unic de înregistrare, de pe certificatul firmei)</span></label>
+        <input type="text" id="prof-cui" placeholder="Ex: RO12345678 sau 12345678"/>
+      </div>
+      <div class="fg">
+        <label>Adresă sediu/domiciliu fiscal <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(opțional, dar recomandat)</span></label>
+        <input type="text" id="prof-fiscal-address" placeholder="Ex: Str. Exemplu nr. 1, București"/>
+      </div>
+      <button class="btn bt-bl bt-sm" onclick="saveMyProfile()">Salvează datele fiscale</button>
+    </div>
     <div class="set">Profilul tău public <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(ce vede clientul înainte să te aleagă)</span></div>
     <div class="ww" style="margin-bottom:1.5rem;padding:16px;">
       <div class="fg">
@@ -662,6 +678,8 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <div class="ds"><div class="dsn" id="as-p">—</div><div class="dsl">În așteptare</div></div>
       <div class="ds"><div class="dsn" id="as-co" style="color:var(--gr);">—</div><div class="dsl">Clienți online acum</div></div>
       <div class="ds"><div class="dsn" id="as-wo" style="color:var(--gr);">—</div><div class="dsl">Meseriași online acum</div></div>
+      <div class="ds"><div class="dsn" id="as-vt">—</div><div class="dsl">Vizitatori azi</div></div>
+      <div class="ds"><div class="dsn" id="as-v7">—</div><div class="dsl">Vizitatori 7 zile</div></div>
     </div>
     <div class="atb">
       <button class="on" onclick="switchTab(this,'tw')">Meseriași</button>
@@ -671,6 +689,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       <button onclick="switchTab(this,'tsubcat')">Prețuri servicii</button>
       <button onclick="switchTab(this,'tm')">Mesaje</button>
       <button onclick="switchTab(this,'tcontact')" id="contact-tab-btn">Contact</button>
+      <button onclick="switchTab(this,'tvis')">Vizite</button>
       <button onclick="switchTab(this,'texp')">Cheltuieli</button>
     </div>
     <div id="tw">Se încarcă...</div>
@@ -681,6 +700,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
     <div id="tsubcat" style="display:none"></div>
     <div id="tm" style="display:none"></div>
     <div id="tcontact" style="display:none"></div>
+    <div id="tvis" style="display:none"></div>
     <div id="texp" style="display:none"></div>
   </div>
 </div>
@@ -1080,6 +1100,20 @@ function checkSlotUrgency(val){
   m.style.display=m.style.display==='flex'?'none':'flex';
 }
 function toast(m,d=3000){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),d);}
+var _lastTracked=null;
+function trackVisit(path){
+  try{
+    if(location.hostname==='localhost'||location.hostname==='127.0.0.1')return;
+    if(_lastTracked===path)return;
+    _lastTracked=path;
+    var q=new URLSearchParams(location.search);
+    var h={'Content-Type':'application/json'};
+    var tk=localStorage.getItem('hro_tk');
+    if(tk)h['Authorization']='Bearer '+tk;
+    fetch(API+'/api/track',{method:'POST',headers:h,credentials:'include',keepalive:true,
+      body:JSON.stringify({path:path,ref:document.referrer||'',utm_source:q.get('utm_source')||'',utm_campaign:q.get('utm_campaign')||''})}).catch(function(){});
+  }catch(e){}
+}
 async function api(method,path,body){
   const tk=localStorage.getItem('hro_tk');
   const o={method,headers:{'Content-Type':'application/json'},credentials:'include'};
@@ -1111,6 +1145,7 @@ function gp(id){
   }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('page-'+id).classList.add('on');
+  if(!CU)trackVisit('/'+id);
   if(id==='services') checkAfterHoursBanner();
   if(id==='contact') loadContactChat();
   if(id==='contact' && CU){
@@ -1986,7 +2021,7 @@ async function loadMes(){
       const urgHtml=j.urgency==='urgent'?`<div class="jurg u-urg"><i class="ti ti-alert-triangle" style="font-size:11px;"></i> Urgent</div>`:`<div class="jurg u-nor">Normal</div>`;
       return`<div class="jc" id="mj-${j._id||j.id}">
         <div class="ji"><i class="ti ${catIco(j.category)}"></i></div>
-        <div class="jif"><div class="jt">${esc(j.category)}${j.subcat_name?' — '+esc(j.subcat_name):''} — ${esc(j.city||'București')}</div><div class="jm">Client: ${esc(j.client_name)} · ${esc(j.time_slot||'')}</div>${j.subcat_price?'<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:3px;">Preț: '+esc(j.subcat_price)+' lei (manoperă)</div>':''}<div style="font-size:10px;color:var(--mu);margin-top:2px;">Dacă folosești materiale, vino cu bon fiscal — clientul plătește exact suma de pe bon.</div>${j.payment_method==='cash'?'<div style="font-size:11px;color:#991B1B;font-weight:600;margin-top:2px;">💵 Plată cash — virezi comisionul platformei în max 15 zile</div>':''}${urgHtml}${phHtml}</div>
+        <div class="jif"><div class="jt">${esc(j.category)}${j.subcat_name?' — '+esc(j.subcat_name):''} — ${esc(j.city||'București')}</div><div class="jm">Client: ${esc(j.client_name)} · ${esc(j.time_slot||'')}</div>${j.exact_address?'<div style="font-size:12px;color:var(--navy);font-weight:500;margin-top:3px;"><i class="ti ti-map-pin"></i> '+esc(j.exact_address)+'</div>':''}${j.description?'<div class="jm" style="margin-top:4px;font-style:italic;">'+esc(j.description)+'</div>':''}${j.subcat_price?'<div style="font-size:12px;color:var(--blue);font-weight:500;margin-top:3px;">Preț: '+esc(j.subcat_price)+' lei (manoperă)</div>':''}<div style="font-size:10px;color:var(--mu);margin-top:2px;">Dacă folosești materiale, vino cu bon fiscal — clientul plătește exact suma de pe bon.</div>${j.payment_method==='cash'?'<div style="font-size:11px;color:#991B1B;font-weight:600;margin-top:2px;">💵 Plată cash — virezi comisionul platformei în max 15 zile</div>':''}${urgHtml}${phHtml}</div>
         <div class="jr"><span class="jb ${j.status==='completed'?'jb-a':j.status==='on_the_way'?'jb-w':j.status==='accepted'?'jb-a':'jb-n'}">${j.status==='completed'?'Finalizat':j.status==='on_the_way'?'Pe drum':j.status==='accepted'?'Acceptat':'Nou'}</span>
         <div style="display:flex;gap:5px;">${
           j.status==='pending' ? `<button class="btn bt-bl bt-sm" onclick="accJob('${j._id||j.id}',this)"><i class="ti ti-check"></i> Acceptă</button>` :
@@ -2033,6 +2068,9 @@ async function loadMyProfile(){
     const p = await api('GET','/api/workers/me/profile');
     document.getElementById('prof-exp').value = p.experience_years ?? '';
     document.getElementById('prof-bio').value = p.bio || '';
+    document.getElementById('prof-pfa').value = p.pfa_name || '';
+    document.getElementById('prof-cui').value = p.cui || '';
+    document.getElementById('prof-fiscal-address').value = p.fiscal_address || '';
     profilePhotoUrls = Array.isArray(p.portfolio_photos) ? p.portfolio_photos.slice() : [];
     renderProfilePhotoPreview();
   }catch(e){}
@@ -2073,7 +2111,10 @@ async function saveMyProfile(){
     await api('PATCH','/api/workers/me/profile',{
       experience_years: document.getElementById('prof-exp').value || null,
       bio: document.getElementById('prof-bio').value.trim(),
-      portfolio_photos: profilePhotoUrls
+      portfolio_photos: profilePhotoUrls,
+      pfa_name: document.getElementById('prof-pfa').value.trim(),
+      cui: document.getElementById('prof-cui').value.trim(),
+      fiscal_address: document.getElementById('prof-fiscal-address').value.trim()
     });
     toast('Profil salvat!');
   }catch(e){toast(e.message);}
@@ -2248,7 +2289,7 @@ async function sendMsg(cid){
 function switchTab(btn,tab){
   document.querySelectorAll('.atb button').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
-  var tabs=['tw','tc','th','tj','tsubcat','tm','tcontact','texp'];
+  var tabs=['tw','tc','th','tj','tsubcat','tm','tcontact','tvis','texp'];
   tabs.forEach(function(t){var el=document.getElementById(t);if(el)el.style.display='none';});
   var el=document.getElementById(tab);
   if(el)el.style.display='block';
@@ -2258,6 +2299,43 @@ function switchTab(btn,tab){
   if(tab==='tcontact')loadAdminContact();
 if(tab==='th')loadAdminHoreca();
 if(tab==='texp')loadAdminExpenses();
+if(tab==='tvis')loadAdminVisits(30);
+}
+
+async function loadAdminVisits(days){
+  var el=document.getElementById('tvis');
+  if(!el)return;
+  el.innerHTML='Se încarcă...';
+  try{
+    var v=await api('GET','/api/admin/visits?days='+days);
+    var card='background:var(--card);border:1px solid var(--br);border-radius:var(--r);padding:1.25rem;';
+    var ttl='font-family:\'Syne\',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:1rem;';
+    function bars(list,key,color){
+      var mx=Math.max.apply(null,list.map(function(x){return x[key];}).concat([1]));
+      if(!list.length)return '<div style="font-size:13px;color:var(--mu);">Încă nu sunt date.</div>';
+      return list.map(function(x){
+        return '<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--navy);"><span>'+esc(x.name)+'</span><b>'+x[key]+'</b></div><div style="height:6px;background:var(--br);border-radius:3px;"><div style="height:6px;width:'+Math.round(x[key]/mx*100)+'%;background:'+color+';border-radius:3px;"></div></div></div>';
+      }).join('');
+    }
+    var mxd=Math.max.apply(null,v.series.map(function(d){return d.visitors;}).concat([1]));
+    var n=v.series.length, step=n>31?7:(n>14?3:1);
+    var chart='<div style="display:flex;align-items:flex-end;gap:'+(n>40?2:4)+'px;height:140px;">'+v.series.map(function(d,i){
+      var lbl=(i%step===0||i===n-1)?d.day.slice(8)+'.'+d.day.slice(5,7):'';
+      return '<div title="'+esc(d.day)+': '+d.visitors+' vizitatori, '+d.pageviews+' afișări" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;"><div style="flex:1;width:100%;display:flex;align-items:flex-end;"><div style="width:100%;height:'+Math.round(d.visitors/mxd*100)+'%;background:var(--blue);border-radius:3px 3px 0 0;min-height:2px;"></div></div><div style="font-size:9px;color:var(--mu);height:12px;white-space:nowrap;">'+lbl+'</div></div>';
+    }).join('')+'</div>';
+    var tile=function(num,label){return '<div class="ds"><div class="dsn">'+num+'</div><div class="dsl">'+label+'</div></div>';};
+    var rng=[7,30,90].map(function(d){return '<button class="btn '+(d===v.days?'bt-nv':'bt-gh')+'" style="font-size:12px;padding:6px 12px;" onclick="loadAdminVisits('+d+')">'+d+' zile</button>';}).join('');
+    var conv=v.total.visitors?(((v.signups.workers+v.signups.clients)/v.total.visitors*100).toFixed(1)+'%'):'—';
+    el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px;"><div style="font-size:13px;color:var(--mu);">Statistici anonime, fără cookie-uri. Un om este numărat o singură dată pe zi. Vizitele tale de admin nu se contorizează.</div><div style="display:flex;gap:6px;">'+rng+'</div></div>'
+    +'<div class="asg" style="margin-bottom:1.25rem;">'+tile(v.today.visitors,'Vizitatori azi')+tile(v.total.visitors,'Vizitatori ('+v.days+' zile)')+tile(v.total.pageviews,'Afișări de pagini')+tile(v.signups.workers,'Meseriași înscriși')+tile(v.signups.clients,'Clienți înscriși')+tile(conv,'Înscrieri / vizitatori')+'</div>'
+    +'<div style="'+card+'margin-bottom:1.25rem;"><div style="'+ttl+'">Vizitatori pe zi</div>'+chart+'</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem;">'
+    +'<div style="'+card+'"><div style="'+ttl+'">De unde vin</div>'+bars(v.sources,'visitors','var(--blue)')+'</div>'
+    +'<div style="'+card+'"><div style="'+ttl+'">Pagini vizitate</div>'+bars(v.pages,'pageviews','var(--gr)')+'</div>'
+    +'<div style="'+card+'"><div style="'+ttl+'">Dispozitive</div>'+bars(v.devices,'visitors','var(--navy)')+'</div>'
+    +(v.campaigns.length?'<div style="'+card+'"><div style="'+ttl+'">Campanii (utm_campaign)</div>'+bars(v.campaigns,'visitors','var(--acc)')+'</div>':'')
+    +'</div>';
+  }catch(e){el.innerHTML='<div style="color:var(--mu);">Eroare la încărcarea vizitelor: '+esc(e.message)+'</div>';}
 }
 
 async function loadGrafice(containerId){
@@ -2294,6 +2372,10 @@ async function loadGrafice(containerId){
     document.getElementById('as-p').textContent=s.pending_workers;
     document.getElementById('as-co').textContent=s.clients_online ?? 0;
     document.getElementById('as-wo').textContent=s.workers_online ?? 0;
+    api('GET','/api/admin/visits?days=7').then(function(v){
+      document.getElementById('as-vt').textContent=v.today.visitors;
+      document.getElementById('as-v7').textContent=v.last7.visitors;
+    }).catch(function(){});
     // Show tw tab first
     const tw=document.getElementById('tw');
     if(tw)tw.style.display='block';
@@ -2873,6 +2955,7 @@ loadSvcGrid();
 
 // Modal close
 document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(function(){trackVisit('/home');},1200);
   var closeBtn = document.getElementById('wpm-close');
   if(closeBtn) closeBtn.addEventListener('click', function(){
     document.getElementById('worker-prices-modal').style.display='none';
