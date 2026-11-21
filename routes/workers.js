@@ -117,13 +117,13 @@ router.get('/me/profile', auth, requireRole('meserias'), async (req, res) => {
   try {
     const worker = await Worker.findOne({ user_id: req.user.id });
     if (!worker) return res.status(404).json({ error: 'Profil negăsit' });
-    res.json({ experience_years: worker.experience_years, bio: worker.bio, portfolio_photos: worker.portfolio_photos || [] });
+    res.json({ experience_years: worker.experience_years, bio: worker.bio, portfolio_photos: worker.portfolio_photos || [], pfa_name: worker.pfa_name || '', cui: worker.cui || '', fiscal_address: worker.fiscal_address || '' });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 router.patch('/me/profile', auth, requireRole('meserias'), async (req, res) => {
   try {
-    const { experience_years, bio, portfolio_photos } = req.body;
+    const { experience_years, bio, portfolio_photos, pfa_name, cui, fiscal_address } = req.body;
     const update = {};
     if (experience_years !== undefined) {
       const n = Number(experience_years);
@@ -132,9 +132,14 @@ router.patch('/me/profile', auth, requireRole('meserias'), async (req, res) => {
     }
     if (bio !== undefined) update.bio = String(bio).slice(0, 500);
     if (Array.isArray(portfolio_photos)) update.portfolio_photos = portfolio_photos.slice(0, 6);
+    // Date fiscale — necesare pentru ca platforma să poată emite automat (prin
+    // SmartBill) factura de comision către meșter, odată ce firma are CUI.
+    if (pfa_name !== undefined) update.pfa_name = String(pfa_name).slice(0, 200);
+    if (cui !== undefined) update.cui = String(cui).slice(0, 30);
+    if (fiscal_address !== undefined) update.fiscal_address = String(fiscal_address).slice(0, 300);
     const worker = await Worker.findOneAndUpdate({ user_id: req.user.id }, update, { new: true });
     if (!worker) return res.status(404).json({ error: 'Profil negăsit' });
-    res.json({ message: 'Profil actualizat ✓', experience_years: worker.experience_years, bio: worker.bio, portfolio_photos: worker.portfolio_photos });
+    res.json({ message: 'Profil actualizat ✓', experience_years: worker.experience_years, bio: worker.bio, portfolio_photos: worker.portfolio_photos, pfa_name: worker.pfa_name, cui: worker.cui, fiscal_address: worker.fiscal_address });
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
