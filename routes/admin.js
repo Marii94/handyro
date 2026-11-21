@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User, Worker, Price, Job, Message, Conversation } = require('../db');
+const { User, Worker, Price, Job, Message, Conversation, Visit } = require('../db');
 const { auth, requireRole } = require('../middleware/auth');
 const { sendEmail } = require('../services/notify');
 
@@ -21,6 +21,59 @@ router.get('/stats', async (req, res) => {
       workers_online: await User.countDocuments({ role: 'meserias', last_seen: { $gte: onlineSince } }),
     });
   } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// Statistici vizite: ?days=7|30|90
+router.get('/visits', async (req, res) => {
+  try {
+    const days = Math.min(90, Math.max(1, parseInt(req.query.days) || 30));
+    const fmt = d => d.toLocaleDateString('sv-SE', { timeZone: 'Europe/Bucharest' });
+    const list = [];
+    for (let i = days - 1; i >= 0; i--) list.push(fmt(new Date(Date.now() - i * 86400000)));
+    const since = list[0];
+    const match = { $match: { day: { $gte: since } } };
+
+    const daily = await Visit.aggregate([
+      match,
+      { $group: { _id: { day: '$day', vid: '$vid' }, pv: { $sum: 1 } } },
+      { $group: { _id: '$_id.day', visitors: { $sum: 1 }, pageviews: { $sum: '$pv' } } },
+    ]);
+    const byDay = Object.fromEntries(daily.map(d => [d._id, d]));
+    const series = list.map(day => ({ day, visitors: byDay[day]?.visitors || 0, pageviews: byDay[day]?.pageviews || 0 }));
+
+    const uniq = async (field) => Visit.aggregate([
+      match,
+      { $group: { _id: { k: '$' + field, vid: '$vid', day: '$day' } } },
+      { $group: { _id: '$_id.k', visitors: { $sum: 1 } } },
+      { $sort: { visitors: -1 } }, { $limit: 8 },
+    ]);
+    const sources = (await uniq('source')).map(x => ({ name: x._id || 'Direct', visitors: x.visitors }));
+    const devices = (await uniq('device')).map(x => ({ name: x._id, visitors: x.visitors }));
+    const campaigns = (await Visit.aggregate([
+      { $match: { day: { $gte: since }, campaign: { $ne: '' } } },
+      { $group: { _id: { k: '$campaign', vid: '$vid', day: '$day' } } },
+      { $group: { _id: '$_id.k', visitors: { $sum: 1 } } },
+      { $sort: { visitors: -1 } }, { $limit: 8 },
+    ])).map(x => ({ name: x._id, visitors: x.visitors }));
+    const pages = (await Visit.aggregate([
+      match, { $group: { _id: '$path', pageviews: { $sum: 1 } } }, { $sort: { pageviews: -1 } }, { $limit: 8 },
+    ])).map(x => ({ name: x._id, pageviews: x.pageviews }));
+
+    const today = list[list.length - 1];
+    const sum = (arr, k) => arr.reduce((a, b) => a + b[k], 0);
+    const last7 = series.slice(-7);
+    const sinceDate = new Date(Date.now() - days * 86400000);
+    res.json({
+      days, series, sources, devices, campaigns, pages,
+      today: series[series.length - 1],
+      last7: { visitors: sum(last7, 'visitors'), pageviews: sum(last7, 'pageviews') },
+      total: { visitors: sum(series, 'visitors'), pageviews: sum(series, 'pageviews') },
+      signups: {
+        workers: await User.countDocuments({ role: 'meserias', createdAt: { $gte: sinceDate } }),
+        clients: await User.countDocuments({ role: { $in: ['client', 'horeca'] }, createdAt: { $gte: sinceDate } }),
+      },
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 router.get('/users', async (req, res) => {
