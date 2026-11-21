@@ -35,6 +35,7 @@ const WorkerSchema = new mongoose.Schema({
   available: { type: Boolean, default: true },
   pfa_name: { type: String, default: '' },
   cui: { type: String, default: '' },
+  fiscal_address: { type: String, default: '' },
   iban: { type: String, default: '' },
   referral_source: { type: String, default: null },
   experience_years: { type: Number, default: null },
@@ -75,6 +76,13 @@ const JobSchema = new mongoose.Schema({
   cash_commission_lei: { type: Number, default: null },
   cash_commission_due_date: { type: Date, default: null },
   cash_commission_paid: { type: Boolean, default: false },
+  // Factura fiscală SmartBill emisă de platformă către meșter, pentru comisionul
+  // de intermediere. Rămâne 'none' până firma are CUI + cont SmartBill activ.
+  invoice_status: { type: String, enum: ['none', 'issued', 'error'], default: 'none' },
+  invoice_series: { type: String, default: null },
+  invoice_number: { type: String, default: null },
+  invoice_pdf_url: { type: String, default: null },
+  invoice_error: { type: String, default: null },
 }, { timestamps: true });
 
 const ConversationSchema = new mongoose.Schema({
@@ -268,4 +276,18 @@ const WorkerSubcatPriceSchema = new mongoose.Schema({
 WorkerSubcatPriceSchema.index({ worker_id: 1, subcat_id: 1 }, { unique: true });
 const WorkerSubcatPrice = mongoose.model('WorkerSubcatPrice', WorkerSubcatPriceSchema);
 
-module.exports = { User, Worker, Price, Job, Conversation, Message, Review, SubcatPrice, ContactMsg, WorkerSubcatPrice, CATEGORIES };
+// Vizite pe site (statistici anonime, fără cookie-uri și fără IP stocat).
+// "vid" = hash(IP + browser + zi) → același om e numărat o singură dată pe zi,
+// dar nu poate fi urmărit de la o zi la alta. Se șterg automat după 180 de zile.
+const VisitSchema = new mongoose.Schema({
+  day: { type: String, index: true },      // YYYY-MM-DD (ora României)
+  vid: String,
+  path: { type: String, default: '/' },
+  source: { type: String, default: 'Direct' },
+  campaign: { type: String, default: '' },
+  device: { type: String, default: 'desktop' },
+  createdAt: { type: Date, default: Date.now, expires: 60 * 60 * 24 * 180 },
+});
+const Visit = mongoose.model('Visit', VisitSchema);
+
+module.exports = { User, Worker, Price, Job, Conversation, Message, Review, SubcatPrice, ContactMsg, WorkerSubcatPrice, CATEGORIES, Visit };
