@@ -5,6 +5,7 @@ const { auth, requireRole } = require('../middleware/auth');
 const { notifyAdmin, sendEmail } = require('../services/notify');
 const PDFDocument = require('pdfkit');
 const { captureHold, cancelHold, retrieveIntent } = require('../services/stripe');
+const smartbill = require('../services/smartbill');
 
 router.post('/', auth, requireRole('client', 'horeca'), async (req, res) => {
   try {
@@ -166,6 +167,30 @@ router.get('/:id/receipt', auth, async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// Factura fiscală SmartBill (comision platformă → meșter), dacă a fost emisă.
+// Accesibilă adminului și meșterului căruia i-a fost emisă.
+router.get('/:id/invoice', auth, async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ error: 'Job negăsit' });
+
+    let isWorker = false;
+    if (job.worker_id) {
+      const w = await Worker.findById(job.worker_id);
+      isWorker = w && String(w.user_id) === String(req.user.id);
+    }
+    if (!isWorker && req.user.role !== 'admin') return res.status(403).json({ error: 'Nu ai acces la această factură.' });
+    if (job.invoice_status !== 'issued' || !job.invoice_series || !job.invoice_number) {
+      return res.status(400).json({ error: 'Nu există încă o factură emisă pentru acest job.', status: job.invoice_status, reason: job.invoice_error || null });
+    }
+
+    const pdfBuffer = await smartbill.getInvoicePdfBuffer(job.invoice_series, job.invoice_number);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="factura-${job.invoice_series}${job.invoice_number}.pdf"`);
+    res.send(pdfBuffer);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 router.get('/', auth, async (req, res) => {
   try {
     let jobs;
@@ -288,6 +313,32 @@ router.patch('/:id/complete', auth, requireRole('meserias'), async (req, res) =>
         `Comision datorat platformei: ${job.cash_commission_lei} lei\n` +
         `Termen de plată (virament bancar): ${deadline.toLocaleDateString('ro-RO')} (15 zile)`
       ).catch(() => {});
+
+      // Factură fiscală SmartBill pentru comision — se emite automat DOAR dacă
+      // firma are deja CUI + cont SmartBill setat (variabile de mediu SMARTBILL_*).
+      // Până atunci rămâne 'none' și nu blochează nimic din flux.
+      if (smartbill.isConfigured()) {
+        try {
+          const inv = await smartbill.createCommissionInvoice({
+            worker,
+            commissionLei: job.cash_commission_lei,
+            jobLabel: `${job.category}${job.subcat_name ? ' — ' + job.subcat_name : ''}`,
+          });
+          if (inv.skipped) {
+            job.invoice_status = 'error';
+            job.invoice_error = inv.reason === 'missing_cui' ? 'Meșterul nu are CUI completat în profil.' : 'Integrare SmartBill neconfigurată.';
+          } else {
+            job.invoice_status = 'issued';
+            job.invoice_series = inv.series;
+            job.invoice_number = inv.number;
+            job.invoice_pdf_url = inv.pdfUrl;
+          }
+        } catch (e) {
+          console.error('[jobs] Eroare la emiterea facturii SmartBill:', e.message);
+          job.invoice_status = 'error';
+          job.invoice_error = e.message;
+        }
+      }
     }
 
     await job.save();
