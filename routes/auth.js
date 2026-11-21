@@ -58,6 +58,7 @@ const horeca_type = req.body.horeca_type || '';
       const pfa_name = req.body.pfa_name || '';
       const cui = req.body.cui || '';
       const iban = req.body.iban || '';
+      const fiscal_address = req.body.fiscal_address || '';
       const referral_source = req.body.referral_source || null;
       await Worker.create({
         user_id: user._id,
@@ -67,6 +68,7 @@ const horeca_type = req.body.horeca_type || '';
         pfa_name,
         cui,
         iban,
+        fiscal_address,
         referral_source,
       });
       notifyAdmin(
