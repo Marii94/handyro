@@ -71,6 +71,63 @@ app.get('/api/stats/grafice', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Statistici vizite (anonime) ───────────────────────────────────────────────
+// Trebuie să fie ÎNAINTE de app.get('*', ...)
+const crypto = require('crypto');
+const BOT_RE = /bot|crawl|spider|slurp|facebookexternalhit|preview|monitor|uptime|lighthouse|headless|curl|wget|python|axios|node-fetch|go-http|render/i;
+const trackHits = new Map(); // limitare simplă: max 40 evenimente/minut/IP
+const bucharestDay = (d = new Date()) => d.toLocaleDateString('sv-SE', { timeZone: 'Europe/Bucharest' });
+
+function sourceFrom(ref, utm) {
+  if (utm) return String(utm).toLowerCase().slice(0, 30);
+  if (!ref) return 'Direct';
+  let host = '';
+  try { host = new URL(ref).hostname.replace(/^(www|m|l|lm|mobile)\./, '').toLowerCase(); } catch (e) { return 'Direct'; }
+  if (!host || host.endsWith('handyro.ro')) return 'Direct';
+  if (/tiktok\./.test(host)) return 'tiktok';
+  if (/instagram\.|^l\.instagram/.test(host)) return 'instagram';
+  if (/facebook\.|fb\.com|fb\.me/.test(host)) return 'facebook';
+  if (/google\./.test(host)) return 'google';
+  if (/olx\./.test(host)) return 'olx';
+  if (/whatsapp\./.test(host)) return 'whatsapp';
+  return host.slice(0, 40);
+}
+
+app.post('/api/track', async (req, res) => {
+  res.status(204).end(); // răspundem imediat, nu încetinim site-ul
+  try {
+    const ua = String(req.headers['user-agent'] || '');
+    if (!ua || BOT_RE.test(ua)) return;
+    const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+    const now = Date.now();
+    const hit = trackHits.get(ip) || { n: 0, t: now };
+    if (now - hit.t > 60000) { hit.n = 0; hit.t = now; }
+    if (++hit.n > 40) { trackHits.set(ip, hit); return; }
+    trackHits.set(ip, hit);
+    if (trackHits.size > 5000) trackHits.clear();
+    // nu numărăm vizitele adminului
+    try {
+      const token = req.cookies?.token || req.headers?.authorization?.split(' ')[1];
+      if (token) {
+        const dec = require('jsonwebtoken').verify(token, process.env.JWT_SECRET || 'handyro_secret_2026');
+        if (dec.role === 'admin') return;
+      }
+    } catch (e) {}
+    const { path: p, ref, utm_source, utm_campaign } = req.body || {};
+    const day = bucharestDay();
+    const salt = process.env.JWT_SECRET || 'handyro_secret_2026';
+    const vid = crypto.createHash('sha256').update(salt + day + ip + ua).digest('hex').slice(0, 20);
+    const { Visit } = require('./db');
+    await Visit.create({
+      day, vid,
+      path: String(p || '/').slice(0, 60),
+      source: sourceFrom(ref, utm_source),
+      campaign: String(utm_campaign || '').slice(0, 40),
+      device: /mobi|android|iphone|ipad/i.test(ua) ? 'mobil' : 'desktop',
+    });
+  } catch (e) {}
+});
+
 // ── Contact messages ──────────────────────────────────────────────────────────
 // IMPORTANT: aceste rute trebuie să fie ÎNAINTE de app.get('*', ...)
 const { ContactMsg } = require('./db');
