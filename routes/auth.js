@@ -30,6 +30,7 @@ router.post('/register', async (req, res) => {
     if (!name || !email || !password) return res.status(400).json({ error: 'Câmpuri lipsă' });
     if(!['client','meserias','admin','horeca'].includes(role)) return res.status(400).json({ error: 'Rol invalid' });
     if (role === 'meserias' && !String(req.body.pfa_name || '').trim()) return res.status(400).json({ error: 'Pentru a lucra pe HandyRO ai nevoie de PFA sau SRL. Completează numele lui.' });
+    if (role !== 'admin' && !/^(\+?40|0)7\d{8}$/.test(String(req.body.phone || '').replace(/[\s.\-()]/g, ''))) return res.status(400).json({ error: 'Introdu un număr de telefon valid (ex: 07xxxxxxxx).' });
     const existing = await User.findOne({ email: email.toLowerCase().trim() });
     if (existing) return res.status(409).json({ error: 'Email-ul este deja înregistrat' });
     const status = role === 'meserias' ? 'pending' : 'active';
