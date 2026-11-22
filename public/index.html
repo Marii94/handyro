@@ -856,7 +856,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
         </div>
       </div>
     </div>
-    <div class="fg" id="mes-phone-wrap" style="display:none"><label>Numărul tău de telefon</label><input type="text" id="mes-phone" placeholder="07xxxxxxxx"/></div>
+    <div class="fg" id="mes-phone-wrap" style="display:none"><label>Număr de telefon *</label><input type="text" id="mes-phone" placeholder="07xxxxxxxx"/></div>
     <div class="fg" id="mes-pfa-wrap" style="display:none"><label>PFA sau SRL <span style="color:var(--acc);">*</span> <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(obligatoriu pentru meșteri)</span></label><input type="text" id="mes-pfa" placeholder="Numele PFA-ului / SRL-ului tău"/></div>
     <div class="fg" id="horeca-name-wrap" style="display:none"><label>Numele restaurantului</label><input type="text" id="horeca-name" placeholder="Ex: Restaurant La Mama"/></div>
 <div class="fg" id="horeca-type-wrap" style="display:none"><label>Tip unitate</label><select id="horeca-type"><option value="restaurant">Restaurant</option><option value="cafenea">Cafenea</option><option value="hotel">Hotel</option><option value="bar">Bar</option><option value="alt">Alt tip</option></select></div>
@@ -1702,6 +1702,7 @@ function rm(){
   document.getElementById('mrg').style.display=l?'none':'flex';
   document.getElementById('mterms-wrap').style.display=l?'none':'flex';
   if(!l)document.getElementById('mterms').checked=false;
+  if(!l)toggleMesCat(document.getElementById('mr').value);else document.getElementById('mes-phone-wrap').style.display='none';
   document.getElementById('mtog').innerHTML=l?'Nu ai cont? <a onclick="tm2()">Înregistrează-te gratuit</a>':'Ai deja cont? <a onclick="tm2()">Intră în cont</a>';
 }
 function tm2(){mm=mm==='login'?'register':'login';document.getElementById('merr').style.display='none';rm();}
@@ -1710,7 +1711,7 @@ function toggleMesCat(v){
   var isHoreca=v==='horeca';
   document.getElementById('mes-city-wrap').style.display=isMes?'flex':'none';
   document.getElementById('mes-cats-wrap').style.display=isMes?'flex':'none';
-  document.getElementById('mes-phone-wrap').style.display=isMes?'flex':'none';
+  document.getElementById('mes-phone-wrap').style.display=v==='admin'?'none':'flex';
   document.getElementById('mes-pfa-wrap').style.display=isMes?'flex':'none';
   document.getElementById('horeca-name-wrap').style.display=isHoreca?'flex':'none';
   document.getElementById('horeca-type-wrap').style.display=isHoreca?'flex':'none';
@@ -1734,7 +1735,8 @@ async function subm(){
       const name=document.getElementById('mn').value.trim();const role=document.getElementById('mr').value;
       const cats=Array.from(document.querySelectorAll('#mes-cats-grid input:checked')).map(function(c){return c.value;});
       const specialization=role==='meserias'?(cats.length>1?'Toate categoriile':(cats[0]||'General')):'';
-         const mesPhone=role==='meserias'?(document.getElementById('mes-phone')?.value.trim()||''):'';
+         const mesPhone=(document.getElementById('mes-phone')?.value.trim()||'');
+      if(role!=='admin'&&!/^(\+?40|0)7\d{8}$/.test(mesPhone.replace(/[\s.\-()]/g,''))){toast('Introdu un număr de telefon valid (ex: 07xxxxxxxx).');btn.disabled=false;return;}
       const mesPfa=role==='meserias'?(document.getElementById('mes-pfa')?.value.trim()||''):'';
       if(role==='meserias'&&!cats.length){toast('Alege cel puțin o categorie!');btn.disabled=false;return;}
       if(role==='meserias'&&!mesPfa){toast('Pentru a lucra pe HandyRO ai nevoie de PFA sau SRL. Completează numele lui.');btn.disabled=false;return;}
@@ -2502,14 +2504,14 @@ async function loadAW(){ loadGrafice('admin-grafice');
     wtbl+='</tbody></table>';
     document.getElementById('tw').innerHTML=wtbl;
     var cs=us.filter(function(u){return u.role==='client';});
-    var ctbl='<table><thead><tr><th>Client</th><th>Email</th><th>Status</th><th>Actiuni</th></tr></thead><tbody>';
+    var ctbl='<table><thead><tr><th>Client</th><th>Email</th><th>Telefon</th><th>Status</th><th>Actiuni</th></tr></thead><tbody>';
     cs.forEach(function(c){
       var cid=String(c._id||c.id);
       var statusCls=c.status==='active'?'sb-a':'sb-b';
       var actHtml=c.status!=='blocked'
         ?'<button class="btn bt-re bt-sm" data-uid="'+cid+'" data-st="blocked" data-bid="sb-'+cid+'" onclick="handleSst(this)"><i class="ti ti-ban"></i> Blocheaza</button>'
         :'<button class="btn bt-gh bt-sm" data-uid="'+cid+'" data-st="active" data-bid="sb-'+cid+'" onclick="handleSst(this)"><i class="ti ti-lock-open"></i> Activeaza</button>';
-      ctbl+='<tr><td><strong>'+esc(c.name)+'</strong></td><td>'+esc(c.email)+'</td>';
+      ctbl+='<tr><td><strong>'+esc(c.name)+'</strong></td><td>'+esc(c.email)+'</td><td>'+esc(c.phone||'-')+'</td>';
       ctbl+='<td><span class="sb '+statusCls+'" id="sb-'+cid+'">'+esc(c.status)+'</span></td>';
       ctbl+='<td>'+actHtml+'</td></tr>';
     });
@@ -2723,7 +2725,7 @@ async function delJ(id){
       });
       workerSelect+='</select>';
       html+='<tr>';
-      html+='<td><strong>'+esc(h.horeca_name||h.name)+'</strong><br><span style="font-size:11px;color:var(--mu);">'+esc(h.email)+'</span></td>';
+      html+='<td><strong>'+esc(h.horeca_name||h.name)+'</strong><br><span style="font-size:11px;color:var(--mu);">'+esc(h.email)+'</span><br><span style="font-size:11px;color:var(--mu);">📞 '+esc(h.phone||'-')+'</span></td>';
       html+='<td style="font-size:12px;">'+esc(h.horeca_type||'-')+'</td>';
       html+='<td style="font-size:12px;">'+esc(h.city||'București')+'</td>';
       html+='<td>'+workerSelect+'</td>';
