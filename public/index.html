@@ -807,6 +807,12 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
   </div>
 </div>
 <!-- MODAL -->
+<div class="mov" id="wdov" onclick="if(event.target===this)closeWorkerDetail()">
+  <div class="mb2" style="max-width:580px;position:relative;">
+    <button class="btn bt-gh" style="position:absolute;top:12px;right:12px;padding:4px 10px;" onclick="closeWorkerDetail()">&times;</button>
+    <div id="wdbody"></div>
+  </div>
+</div>
 <div class="mov" id="mov">
   <div class="mb2">
     <div class="ml">Handy<span class="dot">RO</span></div>
@@ -851,7 +857,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
       </div>
     </div>
     <div class="fg" id="mes-phone-wrap" style="display:none"><label>Numărul tău de telefon</label><input type="text" id="mes-phone" placeholder="07xxxxxxxx"/></div>
-    <div class="fg" id="mes-pfa-wrap" style="display:none"><label>PFA sau SRL <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(opțional, doar dacă ai)</span></label><input type="text" id="mes-pfa" placeholder="Numele firmei / PFA-ului tău"/></div>
+    <div class="fg" id="mes-pfa-wrap" style="display:none"><label>PFA sau SRL <span style="color:var(--acc);">*</span> <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(obligatoriu pentru meșteri)</span></label><input type="text" id="mes-pfa" placeholder="Numele PFA-ului / SRL-ului tău"/></div>
     <div class="fg" id="horeca-name-wrap" style="display:none"><label>Numele restaurantului</label><input type="text" id="horeca-name" placeholder="Ex: Restaurant La Mama"/></div>
 <div class="fg" id="horeca-type-wrap" style="display:none"><label>Tip unitate</label><select id="horeca-type"><option value="restaurant">Restaurant</option><option value="cafenea">Cafenea</option><option value="hotel">Hotel</option><option value="bar">Bar</option><option value="alt">Alt tip</option></select></div>
     
@@ -1731,6 +1737,7 @@ async function subm(){
          const mesPhone=role==='meserias'?(document.getElementById('mes-phone')?.value.trim()||''):'';
       const mesPfa=role==='meserias'?(document.getElementById('mes-pfa')?.value.trim()||''):'';
       if(role==='meserias'&&!cats.length){toast('Alege cel puțin o categorie!');btn.disabled=false;return;}
+      if(role==='meserias'&&!mesPfa){toast('Pentru a lucra pe HandyRO ai nevoie de PFA sau SRL. Completează numele lui.');btn.disabled=false;return;}
       const horecaname=role==='horeca'?(document.getElementById('horeca-name')?.value.trim()||''):'';
 const horecatype=role==='horeca'?(document.getElementById('horeca-type')?.value||'restaurant'):'';
 const cityZones=Array.from(document.querySelectorAll('.mes-city-cb:checked')).map(function(c){return c.value;});
@@ -2302,6 +2309,40 @@ if(tab==='texp')loadAdminExpenses();
 if(tab==='tvis')loadAdminVisits(30);
 }
 
+function closeWorkerDetail(){document.getElementById('wdov').classList.remove('on');document.body.style.overflow='';}
+function openWorkerDetail(wid){
+  var w=(window._admUsers||[]).find(function(x){return String(x.worker_id)===String(wid);});
+  if(!w){toast('Meșter negăsit.');return;}
+  var row=function(k,v){return '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--br);font-size:13px;"><div style="min-width:150px;color:var(--mu);">'+k+'</div><div style="color:var(--navy);font-weight:500;word-break:break-word;">'+(v||'<span style="color:var(--mu);font-weight:400;">—</span>')+'</div></div>';};
+  var sec=function(t){return '<div style="font-family:\'Syne\',sans-serif;font-size:13px;font-weight:700;color:var(--blue);margin:16px 0 4px;text-transform:uppercase;letter-spacing:.04em;">'+t+'</div>';};
+  var fmtD=function(d){return d?new Date(d).toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'}):'';};
+  var share=w.referral_source?0.7:0.8;
+  var pr=(w.prices||[]).map(function(p){return '<tr><td style="padding:4px 8px 4px 0;">'+esc(p.category)+'</td><td style="padding:4px 8px;font-weight:600;">'+esc(p.price)+' lei</td><td style="padding:4px 0 4px 8px;color:var(--gr);">'+(Math.round(p.price*share*100)/100)+' lei</td></tr>';}).join('');
+  var photos=(w.portfolio_photos||[]).map(function(u){return '<a href="'+esc(u)+'" target="_blank" rel="noopener"><img src="'+esc(u)+'" style="width:74px;height:74px;object-fit:cover;border-radius:8px;border:1px solid var(--br);" alt="Poză portofoliu"/></a>';}).join('');
+  var html='<div style="font-family:\'Syne\',sans-serif;font-size:20px;font-weight:800;color:var(--navy);padding-right:40px;">'+esc(w.name)+'</div>'
+   +'<div style="font-size:12px;color:var(--mu);margin-top:2px;">Status cont: <b>'+esc(w.status)+'</b>'+(w.referral_source?' · via '+esc(w.referral_source):'')+'</div>'
+   +sec('Firmă (PFA / SRL)')
+   +row('Nume PFA / SRL',esc(w.pfa_name||''))+row('CUI',esc(w.cui||''))+row('Adresă fiscală',esc(w.fiscal_address||''))+row('IBAN',esc(w.iban||''))
+   +'<div style="margin-top:8px;font-size:12px;color:var(--mu);">Verifică insolvența: <a href="https://portal.just.ro" target="_blank" rel="noopener" style="color:var(--blue);">portal.just.ro</a> · <a href="https://www.bpi.ro" target="_blank" rel="noopener" style="color:var(--blue);">BPI</a>'+(w.cui?' · caută după CUI '+esc(w.cui):' · cere-i CUI-ul')+'</div>'
+   +sec('Contact')
+   +row('Email',esc(w.email||''))+row('Telefon',esc(w.phone||''))+row('Zone',esc(w.city||''))
+   +sec('Activitate')
+   +row('Categorii',esc((w.categories&&w.categories.length?w.categories.join(', '):w.specialization)||''))
+   +row('Experiență',w.experience_years!=null?esc(w.experience_years)+' ani':'')
+   +row('Rating',esc(String(w.rating||5))+' ('+esc(String(w.reviews_count||0))+' recenzii)')
+   +row('Lucrări',esc(String(w.jobs_completed||0))+' finalizate din '+esc(String(w.jobs_total||0)))
+   +row('Avertismente',esc(String(w.strikes||0))+'/3')
+   +row('Plăți Stripe',w.stripe_payouts_enabled?'activate':(w.stripe_account_id?'cont creat, neterminat':'neconfigurat'))
+   +row('Înscris la',fmtD(w.created_at))+row('Ultima activitate',fmtD(w.last_seen))
+   +(w.bio?sec('Despre el')+'<div style="font-size:13px;color:var(--navy);line-height:1.5;">'+esc(w.bio)+'</div>':'')
+   +sec('Prețuri')
+   +(pr?'<table style="font-size:13px;color:var(--navy);width:100%;"><tr style="color:var(--mu);font-size:11px;"><td>Categorie</td><td>Preț pe site</td><td>Primește meșterul ('+Math.round(share*100)+'%)</td></tr>'+pr+'</table>':'<div style="font-size:13px;color:var(--mu);">Nu are prețuri setate.</div>')
+   +(photos?sec('Poze portofoliu')+'<div style="display:flex;gap:8px;flex-wrap:wrap;">'+photos+'</div>':'');
+  document.getElementById('wdbody').innerHTML=html;
+  document.getElementById('wdov').classList.add('on');
+  document.body.style.overflow='hidden';
+}
+
 async function loadAdminVisits(days){
   var el=document.getElementById('tvis');
   if(!el)return;
@@ -2406,6 +2447,7 @@ async function saveWorkerZones(btn){
 async function loadAW(){ loadGrafice('admin-grafice');
   try{
     var us=await api('GET','/api/admin/users');
+    window._admUsers=us;
     var ws=us.filter(function(u){return u.role==='meserias';});
     var cats=['Instalatii sanitare','Instalatii electrice','Renovari & zugraveli','Curatenie profesionala','Tamplarie & mobilier','Mentenanta generala'];
    var catsFull=['Instalații sanitare','Instalații electrice','Renovări & zugrăveală','Curățenie profesională','Tâmplărie & mobilier','Mentenanță generală'];
@@ -2439,7 +2481,7 @@ async function loadAW(){ loadGrafice('admin-grafice');
       var stripeBadge=w.stripe_payouts_enabled?' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#ECFDF5;color:#059669;font-weight:600;" title="Primește plățile automat">💳 Stripe ✓</span>':' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:#FEF2F2;color:#E24B4A;font-weight:600;" title="Plată manuală necesară">💳 neconectat</span>';
       var strikesN=w.strikes||0;
       var strikesBadge=strikesN>0?' <span style="font-size:10px;padding:2px 8px;border-radius:999px;background:'+(strikesN>=3?'#FEF2F2':'#FFF0EC')+';color:'+(strikesN>=3?'#991B1B':'#E24B4A')+';font-weight:700;">⚠️ '+strikesN+'/3</span>':'';
-      wtbl+='<td><strong>'+esc(w.name)+'</strong>'+refBadge+pfaBadge+stripeBadge+strikesBadge+'<br><span style="font-size:11px;color:var(--mu);">'+esc(w.email)+'</span><br><button class="btn bt-gh" style="padding:2px 8px;font-size:10px;margin-top:4px;color:#E24B4A;" onclick="addWorkerStrike(\''+(w.worker_id||'')+'\',\''+esc(w.name)+'\')">⚠️ Adaugă avertisment</button></td>';
+      wtbl+='<td><strong style="cursor:pointer;color:var(--blue);text-decoration:underline;" title="Vezi toate detaliile" onclick="openWorkerDetail(\''+(w.worker_id||'')+'\')">'+esc(w.name)+'</strong>'+refBadge+pfaBadge+stripeBadge+strikesBadge+'<br><span style="font-size:11px;color:var(--mu);">'+esc(w.email)+'</span><br><button class="btn bt-gh" style="padding:2px 8px;font-size:10px;margin-top:4px;color:#E24B4A;" onclick="addWorkerStrike(\''+(w.worker_id||'')+'\',\''+esc(w.name)+'\')">⚠️ Adaugă avertisment</button></td>';
       wtbl+='<td style="font-size:11px;color:var(--mu);">📞 '+esc(w.phone||'-')+'</td>';
       wtbl+='<td style="font-size:11px;color:var(--navy);">'+(w.categories&&w.categories.length?w.categories.map(esc).join('<br>'):esc(w.specialization||'-'))+'</td>';
 
