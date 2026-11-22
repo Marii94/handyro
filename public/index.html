@@ -241,9 +241,9 @@ table tr:hover td{background:var(--bg);}
 .pin{font-size:11px;padding:4px 8px;border:0.5px solid var(--br);border-radius:var(--rs);background:var(--bg);color:var(--navy);outline:none;font-family:'DM Sans',sans-serif;width:80px;}
 
 /* MODAL */
-.mov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
+.mov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px;}
 .mov.on{display:flex;}
-.mb2{background:var(--card);border-radius:22px;padding:2.25rem;width:100%;max-width:390px;box-shadow:0 24px 80px rgba(0,0,0,0.2);}
+.mb2{background:var(--card);border-radius:22px;padding:2.25rem;width:100%;max-width:390px;box-shadow:0 24px 80px rgba(0,0,0,0.2);margin:auto;}
 .ml{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--navy);margin-bottom:.2rem;}
 .ml .dot{color:var(--acc);}
 .ms{font-size:13px;color:var(--mu);margin-bottom:1.5rem;}
