@@ -82,6 +82,8 @@ router.get('/users', async (req, res) => {
     const result = await Promise.all(users.map(async u => {
       const w = await Worker.findOne({ user_id: u._id });
       const prices = w ? await Price.find({ worker_id: w._id }) : [];
+      const jobs_total = w ? await Job.countDocuments({ worker_id: w._id }) : 0;
+      const jobs_completed = w ? await Job.countDocuments({ worker_id: w._id, status: 'completed' }) : 0;
       return {
         _id: u._id,
         name: u.name,
@@ -96,6 +98,17 @@ router.get('/users', async (req, res) => {
         categories: w?.categories || [],
         referral_source: w?.referral_source || null,
         pfa_name: w?.pfa_name || null,
+        cui: w?.cui || '',
+        fiscal_address: w?.fiscal_address || '',
+        iban: w?.iban || '',
+        experience_years: w?.experience_years ?? null,
+        bio: w?.bio || '',
+        portfolio_photos: w?.portfolio_photos || [],
+        stripe_account_id: w?.stripe_account_id || null,
+        created_at: u.createdAt,
+        last_seen: u.last_seen || null,
+        jobs_total,
+        jobs_completed,
         stripe_payouts_enabled: !!w?.stripe_payouts_enabled,
         strikes: w?.strikes || 0,
         city: w?.city || '',
