@@ -445,28 +445,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
         <div><div class="fc-cat" id="fc-cat">Instalații sanitare</div><div class="fc-sub">Completează detaliile problemei tale</div></div>
       </div>
       <div class="fc-b">
-        <div class="fg">
-          <label>Descrie problema <span style="color:#E24B4A;">*</span></label>
-          <textarea id="prob-desc" placeholder="Ex: Robinetul din bucătărie curge continuu, am observat și o pată de umezeală sub chiuvetă..." maxlength="500" oninput="document.getElementById('cc').textContent=this.value.length"></textarea>
-          <div class="cc"><span id="cc">0</span>/500 caractere</div>
-        </div>
-        <div class="fg">
-          <label>Adaugă poze cu problema <span style="color:#E24B4A;">*</span> <span style="color:var(--mu);font-size:10px;">(obligatoriu, max 3)</span></label>
-          <div class="uz" id="uz" ondragover="dov(event,1)" ondragleave="dov(event,0)" ondrop="ddr(event)">
-            <input type="file" accept="image/*" multiple id="fi" onchange="onf(this.files)"/>
-            <i class="ti ti-camera-plus"></i>
-            <div class="uz-t">Apasă sau trage pozele aici</div>
-            <div class="uz-h">JPG, PNG — max 10MB per poză</div>
-          </div>
-          <div class="prev-grid" id="pg" style="display:none"></div>
-        </div>
-        <div class="fg">
-          <label>Urgența</label>
-          <div class="urg-row">
-            <div class="uo on" id="u-n" onclick="su('normal')"><div class="ud" style="background:#1A56DB;"></div><div><div class="ul">Normal</div><div class="us">În câteva ore</div></div></div>
-            <div class="uo" id="u-u" onclick="su('urgent')"><div class="ud" style="background:#E24B4A;"></div><div><div class="ul">Urgent</div><div class="us">Cât mai curând</div></div></div>
-          </div>
-        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Pasul 1 — Alege zona și meșterul</div>
         <div class="fg">
           <label>Sectorul / orașul tău <span style="color:#E24B4A;">*</span> <span style="color:var(--mu);font-size:10px;text-transform:none;letter-spacing:0;">(îți arătăm doar meșterii care lucrează acolo)</span></label>
           <select id="job-city" onchange="onJobCityChange()">
@@ -498,6 +477,32 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
               <option value="1 Decembrie (Ilfov)">1 Decembrie</option>
             </optgroup>
           </select>
+        </div>
+        <div class="ww" style="margin-bottom:14px;">
+          <div class="wh"><div class="wht" id="ww-t">Meseriași disponibili</div><div class="avb"><span class="avd"></span>Disponibili acum</div></div>
+          <div id="workers-list">Se încarcă...</div>
+        </div>
+        <div class="fg">
+          <label>Descrie problema <span style="color:#E24B4A;">*</span></label>
+          <textarea id="prob-desc" placeholder="Ex: Robinetul din bucătărie curge continuu, am observat și o pată de umezeală sub chiuvetă..." maxlength="500" oninput="document.getElementById('cc').textContent=this.value.length"></textarea>
+          <div class="cc"><span id="cc">0</span>/500 caractere</div>
+        </div>
+        <div class="fg">
+          <label>Adaugă poze cu problema <span style="color:#E24B4A;">*</span> <span style="color:var(--mu);font-size:10px;">(obligatoriu, max 3)</span></label>
+          <div class="uz" id="uz" ondragover="dov(event,1)" ondragleave="dov(event,0)" ondrop="ddr(event)">
+            <input type="file" accept="image/*" multiple id="fi" onchange="onf(this.files)"/>
+            <i class="ti ti-camera-plus"></i>
+            <div class="uz-t">Apasă sau trage pozele aici</div>
+            <div class="uz-h">JPG, PNG — max 10MB per poză</div>
+          </div>
+          <div class="prev-grid" id="pg" style="display:none"></div>
+        </div>
+        <div class="fg">
+          <label>Urgența</label>
+          <div class="urg-row">
+            <div class="uo on" id="u-n" onclick="su('normal')"><div class="ud" style="background:#1A56DB;"></div><div><div class="ul">Normal</div><div class="us">În câteva ore</div></div></div>
+            <div class="uo" id="u-u" onclick="su('urgent')"><div class="ud" style="background:#E24B4A;"></div><div><div class="ul">Urgent</div><div class="us">Cât mai curând</div></div></div>
+          </div>
         </div>
         <div class="fg">
           <label>Adresa exactă <span style="color:#E24B4A;">*</span></label>
@@ -541,10 +546,7 @@ footer{border-top:1px solid var(--br);padding:2rem;margin-top:2rem;}
             <div id="card-errors" style="color:#E24B4A;font-size:12px;margin-top:6px;"></div>
           </div>
         </div>
-        <div class="ww" style="margin-bottom:14px;">
-          <div class="wh"><div class="wht" id="ww-t">Meseriași disponibili</div><div class="avb"><span class="avd"></span>Disponibili acum</div></div>
-          <div id="workers-list">Se încarcă...</div>
-        </div>
+        <div id="job-summary" style="display:none;background:var(--bg);border:1px solid var(--br);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--navy);"></div>
         <button class="btn bt-bl" id="sub-btn" style="width:100%;justify-content:center;padding:11px;" onclick="submitJob()"><i class="ti ti-send"></i> Trimite cererea</button>
         <div class="ok" id="job-ok"><i class="ti ti-circle-check"></i><h3>Cerere trimisă cu succes!</h3><p id="ok-txt">Meșterul a primit cererea ta și îți va răspunde prin mesageria HandyRO.</p></div>
       </div>
@@ -946,6 +948,7 @@ function setPaymentMethod(method){
   document.getElementById('pm-card-fields').style.display = method==='card' ? 'block' : 'none';
   document.getElementById('pm-cash-warning').style.display = method==='cash' ? 'block' : 'none';
   if(method==='card') ensureCardMounted();
+  if(typeof renderJobSummary==='function') renderJobSummary();
 }
 let cardMounted = false;
 const payStripeElements = stripe.elements(); // grup separat — un grup Stripe Elements permite un singur element de tip 'card'
@@ -1268,6 +1271,7 @@ function su(u){
   if(u==='urgent'){ if(urgentSurcharge!==295) urgentSurcharge=195; } else { urgentSurcharge=0; }
   document.getElementById('u-n').classList.toggle('on',u==='normal');
   document.getElementById('u-u').classList.toggle('on',u==='urgent');
+  if(typeof updateSubBtn==='function') updateSubBtn();
   // Update price display if subcat selected
   if(selectedSubcat){
     const basePrice=selectedSubcat.price;
@@ -1520,13 +1524,14 @@ function renderSubcatsList(cat, subs) {
     urgDiv.parentNode.insertBefore(div, urgDiv);
 }
 
-async function showSubcats(cat) {
+async function showSubcats(cat, keepSel) {
   try {
     var url = '/api/subcats?category=' + encodeURIComponent(cat);
     // If worker selected, get worker-specific prices
     if (selectedWorkerId) url = '/api/worker-subcats/' + selectedWorkerId + '/' + encodeURIComponent(cat);
     const subs = await api('GET', url);
     renderSubcatsList(cat, subs);
+    if(keepSel) resyncSubcats(subs);
   } catch(e) {
     console.log('subcats error, folosesc lista locală de rezervă:', e);
     // Fallback la prețurile hardcodate local, ca subcategoriile să rămână vizibile
@@ -1534,6 +1539,19 @@ async function showSubcats(cat) {
     const fallback = SUBCATS[cat] || [];
     renderSubcatsList(cat, fallback);
   }
+}
+
+// După ce clientul alege meșterul, repunem prețurile LUI pe serviciile deja bifate
+function resyncSubcats(subs){
+  selectedSubcats = selectedSubcats.map(function(sel){
+    var i = subs.findIndex(function(x){return x.name===sel.name;});
+    if(i<0) return sel;
+    var b = document.getElementById('sb-'+i);
+    if(b){b.style.background='var(--bl)';b.style.borderColor='var(--blue)';}
+    return {name:sel.name, price:subs[i].price};
+  });
+  selectedSubcat = selectedSubcats.length>0 ? selectedSubcats[0] : null;
+  updateSubBtn();
 }
 
 function handleSelSubcat(btn){
@@ -1573,9 +1591,25 @@ function selSubcat(idx, name, price, cat) {
   updateSubBtn();
 }
 
+function renderJobSummary(){
+  var box=document.getElementById('job-summary'); if(!box) return;
+  if(!selectedWorkerId||!selectedSubcats.length){box.style.display='none';return;}
+  var pending=selectedSubcats.some(function(x){return isNaN(x.price);});
+  var rows=selectedSubcats.map(function(x){return '<div style="display:flex;justify-content:space-between;gap:8px;padding:2px 0;"><span>'+esc(x.name)+'</span><strong>'+(isNaN(x.price)?'preț stabilit cu adminul':x.price+' lei')+'</strong></div>';}).join('');
+  if(urg==='urgent'&&urgentSurcharge) rows+='<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>Taxă urgență</span><strong>'+urgentSurcharge+' lei</strong></div>';
+  var total=selectedSubcats.reduce(function(a,x){return a+(isNaN(x.price)?0:x.price);},0)+(urg==='urgent'?urgentSurcharge:0);
+  var pm=(selectedPaymentMethod==='cash')?'Cash':'Card (suma se blochează, se reține doar după finalizare)';
+  box.innerHTML='<div style="font-size:11px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Confirmă comanda</div>'
+    +'<div style="margin-bottom:6px;">Meșter: <strong>'+esc(selectedWorkerName)+'</strong></div>'+rows
+    +(pending?'':'<div style="display:flex;justify-content:space-between;border-top:1px solid var(--br);margin-top:6px;padding-top:6px;font-size:15px;"><span>Total manoperă</span><strong>'+total+' lei</strong></div>')
+    +'<div style="font-size:11px;color:var(--mu);margin-top:6px;">Plată: '+pm+'. Materialele se achită separat, direct meșterului.</div>';
+  box.style.display='block';
+}
+
 function updateSubBtn() {
   var btn = document.getElementById('sub-btn');
   if(!btn) return;
+  renderJobSummary();
   if(!selectedWorkerId){
     btn.innerHTML='<i class="ti ti-send"></i> Alege un meșter mai întâi';
     btn.disabled=true;
@@ -1600,8 +1634,10 @@ function updateSubBtn() {
 }
 
 let selectedWorkerId = null;
+let selectedWorkerName='';
 function selectWorker(wid, price, name){
   selectedWorkerId = wid;
+  selectedWorkerName = name;
   // Highlight selected
   document.querySelectorAll('.wr').forEach(r=>r.style.background='');
   document.getElementById('sub-btn').innerHTML='<i class="ti ti-send"></i> Trimite cererea către '+esc(name);
@@ -1609,7 +1645,8 @@ function selectWorker(wid, price, name){
   document.getElementById('payment-wrap').style.display='flex';
   setPaymentMethod('card');
   updateSubBtn();
-  toast('Meșter selectat: '+name+' — '+price+' lei/lucrare');
+  if(curCat) showSubcats(curCat, true);
+  toast('Meșter selectat: '+name+'. Acum alege serviciile.');
 }
 
 async function submitJob(){
