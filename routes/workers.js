@@ -20,6 +20,14 @@ router.get('/', async (req, res) => {
         if (!zones.includes(city)) return null;
       }
 
+      // Arătăm meșterul doar la categoriile pe care le face. Conturile vechi fără
+      // categorii salvate: folosim specializarea (sau toate, dacă e 'Toate categoriile'/'General').
+      if (category) {
+        const own = (w.categories && w.categories.length) ? w.categories
+          : (['Toate categoriile', 'General', ''].includes(w.specialization || '') ? null : [w.specialization]);
+        if (own && !own.includes(category)) return null;
+      }
+
       let price = null;
       if (category) {
   const priceDoc = await Price.findOne({ worker_id: w._id, category });
